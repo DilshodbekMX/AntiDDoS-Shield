@@ -1,0 +1,113 @@
+{
+    "ip_lists": {
+        "max_whitelist_entries": 10000,
+        "max_blacklist_entries": 100000,
+        "max_protected_entries": 1000,
+        "max_whitelist_cidrs": 1000,
+        "enforce_protected_ips": false
+    },
+    "flow_table": {
+        "max_flows": 1000000,
+        "idle_timeout_sec": 60,
+        "syn_timeout_sec": 5,
+        "default_pps_limit": 0,
+        "default_bps_limit": 0,
+        "enable_syn_protection": true
+    },
+    "syn_proxy": {
+        "enabled": true,
+        "max_connections": 1000000,
+        "connect_timeout_ms": 5000,
+        "idle_timeout_sec": 300,
+        "secret_rotation_sec": 60
+    },
+    "syn_cookie": {
+        "enabled": true,
+        "challenge_threshold": 1000
+    },
+    "connection_limits": {
+        "max_ips": 100000,
+        "max_connections_per_ip": 1000,
+        "time_window_sec": 60,
+        "cleanup_interval_sec": 30
+    },
+    "udp_gatekeeper": {
+        "pps_threshold": 10000,
+        "bps_threshold": 10485760,
+        "cms_width": 65536,
+        "cms_depth": 4,
+        "window_sec": 1,
+        "check_reputation": true,
+        "reputation_threshold": 200,
+        "check_blacklist": true,
+        "attack_pps_divisor": 4,
+        "attack_bps_divisor": 4
+    },
+    "telemetry": {
+        "db_path": "/tmp/layer1_telemetry.db",
+        "export_interval_sec": 5,
+        "max_flow_records": 4096,
+        "flow_sample_rate": 100,
+        "export_packet_samples": false,
+        "events_enabled": true
+    },
+    "validation": {
+        "validate_ip_checksum": true,
+        "validate_udp_checksum": true,
+        "validate_tcp_checksum": false,
+        "drop_invalid_src_ip": true,
+        "drop_land_attack": true,
+        "drop_tcp_null": true,
+        "drop_tcp_xmas": true,
+        "drop_zero_ttl": true,
+        "drop_fragments": false,
+        "decrement_ttl": false
+    },
+    "rate_limits": {
+        "global_pps_limit": 0,
+        "global_bps_limit": 0,
+        "normal_pps_per_ip": 10000,
+        "normal_bps_per_ip": 100000000,
+        "attack_pps_per_ip": 1000,
+        "attack_bps_per_ip": 10000000,
+        "dynamic_enabled": true,
+        "anomaly_detection_window": 10
+    },
+    "ports": {
+        "client_facing_port": 0,
+        "server_facing_port": 1
+    },
+    "maintenance": {
+        "flow_age_interval_sec": 1,
+        "secret_rotation_sec": 60,
+        "stats_print_interval_sec": 0
+    },
+    "geo_blocking": {
+        "enabled": false,
+        "mode": "blacklist",
+        "database_path": "/var/lib/antiddos/geoip/GeoLite2-Country.mmdb",
+        "blocked_countries": [],
+        "allowed_countries": [],
+        "log_blocked": true
+    },
+    "other_protocols": {
+        "enabled": true,
+        "default_action": "drop",
+        "allowed_protocols": [
+            47,
+            50,
+            51
+        ],
+        "rate_limit_pps": 1000,
+        "log_unknown": true
+    },
+    "signatures": {
+        "enabled": true,
+        "log_matches": true,
+        "block_amplification": true,
+        "block_scans": true
+    },
+    "log_level": 7,
+    "stats_enabled": true,
+    "monitor_only": false
+}

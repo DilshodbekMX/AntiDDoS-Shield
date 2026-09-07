@@ -1,0 +1,123 @@
+% Competitor citations for the corrected comparison table.
+% EVERY entry below was resolved against Crossref via DOI content negotiation on
+% 2026-08-27; authors, venue, year and page range are as returned by the
+% registrar, not copied from any reflist. Siffer2017Anomaly was previously noted
+% here as living in paper/references.bib; no such file exists anywhere in the
+% tree (`find . -name '*.bib'` returns this file only), so the entry is now
+% carried here. Its DOI was resolved against Crossref on 2026-08-31 and the
+% returned title, four authors, venue, year and page range (1067-1075) match the
+% range already recorded in README.md's detector table and
+% post2023_competitors.py:213.
+%
+% TRAP: a web search for COPOD commonly returns 10.1109/ICDM50108.2020.00139.
+% That DOI resolves to "Technical Phrase Extraction for Patent Mining" (Liu et
+% al., pp. 1142-1147). COPOD is ...00135. Verified by resolution, both ways.
+%
+% NOTE on years: ECOD and DIF are BOTH IEEE TKDE 35(12), 2023. The archive
+% previously dated them 2022 and 2024 respectively; both cannot be right, and
+% neither was. 2022 is ECOD's early-access year (which PyOD's README propagates)
+% and no version of DIF is 2024, since TKDE 2024 is volume 36.
+% Loda's Crossref issued date is 2015 (online-first); the version of record is
+% Machine Learning 102(2), February 2016, which is the conventional citation.
+
+@inproceedings{Lakhina2004Diagnosing,
+  author    = {A. Lakhina and M. Crovella and C. Diot},
+  title     = {Diagnosing Network-Wide Traffic Anomalies},
+  booktitle = {Proc. ACM SIGCOMM},
+  pages     = {219--230},
+  year      = {2004},
+  doi       = {10.1145/1015467.1015492}
+}
+
+@article{Li2023ECOD,
+  author  = {Z. Li and Y. Zhao and X. Hu and N. Botta and C. Ionescu and G. H. Chen},
+  title   = {{ECOD}: Unsupervised Outlier Detection Using Empirical Cumulative Distribution Functions},
+  journal = {IEEE Transactions on Knowledge and Data Engineering},
+  volume  = {35},
+  number  = {12},
+  pages   = {12181--12193},
+  year    = {2023},
+  doi     = {10.1109/TKDE.2022.3159580}
+}
+
+@inproceedings{Li2020COPOD,
+  author    = {Z. Li and Y. Zhao and N. Botta and C. Ionescu and X. Hu},
+  title     = {{COPOD}: Copula-Based Outlier Detection},
+  booktitle = {Proc. IEEE Int. Conf. Data Mining (ICDM)},
+  pages     = {1118--1123},
+  year      = {2020},
+  doi       = {10.1109/ICDM50108.2020.00135}
+}
+
+@inproceedings{Goldstein2012HBOS,
+  author    = {M. Goldstein and A. Dengel},
+  title     = {Histogram-Based Outlier Score ({HBOS}): A Fast Unsupervised Anomaly Detection Algorithm},
+  booktitle = {KI-2012: Poster and Demo Track},
+  pages     = {59--63},
+  year      = {2012},
+  note      = {Poster/demo track; no DOI assigned}
+}
+
+@article{Pevny2016Loda,
+  author  = {T. Pevn{\'y}},
+  title   = {Loda: Lightweight On-Line Detector of Anomalies},
+  journal = {Machine Learning},
+  volume  = {102},
+  number  = {2},
+  pages   = {275--304},
+  year    = {2016},
+  doi     = {10.1007/s10994-015-5521-0}
+}
+
+@article{Bandaragoda2018INNE,
+  author  = {T. R. Bandaragoda and K. M. Ting and D. Albrecht and F. T. Liu and Y. Zhu and J. R. Wells},
+  title   = {Isolation-Based Anomaly Detection Using Nearest-Neighbor Ensembles},
+  journal = {Computational Intelligence},
+  volume  = {34},
+  number  = {4},
+  pages   = {968--998},
+  year    = {2018},
+  doi     = {10.1111/coin.12156}
+}
+
+@article{Xu2023DIF,
+  author  = {H. Xu and G. Pang and Y. Wang and Y. Wang},
+  title   = {Deep Isolation Forest for Anomaly Detection},
+  journal = {IEEE Transactions on Knowledge and Data Engineering},
+  volume  = {35},
+  number  = {12},
+  pages   = {12591--12604},
+  year    = {2023},
+  doi     = {10.1109/TKDE.2023.3270293}
+}
+
+@inproceedings{Liu2008IsolationForest,
+  author    = {F. T. Liu and K. M. Ting and Z.-H. Zhou},
+  title     = {Isolation Forest},
+  booktitle = {Proc. IEEE Int. Conf. Data Mining (ICDM)},
+  pages     = {413--422},
+  year      = {2008},
+  doi       = {10.1109/ICDM.2008.17}
+}
+
+@article{Hosking1987GPD,
+  author  = {J. R. M. Hosking and J. R. Wallis},
+  title   = {Parameter and Quantile Estimation for the Generalized Pareto Distribution},
+  journal = {Technometrics},
+  volume  = {29},
+  number  = {3},
+  pages   = {339--349},
+  year    = {1987},
+  doi     = {10.1080/00401706.1987.10488243},
+  note    = {Source of the method-of-moments GPD scale used by the POT arm; Siffer KDD 2017 Sec. 3.2 explicitly declines MoM in favour of MLE}
+}
+
+@inproceedings{Siffer2017Anomaly,
+  author    = {A. Siffer and P.-A. Fouque and A. Termier and C. Largouet},
+  title     = {Anomaly Detection in Streams with Extreme Value Theory},
+  booktitle = {Proc. ACM SIGKDD Int. Conf. Knowledge Discovery and Data Mining},
+  pages     = {1067--1075},
+  year      = {2017},
+  doi       = {10.1145/3097983.3098144},
+  note      = {Source of the SPOT/DSPOT specification; DSPOT is Algorithm 3, Sec. 4.2. Sec. 3.2 declines the method-of-moments GPD scale in favour of MLE}
+}

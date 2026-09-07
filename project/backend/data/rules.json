@@ -1,0 +1,35 @@
+{
+  "whitelist": [],
+  "blacklist": [],
+  "protected": [
+    {
+      "ip": "192.168.2.5",
+      "rule_type": 3,
+      "description": "Synced from Layer1",
+      "expires": null,
+      "created": "2026-02-11T13:01:32.395059",
+      "hit_count": 0,
+      "last_hit": null
+    },
+    {
+      "ip": "192.168.2.11",
+      "rule_type": 3,
+      "description": "Synced from Layer1",
+      "expires": null,
+      "created": "2026-02-11T13:01:32.395066",
+      "hit_count": 0,
+      "last_hit": null
+    },
+    {
+      "ip": "93.188.85.234",
+      "rule_type": 3,
+      "description": "Synced from Layer1",
+      "expires": null,
+      "created": "2026-02-11T13:01:32.395069",
+      "hit_count": 0,
+      "last_hit": null
+    }
+  ],
+  "cidr_whitelist": [],
+  "updated": "2026-02-11T13:01:32.395082"
+}

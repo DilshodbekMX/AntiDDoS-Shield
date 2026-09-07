@@ -1,0 +1,6 @@
+{
+	"protected_ips":	["10.0.0.190"],
+	"protected_subnets":	[],
+	"whitelist_ips":	["192.0.2.1"],
+	"blacklist_ips":	[]
+}

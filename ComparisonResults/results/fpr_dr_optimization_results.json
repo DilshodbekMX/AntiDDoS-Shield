@@ -1,0 +1,76 @@
+{
+  "variants": [
+    {
+      "name": "SPOT Baseline (KDD 2017)",
+      "mean_auc": 0.9748,
+      "dr_1pct": 83.13,
+      "dr_2pct": 86.11,
+      "dr_5pct": 90.44,
+      "benign_episodes_1pct": 7.97,
+      "benign_episodes_5pct": 36.02
+    },
+    {
+      "name": "Subspace-ECOD (k=4, Raw)",
+      "mean_auc": 0.9862,
+      "dr_1pct": 82.99,
+      "dr_2pct": 86.04,
+      "dr_5pct": 90.87,
+      "benign_episodes_1pct": 6.69,
+      "benign_episodes_5pct": 34.57
+    },
+    {
+      "name": "Subspace-ECOD (k=8, Raw)",
+      "mean_auc": 0.9893,
+      "dr_1pct": 84.22,
+      "dr_2pct": 87.79,
+      "dr_5pct": 91.99,
+      "benign_episodes_1pct": 7.69,
+      "benign_episodes_5pct": 35.34
+    },
+    {
+      "name": "Subspace-ECOD (k=8, Mahalanobis SPE)",
+      "mean_auc": 0.9904,
+      "dr_1pct": 83.3,
+      "dr_2pct": 86.75,
+      "dr_5pct": 91.7,
+      "benign_episodes_1pct": 5.67,
+      "benign_episodes_5pct": 30.7
+    },
+    {
+      "name": "Subspace-ECOD (k=8, EWMA alpha=0.5)",
+      "mean_auc": 0.9928,
+      "dr_1pct": 87.37,
+      "dr_2pct": 90.45,
+      "dr_5pct": 96.64,
+      "benign_episodes_1pct": 8.47,
+      "benign_episodes_5pct": 32.76
+    },
+    {
+      "name": "Subspace-ECOD (k=8, Persistence P=2)",
+      "mean_auc": 0.9855,
+      "dr_1pct": 86.89,
+      "dr_2pct": 90.5,
+      "dr_5pct": 95.58,
+      "benign_episodes_1pct": 6.61,
+      "benign_episodes_5pct": 24.3
+    },
+    {
+      "name": "Subspace-ECOD (k=8, Persistence P=3)",
+      "mean_auc": 0.9826,
+      "dr_1pct": 88.59,
+      "dr_2pct": 90.34,
+      "dr_5pct": 96.03,
+      "benign_episodes_1pct": 5.31,
+      "benign_episodes_5pct": 23.12
+    },
+    {
+      "name": "Subspace-ECOD (k=8, Mahalanobis + Persistence P=2)",
+      "mean_auc": 0.9872,
+      "dr_1pct": 86.22,
+      "dr_2pct": 90.93,
+      "dr_5pct": 96.04,
+      "benign_episodes_1pct": 6.25,
+      "benign_episodes_5pct": 25.52
+    }
+  ]
+}

@@ -1,0 +1,100 @@
+# ClangTidy configuration for Anti-DDoS project
+# Focus on security, correctness, and performance
+
+---
+Checks: >
+  -*,
+  bugprone-*,
+  -bugprone-easily-swappable-parameters,
+  -bugprone-reserved-identifier,
+  -bugprone-narrowing-conversions,
+  cert-*,
+  -cert-dcl37-c,
+  -cert-dcl51-cpp,
+  clang-analyzer-*,
+  -clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling,
+  concurrency-*,
+  misc-*,
+  -misc-no-recursion,
+  -misc-include-cleaner,
+  modernize-*,
+  -modernize-use-trailing-return-type,
+  -modernize-avoid-c-arrays,
+  -modernize-use-using,
+  performance-*,
+  portability-*,
+  readability-*,
+  -readability-identifier-length,
+  -readability-magic-numbers,
+  -readability-function-cognitive-complexity,
+  -readability-else-after-return,
+  -readability-implicit-bool-conversion,
+  -readability-isolate-declaration,
+  -readability-named-parameter,
+  security-*,
+
+# WarningsAsErrors: '' # Uncomment to treat warnings as errors
+
+CheckOptions:
+  # Naming conventions (match existing codebase style)
+  - key: readability-identifier-naming.VariableCase
+    value: lower_case
+  - key: readability-identifier-naming.FunctionCase
+    value: lower_case
+  - key: readability-identifier-naming.ParameterCase
+    value: lower_case
+  - key: readability-identifier-naming.MacroDefinitionCase
+    value: UPPER_CASE
+  - key: readability-identifier-naming.EnumConstantCase
+    value: UPPER_CASE
+  - key: readability-identifier-naming.StructCase
+    value: lower_case
+  - key: readability-identifier-naming.TypedefCase
+    value: lower_case
+  - key: readability-identifier-naming.GlobalConstantCase
+    value: UPPER_CASE
+  - key: readability-identifier-naming.StaticVariableCase
+    value: lower_case
+  - key: readability-identifier-naming.StaticVariablePrefix
+    value: ''
+
+  # Function size limits (maintainability)
+  - key: readability-function-size.LineThreshold
+    value: '200'
+  - key: readability-function-size.StatementThreshold
+    value: '100'
+  - key: readability-function-size.BranchThreshold
+    value: '30'
+  - key: readability-function-size.ParameterThreshold
+    value: '8'
+  - key: readability-function-size.NestingThreshold
+    value: '5'
+  - key: readability-function-size.VariableThreshold
+    value: '20'
+
+  # Security checks
+  - key: bugprone-suspicious-include.HeaderFileExtensions
+    value: ';h;hh;hpp;hxx'
+  - key: bugprone-suspicious-include.ImplementationFileExtensions
+    value: 'c;cc;cpp;cxx'
+
+  # Performance hints
+  - key: performance-move-const-arg.CheckTriviallyCopyableMove
+    value: 'true'
+  - key: performance-for-range-copy.WarnOnAllAutoCopies
+    value: 'true'
+  - key: performance-inefficient-string-concatenation.StrictMode
+    value: 'true'
+
+  # Concurrency checks
+  - key: concurrency-mt-unsafe.FunctionSet
+    value: 'any'
+
+HeaderFilterRegex: '.*'
+
+FormatStyle: file
+
+# Extra arguments for DPDK projects
+ExtraArgs:
+  - '-Wno-gnu-zero-variadic-macro-arguments'
+  - '-Wno-gnu-statement-expression'

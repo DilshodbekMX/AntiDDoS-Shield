@@ -1,0 +1,183 @@
+#!/usr/bin/env python3
+"""
+_gen_routed_fdr_vectors.py -- dump reference outputs of the section 5.8 routed-FDR
+detector math to JSON, for the bit-level C fidelity test (test_routed_fdr.c).
+
+Imports the SOURCE OF TRUTH (experiment/routed_fdr/routed_detector.py) and
+evaluates its conformal_p / acat_pair / acat_combine / bh_reject / bh_alpha_star
+on a handful of FIXED, hardcoded inputs (no dataset needed). Writes
+routed_fdr_vectors.json next to this script; the C test reads it and asserts
+agreement to <1e-9 (decisions exact).
+
+Run:  python3 tests/unit/_gen_routed_fdr_vectors.py
+"""
+import os
+import sys
+import json
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+REPO = os.path.dirname(os.path.dirname(HERE))
+RD_DIR = os.path.join(REPO, "experiment", "routed_fdr")
+sys.path.insert(0, RD_DIR)
+
+import routed_detector as rd  # noqa: E402
+
+
+def main():
+    out = {}
+
+    # (a) conformal_p: (calib_pool[], test_score) -> p
+    # None-score and empty-pool edge cases included.
+    conformal_cases = [
+        {"calib": [1.0, 2.0, 3.0, 4.0, 5.0], "score": 3.5},
+        {"calib": [1.0, 2.0, 3.0, 4.0, 5.0], "score": 0.0},   # below all -> all >=
+        {"calib": [1.0, 2.0, 3.0, 4.0, 5.0], "score": 99.0},  # above all -> clamp low
+        {"calib": [2.0, 2.0, 2.0, 2.0], "score": 2.0},        # ties counted with >=
+        {"calib": [0.1, 0.5, 0.9, 1.3, 1.7, 2.1, 2.5], "score": 1.4},
+        {"calib": [], "score": 1.0},                          # empty -> 1.0
+        {"calib": [1.0, 2.0, 3.0], "score": None},            # None score -> 1.0
+        {"calib": [-3.0, -1.0, 0.0, 2.0, 4.0, 7.0], "score": -0.5},
+    ]
+    out["conformal_p"] = []
+    for c in conformal_cases:
+        p = rd.conformal_p(c["score"], c["calib"])
+        out["conformal_p"].append({
+            "calib": c["calib"],
+            # JSON has no NaN/None; encode a None score as a sentinel flag.
+            "score_is_none": c["score"] is None,
+            "score": (0.0 if c["score"] is None else c["score"]),
+            "p": p,
+        })
+
+    # (b) acat_pair: (p_z, p_c) -> p
+    acat_pair_cases = [
+        (0.5, 0.5),
+        (0.01, 0.5),
+        (0.5, 0.01),
+        (0.001, 0.002),
+        (0.9, 0.9),
+        (1e-12, 1e-12),      # clamp floor
+        (1.0, 1.0),          # clamp ceil -> 1-EPS each
+        (0.2, 0.8),
+        (0.05, 0.95),
+        (0.3333333333, 0.6666666666),
+    ]
+    out["acat_pair"] = []
+    for pz, pc in acat_pair_cases:
+        out["acat_pair"].append({"p_z": pz, "p_c": pc, "p": rd.acat_pair(pz, pc)})
+
+    # (c) p-vectors -> acat_combine, bh_reject(alpha) decision+attr, bh_alpha_star
+    pvec_cases = [
+        {"pvals": [0.5, 0.5, 0.5, 0.5], "alpha": 0.05},
+        {"pvals": [0.001, 0.5, 0.5, 0.5, 0.5], "alpha": 0.05},
+        {"pvals": [0.01, 0.02, 0.03, 0.04, 0.9, 0.95], "alpha": 0.05},
+        {"pvals": [0.2, 0.2, 0.2, 0.2, 0.2], "alpha": 0.05},
+        {"pvals": [1e-6, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9], "alpha": 0.01},
+        {"pvals": [0.04, 0.04, 0.04, 0.04], "alpha": 0.05},   # tie at boundary
+        {"pvals": [0.9], "alpha": 0.05},                      # single channel, no reject
+        {"pvals": [0.001], "alpha": 0.05},                    # single channel, reject
+        # 21-channel realistic mix (the section 5.8 winner runs ~21-26 channels)
+        {"pvals": [0.42, 0.11, 0.88, 0.003, 0.27, 0.66, 0.91, 0.05,
+                   0.31, 0.77, 0.009, 0.55, 0.49, 0.21, 0.95, 0.18,
+                   0.62, 0.37, 0.08, 0.71, 0.0015], "alpha": 0.05},
+        # ties with duplicate smallest-p (attribution must pick FIRST occurrence)
+        {"pvals": [0.5, 0.01, 0.3, 0.01, 0.8], "alpha": 0.05},
+    ]
+    out["pvec"] = []
+    for c in pvec_cases:
+        pv = c["pvals"]
+        alpha = c["alpha"]
+        rej, attr = rd.bh_reject(pv, alpha)
+        astar, astar_idx = rd.bh_alpha_star(pv)
+        out["pvec"].append({
+            "pvals": pv,
+            "alpha": alpha,
+            "acat_combine": rd.acat_combine(pv),
+            "bh_reject": bool(rej),
+            "bh_attr": (-1 if attr is None else int(attr)),
+            "bh_alpha_star": (None if astar == float("inf") else astar),
+            "bh_alpha_star_attr": (-1 if astar_idx is None else int(astar_idx)),
+        })
+
+    dest = os.path.join(HERE, "routed_fdr_vectors.json")
+    with open(dest, "w") as f:
+        json.dump(out, f, indent=2)
+    print("wrote", dest)
+
+    # Also emit a self-contained C header so the fidelity test needs no JSON
+    # parser. The header is generated, not hand-maintained.
+    hpath = os.path.join(HERE, "routed_fdr_vectors.h")
+    write_header(out, hpath)
+    print("wrote", hpath)
+
+    print("conformal_p cases:", len(out["conformal_p"]))
+    print("acat_pair cases  :", len(out["acat_pair"]))
+    print("pvec cases       :", len(out["pvec"]))
+
+
+def _f(x):
+    """Full-precision repr of a double for a C literal."""
+    return repr(float(x))
+
+
+def write_header(out, hpath):
+    L = []
+    L.append("/* GENERATED by tests/unit/_gen_routed_fdr_vectors.py -- DO NOT EDIT. */")
+    L.append("/* Reference outputs of experiment/routed_fdr/routed_detector.py. */")
+    L.append("#ifndef ROUTED_FDR_VECTORS_H")
+    L.append("#define ROUTED_FDR_VECTORS_H")
+    L.append("#include <math.h>  /* NAN, HUGE_VAL */")
+    L.append("")
+
+    # ---- conformal_p ----
+    cp = out["conformal_p"]
+    L.append("typedef struct { double calib[16]; int n_calib; int score_is_none;"
+             " double score; double p; } rf_conformal_case_t;")
+    L.append("static const rf_conformal_case_t RF_CONFORMAL[] = {")
+    for c in cp:
+        calib = ", ".join(_f(v) for v in c["calib"]) or "0.0"
+        L.append("  { {%s}, %d, %d, %s, %s }," % (
+            calib, len(c["calib"]), 1 if c["score_is_none"] else 0,
+            _f(c["score"]), _f(c["p"])))
+    L.append("};")
+    L.append("static const int RF_CONFORMAL_N = %d;" % len(cp))
+    L.append("")
+
+    # ---- acat_pair ----
+    ap = out["acat_pair"]
+    L.append("typedef struct { double p_z; double p_c; double p; } rf_acat_pair_case_t;")
+    L.append("static const rf_acat_pair_case_t RF_ACAT_PAIR[] = {")
+    for c in ap:
+        L.append("  { %s, %s, %s }," % (_f(c["p_z"]), _f(c["p_c"]), _f(c["p"])))
+    L.append("};")
+    L.append("static const int RF_ACAT_PAIR_N = %d;" % len(ap))
+    L.append("")
+
+    # ---- pvec (acat_combine + bh_reject + bh_alpha_star) ----
+    pv = out["pvec"]
+    L.append("typedef struct { double pvals[32]; int n; double alpha;"
+             " double acat_combine; int bh_reject; int bh_attr;"
+             " double bh_alpha_star; int bh_alpha_star_has; int bh_alpha_star_attr;"
+             " } rf_pvec_case_t;")
+    L.append("static const rf_pvec_case_t RF_PVEC[] = {")
+    for c in pv:
+        pvals = ", ".join(_f(v) for v in c["pvals"])
+        astar = c["bh_alpha_star"]
+        has = 0 if astar is None else 1
+        astar_lit = "0.0" if astar is None else _f(astar)
+        L.append("  { {%s}, %d, %s, %s, %d, %d, %s, %d, %d }," % (
+            pvals, len(c["pvals"]), _f(c["alpha"]),
+            _f(c["acat_combine"]),
+            1 if c["bh_reject"] else 0, c["bh_attr"],
+            astar_lit, has, c["bh_alpha_star_attr"]))
+    L.append("};")
+    L.append("static const int RF_PVEC_N = %d;" % len(pv))
+    L.append("")
+    L.append("#endif /* ROUTED_FDR_VECTORS_H */")
+
+    with open(hpath, "w") as f:
+        f.write("\n".join(L) + "\n")
+
+
+if __name__ == "__main__":
+    main()

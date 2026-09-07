@@ -1,0 +1,330 @@
+{
+ "note": "Per-scenario AUC behind every inferential claim. The victim field is the clustering unit for the cluster Wilcoxon and the cluster bootstrap.",
+ "n_scenarios": 17,
+ "n_victim_clusters": 6,
+ "per_scenario": [
+  {
+   "scenario": "Fri-07-07_DDoS-LOIT.json",
+   "label": "CIC-IDS-2017 Fri-07-07_DDoS-LOIT.json",
+   "victim": "CIC-IDS-2017/192.168.10.50",
+   "corpus": "CIC-IDS-2017",
+   "attack_frac": 0.8427,
+   "auc": {
+    "Subspace-Q + EWMA (ours)": 0.999539097794313,
+    "POT": 0.9917722727876694,
+    "DSPOT": 0.8462621246345999,
+    "ECOD": 0.9671845934095136,
+    "COPOD": 0.961877989635929,
+    "HBOS": 0.8602594339622641,
+    "LODA": 0.9646683165027903,
+    "INNE": 0.9948844007440871,
+    "IForest": 0.96474305740101,
+    "DIF": 0.995382673398884
+   }
+  },
+  {
+   "scenario": "Wed-05-07_DoS-GoldenEye.json",
+   "label": "CIC-IDS-2017 Wed-05-07_DoS-GoldenEye.json",
+   "victim": "CIC-IDS-2017/192.168.10.50",
+   "corpus": "CIC-IDS-2017",
+   "attack_frac": 0.148,
+   "auc": {
+    "Subspace-Q + EWMA (ours)": 0.9977853841202973,
+    "POT": 0.964491057671679,
+    "DSPOT": 0.29002057613168725,
+    "ECOD": 0.9268445380609677,
+    "COPOD": 0.9107444463947887,
+    "HBOS": 0.8588925945429368,
+    "LODA": 0.9322362647007196,
+    "INNE": 0.9799333957443489,
+    "IForest": 0.941123983383067,
+    "DIF": 0.984984299728902
+   }
+  },
+  {
+   "scenario": "Wed-05-07_DoS-Hulk.json",
+   "label": "CIC-IDS-2017 Wed-05-07_DoS-Hulk.json",
+   "victim": "CIC-IDS-2017/192.168.10.50",
+   "corpus": "CIC-IDS-2017",
+   "attack_frac": 0.1542,
+   "auc": {
+    "Subspace-Q + EWMA (ours)": 0.9949513294548882,
+    "POT": 0.9309446500680104,
+    "DSPOT": 0.6979550970305989,
+    "ECOD": 0.9357181319153388,
+    "COPOD": 0.9039791349972822,
+    "HBOS": 0.8561805169804613,
+    "LODA": 0.9268193715830029,
+    "INNE": 0.9759913811069987,
+    "IForest": 0.9530375813337848,
+    "DIF": 0.9761006909915896
+   }
+  },
+  {
+   "scenario": "Wed-05-07_DoS-Slowhttptest.json",
+   "label": "CIC-IDS-2017 Wed-05-07_DoS-Slowhttptest.json",
+   "victim": "CIC-IDS-2017/192.168.10.50",
+   "corpus": "CIC-IDS-2017",
+   "attack_frac": 0.2312,
+   "auc": {
+    "Subspace-Q + EWMA (ours)": 0.9883907466966326,
+    "POT": 0.7754577246483512,
+    "DSPOT": 0.19238578680203045,
+    "ECOD": 0.8065989847715735,
+    "COPOD": 0.7498207850583175,
+    "HBOS": 0.7643730383229357,
+    "LODA": 0.5926395939086294,
+    "INNE": 0.9420280834657263,
+    "IForest": 0.8552669818266362,
+    "DIF": 0.9190757352656256
+   }
+  },
+  {
+   "scenario": "Wed-05-07_DoS-Slowloris.json",
+   "label": "CIC-IDS-2017 Wed-05-07_DoS-Slowloris.json",
+   "victim": "CIC-IDS-2017/192.168.10.50",
+   "corpus": "CIC-IDS-2017",
+   "attack_frac": 0.3243,
+   "auc": {
+    "Subspace-Q + EWMA (ours)": 0.9999748869914615,
+    "POT": 0.9992512436918515,
+    "DSPOT": 0.02970659635024276,
+    "ECOD": 0.9501130085384228,
+    "COPOD": 0.943031439094975,
+    "HBOS": 0.9124533615555717,
+    "LODA": 0.9513247112004017,
+    "INNE": 0.998566166798211,
+    "IForest": 0.9640650785678411,
+    "DIF": 0.9916331826552821
+   }
+  },
+  {
+   "scenario": "Fri-16-02_DoS-Hulk.json",
+   "label": "CIC-IDS2018 Fri-16-02_DoS-Hulk.json",
+   "victim": "CIC-IDS2018/172.31.69.25",
+   "corpus": "CIC-IDS2018",
+   "attack_frac": 0.5849,
+   "auc": {
+    "Subspace-Q + EWMA (ours)": 0.9743114511547682,
+    "POT": 0.9679857424301166,
+    "DSPOT": 0.957795971168377,
+    "ECOD": 0.9695355212874538,
+    "COPOD": 0.9698322243233193,
+    "HBOS": 0.971709365530228,
+    "LODA": 0.903715908821179,
+    "INNE": 0.9549624571758617,
+    "IForest": 0.9687680494346819,
+    "DIF": 0.9691409062497527
+   }
+  },
+  {
+   "scenario": "Fri-16-02_DoS-SlowHTTPTest.json",
+   "label": "CIC-IDS2018 Fri-16-02_DoS-SlowHTTPTest.json",
+   "victim": "CIC-IDS2018/172.31.69.25",
+   "corpus": "CIC-IDS2018",
+   "attack_frac": 0.7479,
+   "auc": {
+    "Subspace-Q + EWMA (ours)": 0.9985835028841877,
+    "POT": 0.9967263923224456,
+    "DSPOT": 0.9933528772597664,
+    "ECOD": 0.9777588658688661,
+    "COPOD": 0.9772521822835766,
+    "HBOS": 0.934058500514122,
+    "LODA": 0.9169547937313586,
+    "INNE": 0.9929813968073392,
+    "IForest": 0.9859687734727662,
+    "DIF": 0.9978961109044899
+   }
+  },
+  {
+   "scenario": "Thu-15-02_DoS-Slowloris.json",
+   "label": "CIC-IDS2018 Thu-15-02_DoS-Slowloris.json",
+   "victim": "CIC-IDS2018/172.31.69.25",
+   "corpus": "CIC-IDS2018",
+   "attack_frac": 0.7262,
+   "auc": {
+    "Subspace-Q + EWMA (ours)": 0.9990053689682534,
+    "POT": 0.9990378126645358,
+    "DSPOT": 0.8545335894222428,
+    "ECOD": 0.9988644706301122,
+    "COPOD": 0.9989078061387182,
+    "HBOS": 0.9932155596259521,
+    "LODA": 0.10176475168521829,
+    "INNE": 0.9976494542043323,
+    "IForest": 0.999027384333588,
+    "DIF": 0.9975447074134773
+   }
+  },
+  {
+   "scenario": "Tue-20-02_DDoS-LOIC-HTTP.json",
+   "label": "CIC-IDS2018 Tue-20-02_DDoS-LOIC-HTTP.json",
+   "victim": "CIC-IDS2018/172.31.69.25",
+   "corpus": "CIC-IDS2018",
+   "attack_frac": 0.9255,
+   "auc": {
+    "Subspace-Q + EWMA (ours)": 0.9998650784808011,
+    "POT": 0.9994272363894653,
+    "DSPOT": 0.996595625409117,
+    "ECOD": 0.9971126794891437,
+    "COPOD": 0.9970569699586357,
+    "HBOS": 0.9970086593501484,
+    "LODA": 0.0008621920307516602,
+    "INNE": 0.994704983217504,
+    "IForest": 0.9971318296402557,
+    "DIF": 0.9962352543836437
+   }
+  },
+  {
+   "scenario": "Wed-21-02_DDoS-HOIC.json",
+   "label": "CIC-IDS2018 Wed-21-02_DDoS-HOIC.json",
+   "victim": "CIC-IDS2018/172.31.69.28",
+   "corpus": "CIC-IDS2018",
+   "attack_frac": 0.7019,
+   "auc": {
+    "Subspace-Q + EWMA (ours)": 0.9886594475314133,
+    "POT": 0.9903410844458758,
+    "DSPOT": 0.98077469138608,
+    "ECOD": 0.9899339854708302,
+    "COPOD": 0.9899320376288443,
+    "HBOS": 0.9867562976977807,
+    "LODA": 0.19452221383928747,
+    "INNE": 0.9887640899314317,
+    "IForest": 0.9897686353289192,
+    "DIF": 0.9895622722918613
+   }
+  },
+  {
+   "scenario": "Wed-21-02_DDoS-LOIC-UDP.json",
+   "label": "CIC-IDS2018 Wed-21-02_DDoS-LOIC-UDP.json",
+   "victim": "CIC-IDS2018/172.31.69.28",
+   "corpus": "CIC-IDS2018",
+   "attack_frac": 0.4274,
+   "auc": {
+    "Subspace-Q + EWMA (ours)": 0.999911944457273,
+    "POT": 1.0,
+    "DSPOT": 1.0,
+    "ECOD": 0.99742114256685,
+    "COPOD": 0.9967160824520082,
+    "HBOS": 0.9457503964038856,
+    "LODA": 0.7873310857617879,
+    "INNE": 0.9986440677966102,
+    "IForest": 0.9776856170815438,
+    "DIF": 0.9999624378454102
+   }
+  },
+  {
+   "scenario": "cicddos_03-11_192-168-50-4_LDAP.json",
+   "label": "CICDDoS2019 cicddos_03-11_192-168-50-4_LDAP.json",
+   "victim": "CICDDoS2019/192.168.50.4",
+   "corpus": "CICDDoS2019",
+   "attack_frac": 0.1735,
+   "auc": {
+    "Subspace-Q + EWMA (ours)": 0.9992251787073378,
+    "POT": 0.9941330269068335,
+    "DSPOT": 0.9307925801011804,
+    "ECOD": 0.9833267173066305,
+    "COPOD": 0.9835108716739542,
+    "HBOS": 0.9847178737184556,
+    "LODA": 0.092010923905744,
+    "INNE": 0.9895339432016595,
+    "IForest": 0.9854652360130728,
+    "DIF": 0.9973884105120208
+   }
+  },
+  {
+   "scenario": "cicddos_03-11_192-168-50-4_Syn.json",
+   "label": "CICDDoS2019 cicddos_03-11_192-168-50-4_Syn.json",
+   "victim": "CICDDoS2019/192.168.50.4",
+   "corpus": "CICDDoS2019",
+   "attack_frac": 0.7074,
+   "auc": {
+    "Subspace-Q + EWMA (ours)": 0.9672312135147042,
+    "POT": 0.9213446540190864,
+    "DSPOT": 0.3147232612445518,
+    "ECOD": 0.9617306986884963,
+    "COPOD": 0.9598592292063317,
+    "HBOS": 0.9584060867504288,
+    "LODA": 0.8679529782229005,
+    "INNE": 0.9528705064572089,
+    "IForest": 0.9608875908690384,
+    "DIF": 0.9726923296303871
+   }
+  },
+  {
+   "scenario": "cicddos_03-11_192-168-50-4_UDP.json",
+   "label": "CICDDoS2019 cicddos_03-11_192-168-50-4_UDP.json",
+   "victim": "CICDDoS2019/192.168.50.4",
+   "corpus": "CICDDoS2019",
+   "attack_frac": 0.2359,
+   "auc": {
+    "Subspace-Q + EWMA (ours)": 0.99870901525758,
+    "POT": 0.9910433463325842,
+    "DSPOT": 0.896359360444013,
+    "ECOD": 0.9832404432261744,
+    "COPOD": 0.982847515390791,
+    "HBOS": 0.9807114452413266,
+    "LODA": 0.18975955856189305,
+    "INNE": 0.991489692684837,
+    "IForest": 0.9847786283018902,
+    "DIF": 0.996383633460465
+   }
+  },
+  {
+   "scenario": "cicddos_03-11_192-168-50-4_UDPLag.json",
+   "label": "CICDDoS2019 cicddos_03-11_192-168-50-4_UDPLag.json",
+   "victim": "CICDDoS2019/192.168.50.4",
+   "corpus": "CICDDoS2019",
+   "attack_frac": 0.1512,
+   "auc": {
+    "Subspace-Q + EWMA (ours)": 0.9954691888848366,
+    "POT": 0.9579406363770145,
+    "DSPOT": 0.39667911140116835,
+    "ECOD": 0.9698815030935881,
+    "COPOD": 0.9691920839971591,
+    "HBOS": 0.96663435514521,
+    "LODA": 0.9247597430434253,
+    "INNE": 0.9712939324721193,
+    "IForest": 0.9738292672002866,
+    "DIF": 0.9849583469297656
+   }
+  },
+  {
+   "scenario": "DDoS-UDP_Flood.json",
+   "label": "CIC_IOT_Dataset2023 DDoS-UDP_Flood.json",
+   "victim": "CIC_IOT_Dataset2023/192.168.137.99",
+   "corpus": "CIC_IOT_Dataset2023",
+   "attack_frac": 0.8552,
+   "auc": {
+    "Subspace-Q + EWMA (ours)": 0.9761467799963567,
+    "POT": 0.9761467799963567,
+    "DSPOT": 0.6746024542397009,
+    "ECOD": 0.9597091309338273,
+    "COPOD": 0.9539286093794277,
+    "HBOS": 0.9407020507799323,
+    "LODA": 0.2256634863849195,
+    "INNE": 0.511510969062462,
+    "IForest": 0.9196978331747832,
+    "DIF": 0.4199191077500708
+   }
+  },
+  {
+   "scenario": "code_red_worm.json",
+   "label": "LITNET-2020 code_red_worm.json",
+   "victim": "LITNET-2020/193.219.81.138",
+   "corpus": "LITNET-2020",
+   "attack_frac": 0.5243,
+   "auc": {
+    "Subspace-Q + EWMA (ours)": 0.9597814511274715,
+    "POT": 0.9871556234662222,
+    "DSPOT": 0.775894800203732,
+    "ECOD": 0.9972403574570542,
+    "COPOD": 0.9989257767282493,
+    "HBOS": 0.9987868685465574,
+    "LODA": 0.9196416168912348,
+    "INNE": 0.8753993610223642,
+    "IForest": 0.9988609529101264,
+    "DIF": 0.9554475158586841
+   }
+  }
+ ]
+}

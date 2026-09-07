@@ -1,0 +1,269 @@
+{
+  "leaderboard": [
+    {
+      "name": "SPOT (Raw)",
+      "mean_auc": 0.9748,
+      "median_auc": 0.991,
+      "dr_1pct": 83.13,
+      "dr_2pct": 86.11,
+      "dr_5pct": 90.44,
+      "episodes_2pct": 8.95,
+      "episodes_5pct": 11.14
+    },
+    {
+      "name": "SPOT + EWMA",
+      "mean_auc": 0.9666,
+      "median_auc": 0.9933,
+      "dr_1pct": 71.62,
+      "dr_2pct": 76.19,
+      "dr_5pct": 87.08,
+      "episodes_2pct": 9.29,
+      "episodes_5pct": 15.4
+    },
+    {
+      "name": "INNE (Raw)",
+      "mean_auc": 0.9806,
+      "median_auc": 0.9896,
+      "dr_1pct": 69.68,
+      "dr_2pct": 82.94,
+      "dr_5pct": 88.63,
+      "episodes_2pct": 9.27,
+      "episodes_5pct": 11.45
+    },
+    {
+      "name": "INNE + EWMA",
+      "mean_auc": 0.9919,
+      "median_auc": 0.9977,
+      "dr_1pct": 88.62,
+      "dr_2pct": 95.31,
+      "dr_5pct": 97.02,
+      "episodes_2pct": 9.31,
+      "episodes_5pct": 13.51
+    },
+    {
+      "name": "Subspace-ECOD (k=8) (Raw)",
+      "mean_auc": 0.9893,
+      "median_auc": 0.9947,
+      "dr_1pct": 84.22,
+      "dr_2pct": 87.79,
+      "dr_5pct": 91.99,
+      "episodes_2pct": 9.78,
+      "episodes_5pct": 11.17
+    },
+    {
+      "name": "Subspace-ECOD (k=8) + EWMA",
+      "mean_auc": 0.9862,
+      "median_auc": 0.9952,
+      "dr_1pct": 73.43,
+      "dr_2pct": 78.18,
+      "dr_5pct": 93.2,
+      "episodes_2pct": 8.95,
+      "episodes_5pct": 15.97
+    },
+    {
+      "name": "Subspace-ECOD (k=4) (Raw)",
+      "mean_auc": 0.9862,
+      "median_auc": 0.9924,
+      "dr_1pct": 82.99,
+      "dr_2pct": 86.04,
+      "dr_5pct": 90.87,
+      "episodes_2pct": 9.31,
+      "episodes_5pct": 11.47
+    },
+    {
+      "name": "Subspace-ECOD (k=4) + EWMA",
+      "mean_auc": 0.9847,
+      "median_auc": 0.9946,
+      "dr_1pct": 72.37,
+      "dr_2pct": 76.94,
+      "dr_5pct": 91.94,
+      "episodes_2pct": 9.13,
+      "episodes_5pct": 15.37
+    },
+    {
+      "name": "Pure Subspace Q-Resid (k=8) (Raw)",
+      "mean_auc": 0.9823,
+      "median_auc": 0.9859,
+      "dr_1pct": 49.77,
+      "dr_2pct": 60.29,
+      "dr_5pct": 90.1,
+      "episodes_2pct": 7.51,
+      "episodes_5pct": 10.81
+    },
+    {
+      "name": "Pure Subspace Q-Resid (k=8) + EWMA",
+      "mean_auc": 0.9936,
+      "median_auc": 0.999,
+      "dr_1pct": 93.15,
+      "dr_2pct": 95.66,
+      "dr_5pct": 98.0,
+      "episodes_2pct": 9.06,
+      "episodes_5pct": 15.72
+    },
+    {
+      "name": "ECOD (Raw)",
+      "mean_auc": 0.7295,
+      "median_auc": 0.857,
+      "dr_1pct": 15.98,
+      "dr_2pct": 24.41,
+      "dr_5pct": 45.08,
+      "episodes_2pct": 10.58,
+      "episodes_5pct": 11.31
+    },
+    {
+      "name": "ECOD + EWMA",
+      "mean_auc": 0.7425,
+      "median_auc": 0.8599,
+      "dr_1pct": 21.57,
+      "dr_2pct": 33.44,
+      "dr_5pct": 50.93,
+      "episodes_2pct": 11.16,
+      "episodes_5pct": 14.78
+    },
+    {
+      "name": "COPOD (Raw)",
+      "mean_auc": 0.7252,
+      "median_auc": 0.8741,
+      "dr_1pct": 19.33,
+      "dr_2pct": 27.61,
+      "dr_5pct": 45.47,
+      "episodes_2pct": 9.91,
+      "episodes_5pct": 11.44
+    },
+    {
+      "name": "COPOD + EWMA",
+      "mean_auc": 0.7372,
+      "median_auc": 0.8774,
+      "dr_1pct": 24.86,
+      "dr_2pct": 37.92,
+      "dr_5pct": 51.84,
+      "episodes_2pct": 11.18,
+      "episodes_5pct": 14.99
+    },
+    {
+      "name": "HBOS (Raw)",
+      "mean_auc": 0.9431,
+      "median_auc": 0.9565,
+      "dr_1pct": 33.68,
+      "dr_2pct": 46.91,
+      "dr_5pct": 61.88,
+      "episodes_2pct": 9.49,
+      "episodes_5pct": 11.46
+    },
+    {
+      "name": "HBOS + EWMA",
+      "mean_auc": 0.9652,
+      "median_auc": 0.9763,
+      "dr_1pct": 55.48,
+      "dr_2pct": 63.14,
+      "dr_5pct": 85.33,
+      "episodes_2pct": 10.72,
+      "episodes_5pct": 15.07
+    },
+    {
+      "name": "LODA (Raw)",
+      "mean_auc": 0.5536,
+      "median_auc": 0.6529,
+      "dr_1pct": 14.01,
+      "dr_2pct": 23.29,
+      "dr_5pct": 35.19,
+      "episodes_2pct": 9.41,
+      "episodes_5pct": 11.21
+    },
+    {
+      "name": "LODA + EWMA",
+      "mean_auc": 0.6467,
+      "median_auc": 0.7543,
+      "dr_1pct": 19.6,
+      "dr_2pct": 28.53,
+      "dr_5pct": 43.38,
+      "episodes_2pct": 10.74,
+      "episodes_5pct": 13.68
+    },
+    {
+      "name": "INNE + SPOT Hybrid (Raw)",
+      "mean_auc": 0.9868,
+      "median_auc": 0.9933,
+      "dr_1pct": 82.53,
+      "dr_2pct": 86.64,
+      "dr_5pct": 92.41,
+      "episodes_2pct": 9.46,
+      "episodes_5pct": 12.17
+    },
+    {
+      "name": "INNE + SPOT Hybrid + EWMA",
+      "mean_auc": 0.9868,
+      "median_auc": 0.9943,
+      "dr_1pct": 73.47,
+      "dr_2pct": 79.12,
+      "dr_5pct": 95.36,
+      "episodes_2pct": 8.5,
+      "episodes_5pct": 15.44
+    }
+  ],
+  "significance": [
+    {
+      "comparison": "Subspace-ECOD (k=8) + EWMA vs INNE + EWMA",
+      "delta_mean_auc": -0.0057,
+      "p_auc": 0.3294,
+      "delta_dr2_pp": -17.13,
+      "p_dr2": 0.0325,
+      "delta_ep2": -0.36,
+      "p_ep2": 0.8212
+    },
+    {
+      "comparison": "Subspace-ECOD (k=8) + EWMA vs SPOT (Raw)",
+      "delta_mean_auc": 0.0114,
+      "p_auc": 0.1997,
+      "delta_dr2_pp": -7.92,
+      "p_dr2": 0.658,
+      "delta_ep2": 0.0,
+      "p_ep2": 0.7112
+    },
+    {
+      "comparison": "Subspace-ECOD (k=8) + EWMA vs SPOT + EWMA",
+      "delta_mean_auc": 0.0196,
+      "p_auc": 0.0055,
+      "delta_dr2_pp": 1.99,
+      "p_dr2": 0.0267,
+      "delta_ep2": -0.34,
+      "p_ep2": 0.2132
+    },
+    {
+      "comparison": "INNE + EWMA vs INNE (Raw)",
+      "delta_mean_auc": 0.0114,
+      "p_auc": 0.0,
+      "delta_dr2_pp": 12.37,
+      "p_dr2": 0.0009,
+      "delta_ep2": 0.04,
+      "p_ep2": 0.4978
+    },
+    {
+      "comparison": "INNE + EWMA vs SPOT (Raw)",
+      "delta_mean_auc": 0.0171,
+      "p_auc": 0.0083,
+      "delta_dr2_pp": 9.2,
+      "p_dr2": 0.0037,
+      "delta_ep2": 0.36,
+      "p_ep2": 0.9702
+    },
+    {
+      "comparison": "Pure Subspace Q-Resid (k=8) + EWMA vs INNE + EWMA",
+      "delta_mean_auc": 0.0017,
+      "p_auc": 0.0123,
+      "delta_dr2_pp": 0.36,
+      "p_dr2": 0.236,
+      "delta_ep2": -0.25,
+      "p_ep2": 0.8092
+    },
+    {
+      "comparison": "INNE + SPOT Hybrid + EWMA vs INNE + EWMA",
+      "delta_mean_auc": -0.0051,
+      "p_auc": 0.41,
+      "delta_dr2_pp": -16.18,
+      "p_dr2": 0.1138,
+      "delta_ep2": -0.81,
+      "p_ep2": 0.3144
+    }
+  ]
+}

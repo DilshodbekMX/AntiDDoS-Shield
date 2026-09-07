@@ -1,0 +1,60 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# DENY BY DEFAULT.
+#
+# This repository accompanies a manuscript under review. It publishes the
+# evaluation harness, its result records, and the engine source — and nothing
+# else. Everything is excluded by rule, then re-admitted explicitly, because
+# the working tree also holds 2.9 GB of derived corpus features that the
+# paper's Data Availability statement says are NOT redistributed.
+#
+# To publish something new, add an explicit un-ignore. Do not relax `/*`.
+# ─────────────────────────────────────────────────────────────────────────────
+
+/*
+
+# ── Published ────────────────────────────────────────────────────────────────
+!/.gitignore
+!/LICENSE
+!/README.md
+!/INSTALL.md
+!/OfflineExperiments
+!/ComparisonResults
+!/layer2
+!/project
+!/tests
+!/.clang-format
+!/.clang-tidy
+!/.editorconfig
+!/.pre-commit-config.yaml
+
+# ── datasets/: the README only; never the derived feature tree ───────────────
+!/datasets
+/datasets/*
+!/datasets/README.md
+
+# ── project/: source only; build/ is a regenerable Meson dir whose
+#    compile_commands.json embeds absolute developer paths (91 occurrences).
+#    `make` recreates it from meson.build.
+/project/build/
+
+# ── Never published, and why ─────────────────────────────────────────────────
+# academic-research-skills/  vendored tooling, unrelated to this study
+# jcp_paper/                 manuscript sources, build artefacts, backups
+# .claude/                   assistant configuration
+# datasets/extracted/        2.9 GB derived corpus features (see above)
+
+# ── Regenerable / local noise ────────────────────────────────────────────────
+**/__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+.venv/
+venv/
+*.log
+*.aux
+*.out
+*.bak
+*.pre_*
+*.tmp
+.DS_Store

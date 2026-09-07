@@ -1,0 +1,706 @@
+/**
+ * Global Styles - Enterprise Anti-DDoS Dashboard (Phase 9.0)
+ *
+ * Premium UI/UX matching top-tier vendors (Cloudflare, Akamai, Arbor)
+ */
+
+/* Tailwind Layers */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ==================== CSS Custom Properties ==================== */
+:root {
+  /* Brand Colors */
+  --color-brand-50: #eef2ff;
+  --color-brand-100: #e0e7ff;
+  --color-brand-200: #c7d2fe;
+  --color-brand-300: #a5b4fc;
+  --color-brand-400: #818cf8;
+  --color-brand-500: #6366f1;
+  --color-brand-600: #4f46e5;
+  --color-brand-700: #4338ca;
+  --color-brand-800: #3730a3;
+  --color-brand-900: #312e81;
+
+  /* Semantic Colors - Light Mode */
+  --color-success: #10b981;
+  --color-success-light: #d1fae5;
+  --color-warning: #f59e0b;
+  --color-warning-light: #fef3c7;
+  --color-danger: #ef4444;
+  --color-danger-light: #fee2e2;
+  --color-info: #3b82f6;
+  --color-info-light: #dbeafe;
+
+  /* Attack Severity Colors */
+  --color-severity-critical: #dc2626;
+  --color-severity-high: #ea580c;
+  --color-severity-medium: #d97706;
+  --color-severity-low: #65a30d;
+  --color-severity-info: #0284c7;
+
+  /* Shadows */
+  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --shadow-glow-brand: 0 0 20px rgba(99, 102, 241, 0.3);
+  --shadow-glow-danger: 0 0 20px rgba(239, 68, 68, 0.3);
+  --shadow-glow-success: 0 0 20px rgba(16, 185, 129, 0.3);
+
+  /* Transitions */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Dark mode overrides */
+.dark {
+  --color-success-light: rgba(16, 185, 129, 0.15);
+  --color-warning-light: rgba(245, 158, 11, 0.15);
+  --color-danger-light: rgba(239, 68, 68, 0.15);
+  --color-info-light: rgba(59, 130, 246, 0.15);
+}
+
+/* ==================== Base Styles ==================== */
+@layer base {
+  html {
+    @apply antialiased scroll-smooth;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  body {
+    @apply bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100;
+    font-family: 'Inter var', 'Inter', system-ui, -apple-system, sans-serif;
+  }
+
+  :focus-visible {
+    @apply outline-none ring-2 ring-brand-500 ring-offset-2 dark:ring-offset-slate-900;
+  }
+
+  ::selection {
+    @apply bg-brand-500/30;
+  }
+}
+
+/* ==================== Component Styles ==================== */
+@layer components {
+  /* Premium Card */
+  .card {
+    @apply bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800;
+    @apply transition-all duration-200;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+  }
+
+  .card-elevated {
+    @apply bg-white dark:bg-slate-900 rounded-xl;
+    box-shadow: var(--shadow-lg);
+  }
+
+  .card-header {
+    @apply flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-800;
+  }
+
+  .card-title {
+    @apply text-lg font-semibold text-slate-900 dark:text-white;
+  }
+
+  .card-body {
+    @apply p-6;
+  }
+
+  .card-footer {
+    @apply flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-200 dark:border-slate-800;
+  }
+
+  .card-interactive {
+    @apply cursor-pointer transition-all duration-200 hover:border-brand-300 dark:hover:border-brand-700;
+  }
+
+  .card-interactive:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+  }
+
+  /* Card Featured — hero-level card with prominent gradient and inner glow */
+  .card-featured {
+    @apply bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800;
+    box-shadow: var(--shadow-lg), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    background-image: linear-gradient(135deg, rgba(99, 102, 241, 0.06) 0%, rgba(99, 102, 241, 0.02) 40%, transparent 70%);
+  }
+
+  .dark .card-featured {
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 4px 6px -4px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    background-image: linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(99, 102, 241, 0.04) 40%, transparent 70%);
+  }
+
+  .card-featured:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-xl);
+  }
+
+  .dark .card-featured:hover {
+    box-shadow: 0 15px 30px -8px rgba(0, 0, 0, 0.5), 0 6px 8px -4px rgba(0, 0, 0, 0.4), 0 0 20px rgba(99, 102, 241, 0.08);
+  }
+
+  /* Stat Row — minimal borderless inline stat for dense displays */
+  .stat-row {
+    @apply flex items-center justify-between py-2.5 px-1;
+    @apply border-b border-slate-100 dark:border-slate-800/50 last:border-0;
+  }
+
+  .stat-row-label {
+    @apply text-sm text-slate-500 dark:text-slate-400;
+  }
+
+  .stat-row-value {
+    @apply text-sm font-semibold text-slate-900 dark:text-white tabular-nums;
+  }
+
+  /* Status Badge */
+  .badge {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold;
+  }
+
+  .badge-success {
+    @apply bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400;
+  }
+
+  .badge-warning {
+    @apply bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400;
+  }
+
+  .badge-danger {
+    @apply bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400;
+  }
+
+  .badge-info {
+    @apply bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400;
+  }
+
+  .badge-neutral {
+    @apply bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300;
+  }
+
+  .badge-critical {
+    @apply bg-red-600 text-white animate-pulse;
+  }
+
+  .badge-high {
+    @apply bg-orange-500 text-white;
+  }
+
+  .badge-medium {
+    @apply bg-amber-500 text-white;
+  }
+
+  .badge-low {
+    @apply bg-lime-500 text-white;
+  }
+
+  /* Premium Buttons */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 font-semibold text-sm rounded-lg transition-all duration-200;
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2;
+  }
+
+  .btn-primary {
+    @apply bg-brand-600 text-white hover:bg-brand-700 active:bg-brand-800 focus-visible:ring-brand-500;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+
+  .btn-primary:hover {
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+  }
+
+  .btn-secondary {
+    @apply bg-slate-100 text-slate-900 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700;
+    @apply focus-visible:ring-slate-500;
+  }
+
+  .btn-danger {
+    @apply bg-red-600 text-white hover:bg-red-700 active:bg-red-800 focus-visible:ring-red-500;
+  }
+
+  .btn-ghost {
+    @apply bg-transparent text-slate-600 hover:bg-slate-100 hover:text-slate-900;
+    @apply dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100;
+  }
+
+  .btn-sm {
+    @apply px-3 py-1.5 text-xs;
+  }
+
+  .btn-lg {
+    @apply px-6 py-3 text-base;
+  }
+
+  /* Premium Input Fields */
+  .input {
+    @apply block w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm;
+    @apply placeholder:text-slate-400;
+    @apply focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10;
+    @apply dark:border-slate-700 dark:bg-slate-900 dark:text-white;
+    @apply transition-all duration-200;
+  }
+
+  /* Premium Tables */
+  .table-container {
+    @apply overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800;
+  }
+
+  .table {
+    @apply min-w-full divide-y divide-slate-200 dark:divide-slate-800;
+  }
+
+  .table thead {
+    @apply bg-slate-50 dark:bg-slate-900;
+  }
+
+  .table th {
+    @apply px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400;
+  }
+
+  .table td {
+    @apply px-4 py-4 text-sm text-slate-700 dark:text-slate-300;
+  }
+
+  .table tbody tr {
+    @apply bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 last:border-0 transition-colors duration-150;
+  }
+
+  .table tbody tr:hover {
+    @apply bg-slate-50 dark:bg-slate-800/50;
+  }
+
+  /* Stat Display */
+  .stat-value {
+    @apply text-3xl font-bold tracking-tight;
+  }
+
+  .stat-label {
+    @apply text-sm font-medium text-slate-500 dark:text-slate-400;
+  }
+
+  /* Navigation */
+  .nav-item {
+    @apply flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200;
+    @apply text-slate-600 dark:text-slate-400;
+    @apply hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-slate-800 dark:hover:text-white;
+  }
+
+  .nav-item-active {
+    @apply bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:text-brand-400;
+  }
+
+  /* Sidebar */
+  .sidebar {
+    @apply fixed inset-y-0 left-0 z-40 flex w-64 flex-col;
+    @apply bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800;
+  }
+
+  /* Header */
+  .header {
+    @apply sticky top-0 z-30 flex h-16 items-center gap-4 px-6;
+    @apply bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl;
+    @apply border-b border-slate-200 dark:border-slate-800;
+  }
+
+  /* Modal */
+  .modal-backdrop {
+    @apply fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm;
+  }
+
+  .modal {
+    @apply fixed left-1/2 top-1/2 z-50 w-full max-w-lg -translate-x-1/2 -translate-y-1/2;
+    @apply rounded-2xl bg-white dark:bg-slate-900 shadow-2xl;
+    @apply border border-slate-200 dark:border-slate-800;
+  }
+
+  /* Glow Effects */
+  .glow-brand {
+    box-shadow: var(--shadow-glow-brand);
+  }
+
+  .glow-danger {
+    box-shadow: var(--shadow-glow-danger);
+  }
+
+  .glow-success {
+    box-shadow: var(--shadow-glow-success);
+  }
+}
+
+/* ==================== Utility Classes ==================== */
+@layer utilities {
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-brand-600 to-purple-600;
+  }
+
+  .animate-fade-in {
+    animation: fadeIn var(--transition-normal) ease-out;
+  }
+
+  .animate-slide-up {
+    animation: slideUp var(--transition-normal) ease-out;
+  }
+
+  /* Staggered entry animations for dashboard cards */
+  .animate-stagger-1 { animation: slideUp 300ms ease-out 50ms both; }
+  .animate-stagger-2 { animation: slideUp 300ms ease-out 100ms both; }
+  .animate-stagger-3 { animation: slideUp 300ms ease-out 150ms both; }
+  .animate-stagger-4 { animation: slideUp 300ms ease-out 200ms both; }
+
+  /* Tabular numbers for metric displays */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: theme('colors.slate.400') transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    @apply bg-slate-300 dark:bg-slate-600 rounded-full;
+  }
+
+  .glass {
+    @apply backdrop-blur-xl bg-white/70 dark:bg-slate-900/70;
+  }
+}
+
+/* ==================== Keyframe Animations ==================== */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* ==================== Chart Styles ==================== */
+.recharts-tooltip-wrapper {
+  outline: none !important;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
+}
+
+.recharts-default-tooltip {
+  border-radius: 0.5rem !important;
+  padding: 0.75rem !important;
+}
+
+:not(.dark) .recharts-default-tooltip {
+  background-color: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+.dark .recharts-default-tooltip {
+  background-color: #1f2937 !important;
+  border: 1px solid #374151 !important;
+}
+
+/* Custom chart tooltip */
+.chart-tooltip {
+  @apply rounded-lg border text-sm;
+  @apply border-slate-200 dark:border-slate-700;
+  backdrop-filter: blur(8px);
+  padding: 10px 14px;
+  min-width: 180px;
+}
+
+:not(.dark) .chart-tooltip {
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.dark .chart-tooltip {
+  background: rgba(15, 23, 42, 0.95);
+}
+
+.chart-tooltip-title {
+  @apply text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5 pb-1.5 border-b border-slate-200 dark:border-slate-700/50;
+}
+
+.chart-tooltip-row {
+  @apply flex items-center justify-between gap-6 py-0.5;
+}
+
+.chart-tooltip-label {
+  @apply flex items-center gap-1.5 text-xs text-slate-700 dark:text-slate-300;
+}
+
+.chart-tooltip-dot {
+  @apply inline-block w-2 h-2 rounded-full flex-shrink-0;
+}
+
+.chart-tooltip-value {
+  @apply text-xs font-semibold text-slate-900 dark:text-white tabular-nums;
+}
+
+/* Crosshair cursor for charts */
+.recharts-wrapper {
+  cursor: crosshair !important;
+}
+
+/* Smoother chart animations */
+.recharts-area-area {
+  transition: opacity 200ms ease;
+}
+
+.recharts-area-curve {
+  transition: stroke-width 200ms ease;
+}
+
+/* ==================== Print Styles ==================== */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  .card {
+    box-shadow: none;
+    border: 1px solid #e2e8f0;
+  }
+}
+
+/* ==================== Responsive Layout ==================== */
+
+/* Mobile-first responsive adjustments */
+@media (max-width: 640px) {
+  .stat-value {
+    @apply text-2xl;
+  }
+
+  .card-header {
+    @apply px-4 py-3;
+  }
+
+  .card-body {
+    @apply p-4;
+  }
+
+  .btn {
+    @apply px-3 py-2 text-sm;
+  }
+}
+
+/* Tablet breakpoint */
+@media (max-width: 768px) {
+  .table th,
+  .table td {
+    @apply px-3 py-2;
+  }
+
+  .modal {
+    @apply max-w-[95%];
+  }
+}
+
+/* ==================== Accessibility Improvements ==================== */
+
+/* Skip link for keyboard navigation */
+.skip-link {
+  @apply sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50;
+  @apply focus:px-4 focus:py-2 focus:bg-brand-600 focus:text-white focus:rounded-lg;
+}
+
+/* Focus visible improvements */
+*:focus-visible {
+  @apply outline-none ring-2 ring-brand-500 ring-offset-2 dark:ring-offset-slate-900;
+}
+
+/* Improved focus for form elements */
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  @apply ring-2 ring-brand-500 ring-offset-0 border-brand-500;
+}
+
+/* Better button focus */
+button:focus-visible,
+[role="button"]:focus-visible {
+  @apply ring-2 ring-brand-500 ring-offset-2 dark:ring-offset-slate-900;
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .animate-pulse,
+  .animate-ping,
+  .animate-spin,
+  .animate-bounce {
+    animation: none !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .card {
+    @apply border-2 border-slate-600;
+  }
+
+  .btn-primary {
+    @apply border-2 border-white;
+  }
+
+  .badge {
+    @apply border border-current;
+  }
+}
+
+/* Forced colors (Windows High Contrast) */
+@media (forced-colors: active) {
+  .btn-primary,
+  .btn-secondary,
+  .btn-danger {
+    border: 2px solid currentColor;
+  }
+
+  .card {
+    border: 1px solid currentColor;
+  }
+
+  .badge {
+    border: 1px solid currentColor;
+  }
+}
+
+/* ==================== Screen Reader Only Utility ==================== */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.not-sr-only {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: 0;
+  margin: 0;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}
+
+/* ==================== Touch Device Improvements ==================== */
+@media (hover: none) and (pointer: coarse) {
+  /* Larger touch targets on mobile */
+  .btn {
+    @apply min-h-[44px];
+  }
+
+  .nav-item {
+    @apply min-h-[44px];
+  }
+
+  /* Remove hover effects on touch devices */
+  .card-interactive:hover {
+    transform: none;
+  }
+
+  /* Improve scrolling */
+  .overflow-y-auto,
+  .overflow-x-auto {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* ==================== Custom Scrollbar ==================== */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(99, 102, 241, 0.3) transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  @apply bg-brand-500/30 rounded-full;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  @apply bg-brand-500/50;
+}
+
+/* ==================== Loading States ==================== */
+.skeleton {
+  @apply animate-pulse bg-slate-200 dark:bg-slate-700 rounded;
+}
+
+.skeleton-text {
+  @apply h-4 w-full skeleton;
+}
+
+.skeleton-circle {
+  @apply rounded-full skeleton;
+}
+
+/* ==================== Shimmer Animation ==================== */
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite;
+}
+
+/* ==================== Geo-Blocking Map ==================== */
+.geo-map-container {
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.geo-map-container svg {
+  display: block;
+}
+
+@media (prefers-color-scheme: dark) {
+  .geo-map-container {
+    --geo-neutral: #475569;
+    --geo-disabled: #475569;
+    --geo-stroke: #334155;
+  }
+}
+
+.dark .geo-map-container {
+  --geo-neutral: #475569;
+  --geo-disabled: #475569;
+  --geo-stroke: #334155;
+}
