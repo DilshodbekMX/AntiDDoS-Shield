@@ -43,10 +43,10 @@ implementations, the runners, and the result artifacts they produced.
 This folder is an **archive**, not a working tree. The runners under `runners/`
 are copies kept next to their output so a reader can see what produced each
 number; they import from their home tree. To *regenerate* anything, run it from
-`../OfflineExperiments`, which holds the resolved import closure:
+this package, which is now self-contained:
 
     ANTIDDOS_BASE=/home/detector/Projects/antiddos \
-      python3 ../OfflineExperiments/run_post2023_benchmark.py
+      python3 runners/run_post2023_benchmark.py
 
 `ANTIDDOS_BASE` is required. Without it `config.BASE` falls back to
 `AntiDDOS_Shield/`, whose `datasets/` holds only a `.gitkeep`.

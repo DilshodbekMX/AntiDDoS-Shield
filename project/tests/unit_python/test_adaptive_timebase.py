@@ -14,17 +14,22 @@ from datetime import datetime, timezone, timedelta
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 for _candidate in (
+    os.path.join(THIS_DIR, "..", "..", "ComparisonResults"),
+    os.path.join(THIS_DIR, "..", "..", "..", "ComparisonResults"),
     os.path.join(THIS_DIR, "..", "..", "experiment"),
     os.path.join(THIS_DIR, "..", "..", "experiments"),
     os.path.join(THIS_DIR, "..", "..", "..", "experiment"),
     os.path.join(THIS_DIR, "..", "..", "..", "experiments"),
+    os.path.join(os.environ.get("ANTIDDOS_BASE", ""), "ComparisonResults"),
+    os.path.join(os.environ.get("ANTIDDOS_BASE", ""), "experiment"),
+    os.path.join(os.environ.get("ANTIDDOS_BASE", ""), "experiments"),
 ):
     _candidate = os.path.abspath(_candidate)
     if os.path.isdir(_candidate):
         sys.path.insert(0, _candidate)
         break
 else:
-    raise RuntimeError("could not locate experiment/ or experiments/ package")
+    raise RuntimeError("could not locate ComparisonResults or experiment package")
 
 from detectors import AdaptiveThreshold, _epoch_seconds  # noqa: E402
 from config import ADAPTIVE_EVAL_INTERVAL  # noqa: E402

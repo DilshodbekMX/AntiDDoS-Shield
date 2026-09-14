@@ -1,0 +1,253 @@
+{
+ "note": "Component ablation of the proposed arm: the EWMA stage on and off, nothing else changed. No competitor arm is modified and the ablated variant is not scored against any baseline; it is a component attribution of our own arm, not a detector of record.",
+ "seed": 20260827,
+ "k": 8,
+ "alpha": 0.5,
+ "skipped_rows": [],
+ "PANEL-23": {
+  "n_scenarios": 23,
+  "n_victim_clusters": 9,
+  "mean_auc_with_ewma": 0.9937,
+  "mean_auc_without_ewma": 0.9823,
+  "stage_contribution": 0.0113,
+  "improves": 21,
+  "degrades": 2,
+  "ties": 0,
+  "scenario_p": 1.1920928955078125e-06,
+  "cluster_p": 0.01953125,
+  "cluster_mean_delta": 0.008,
+  "largest_gain": {
+   "scenario": "CIC-IDS-2017 Wed-05-07_DoS-Slowhttptest",
+   "delta": 0.034
+  },
+  "largest_loss": {
+   "scenario": "CIC-IoT-2023 DDoS-SynonymousIP_Flood",
+   "delta": -0.0004
+  },
+  "per_scenario": {
+   "CIC-IDS-2017 Fri-07-07_DDoS-LOIT": {
+    "victim": "192.168.10.50",
+    "with_ewma": 0.999539097794313,
+    "without_ewma": 0.9957190074408716
+   },
+   "CIC-IDS-2017 Wed-05-07_DoS-GoldenEye": {
+    "victim": "192.168.10.50",
+    "with_ewma": 0.9977853841202973,
+    "without_ewma": 0.9859336297856571
+   },
+   "CIC-IDS-2017 Wed-05-07_DoS-Hulk": {
+    "victim": "192.168.10.50",
+    "with_ewma": 0.9949513294548882,
+    "without_ewma": 0.9802217161736947
+   },
+   "CIC-IDS-2017 Wed-05-07_DoS-Slowhttptest": {
+    "victim": "192.168.10.50",
+    "with_ewma": 0.9883907466966326,
+    "without_ewma": 0.9543718758476383
+   },
+   "CIC-IDS-2017 Wed-05-07_DoS-Slowloris": {
+    "victim": "192.168.10.50",
+    "with_ewma": 0.9999748869914615,
+    "without_ewma": 0.9981775130946402
+   },
+   "CIC-IDS-2018 Fri-16-02_DoS-Hulk": {
+    "victim": "172.31.69.25",
+    "with_ewma": 0.9743114511547682,
+    "without_ewma": 0.9515365261217352
+   },
+   "CIC-IDS-2018 Fri-16-02_DoS-SlowHTTPTest": {
+    "victim": "172.31.69.25",
+    "with_ewma": 0.9985835028841877,
+    "without_ewma": 0.9884597489918105
+   },
+   "CIC-IDS-2018 Thu-15-02_DoS-Slowloris": {
+    "victim": "172.31.69.25",
+    "with_ewma": 0.9990053689682534,
+    "without_ewma": 0.997373682785931
+   },
+   "CIC-IDS-2018 Tue-20-02_DDoS-LOIC-HTTP": {
+    "victim": "172.31.69.25",
+    "with_ewma": 0.9998650784808011,
+    "without_ewma": 0.975057798637902
+   },
+   "CIC-IDS-2018 Wed-21-02_DDoS-HOIC": {
+    "victim": "172.31.69.28",
+    "with_ewma": 0.9886594475314133,
+    "without_ewma": 0.9681529999580133
+   },
+   "CIC-IDS-2018 Wed-21-02_DDoS-LOIC-UDP": {
+    "victim": "172.31.69.28",
+    "with_ewma": 0.999911944457273,
+    "without_ewma": 0.9789830508474576
+   },
+   "CIC-DDoS2019 cicddos_03-11_192-168-50-4_LDAP": {
+    "victim": "192.168.50.4",
+    "with_ewma": 0.9992251787073378,
+    "without_ewma": 0.9736671193421779
+   },
+   "CIC-DDoS2019 cicddos_03-11_192-168-50-4_Syn": {
+    "victim": "192.168.50.4",
+    "with_ewma": 0.9672312135147042,
+    "without_ewma": 0.9635314533243907
+   },
+   "CIC-DDoS2019 cicddos_03-11_192-168-50-4_UDP": {
+    "victim": "192.168.50.4",
+    "with_ewma": 0.99870901525758,
+    "without_ewma": 0.976739700284124
+   },
+   "CIC-DDoS2019 cicddos_03-11_192-168-50-4_UDPLag": {
+    "victim": "192.168.50.4",
+    "with_ewma": 0.9954691888848366,
+    "without_ewma": 0.9714662872462266
+   },
+   "CIC-IoT-2023 DDoS-ICMP_Flood": {
+    "victim": "192.168.137.139",
+    "with_ewma": 0.9996915950327169,
+    "without_ewma": 0.9996995474573366
+   },
+   "CIC-IoT-2023 DDoS-SYN_Flood": {
+    "victim": "192.168.137.99",
+    "with_ewma": 0.9998220737791389,
+    "without_ewma": 0.9931838145980759
+   },
+   "CIC-IoT-2023 DDoS-SynonymousIP_Flood": {
+    "victim": "192.168.137.90",
+    "with_ewma": 0.999572441805537,
+    "without_ewma": 1.0
+   },
+   "CIC-IoT-2023 DDoS-TCP_Flood": {
+    "victim": "192.168.137.99",
+    "with_ewma": 0.9997966142076598,
+    "without_ewma": 0.9940938218660066
+   },
+   "CIC-IoT-2023 DDoS-UDP_Flood": {
+    "victim": "192.168.137.99",
+    "with_ewma": 0.9947966151606578,
+    "without_ewma": 0.9938717597861164
+   },
+   "CIC-IoT-2023 Mirai-udpplain": {
+    "victim": "192.168.137.209",
+    "with_ewma": 0.9999312571131933,
+    "without_ewma": 0.9993090260951698
+   },
+   "LITNET-2020 code_red_worm": {
+    "victim": "193.219.81.138",
+    "with_ewma": 0.9597814511274715,
+    "without_ewma": 0.9585359077649673
+   },
+   "CIC-IDS-2017 Fri-07-07_DDoS-LOIT (cross-day Mon->Fri)": {
+    "victim": "192.168.10.50",
+    "with_ewma": 0.9997520302923759,
+    "without_ewma": 0.9956582680123818
+   }
+  }
+ },
+ "USABLE-strict": {
+  "n_scenarios": 17,
+  "n_victim_clusters": 6,
+  "mean_auc_with_ewma": 0.9904,
+  "mean_auc_without_ewma": 0.9761,
+  "stage_contribution": 0.0143,
+  "improves": 16,
+  "degrades": 0,
+  "ties": 1,
+  "scenario_p": 0.00043777719457466354,
+  "cluster_p": 0.0625,
+  "cluster_mean_delta": 0.0115,
+  "largest_gain": {
+   "scenario": "Wed-05-07_DoS-Slowhttptest.json",
+   "delta": 0.034
+  },
+  "largest_loss": {
+   "scenario": "DDoS-UDP_Flood.json",
+   "delta": 0.0
+  },
+  "per_scenario": {
+   "Fri-07-07_DDoS-LOIT.json": {
+    "victim": "CIC-IDS-2017/192.168.10.50",
+    "with_ewma": 0.999539097794313,
+    "without_ewma": 0.9957190074408716
+   },
+   "Wed-05-07_DoS-GoldenEye.json": {
+    "victim": "CIC-IDS-2017/192.168.10.50",
+    "with_ewma": 0.9977853841202973,
+    "without_ewma": 0.9859336297856571
+   },
+   "Wed-05-07_DoS-Hulk.json": {
+    "victim": "CIC-IDS-2017/192.168.10.50",
+    "with_ewma": 0.9949513294548882,
+    "without_ewma": 0.9802217161736947
+   },
+   "Wed-05-07_DoS-Slowhttptest.json": {
+    "victim": "CIC-IDS-2017/192.168.10.50",
+    "with_ewma": 0.9883907466966326,
+    "without_ewma": 0.9543718758476383
+   },
+   "Wed-05-07_DoS-Slowloris.json": {
+    "victim": "CIC-IDS-2017/192.168.10.50",
+    "with_ewma": 0.9999748869914615,
+    "without_ewma": 0.9981775130946402
+   },
+   "Fri-16-02_DoS-Hulk.json": {
+    "victim": "CIC-IDS2018/172.31.69.25",
+    "with_ewma": 0.9743114511547682,
+    "without_ewma": 0.9515365261217352
+   },
+   "Fri-16-02_DoS-SlowHTTPTest.json": {
+    "victim": "CIC-IDS2018/172.31.69.25",
+    "with_ewma": 0.9985835028841877,
+    "without_ewma": 0.9884597489918105
+   },
+   "Thu-15-02_DoS-Slowloris.json": {
+    "victim": "CIC-IDS2018/172.31.69.25",
+    "with_ewma": 0.9990053689682534,
+    "without_ewma": 0.997373682785931
+   },
+   "Tue-20-02_DDoS-LOIC-HTTP.json": {
+    "victim": "CIC-IDS2018/172.31.69.25",
+    "with_ewma": 0.9998650784808011,
+    "without_ewma": 0.975057798637902
+   },
+   "Wed-21-02_DDoS-HOIC.json": {
+    "victim": "CIC-IDS2018/172.31.69.28",
+    "with_ewma": 0.9886594475314133,
+    "without_ewma": 0.9681529999580133
+   },
+   "Wed-21-02_DDoS-LOIC-UDP.json": {
+    "victim": "CIC-IDS2018/172.31.69.28",
+    "with_ewma": 0.999911944457273,
+    "without_ewma": 0.9789830508474576
+   },
+   "cicddos_03-11_192-168-50-4_LDAP.json": {
+    "victim": "CICDDoS2019/192.168.50.4",
+    "with_ewma": 0.9992251787073378,
+    "without_ewma": 0.9736671193421779
+   },
+   "cicddos_03-11_192-168-50-4_Syn.json": {
+    "victim": "CICDDoS2019/192.168.50.4",
+    "with_ewma": 0.9672312135147042,
+    "without_ewma": 0.9635314533243907
+   },
+   "cicddos_03-11_192-168-50-4_UDP.json": {
+    "victim": "CICDDoS2019/192.168.50.4",
+    "with_ewma": 0.99870901525758,
+    "without_ewma": 0.976739700284124
+   },
+   "cicddos_03-11_192-168-50-4_UDPLag.json": {
+    "victim": "CICDDoS2019/192.168.50.4",
+    "with_ewma": 0.9954691888848366,
+    "without_ewma": 0.9714662872462266
+   },
+   "DDoS-UDP_Flood.json": {
+    "victim": "CIC_IOT_Dataset2023/192.168.137.99",
+    "with_ewma": 0.9761467799963567,
+    "without_ewma": 0.9761467799963567
+   },
+   "code_red_worm.json": {
+    "victim": "LITNET-2020/193.219.81.138",
+    "with_ewma": 0.9597814511274715,
+    "without_ewma": 0.9585359077649673
+   }
+  }
+ }
+}

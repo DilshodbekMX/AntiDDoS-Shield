@@ -1,0 +1,145 @@
+{
+  "metadata": {
+    "dataset": "LITNET-2020 subnet-aggregation (cross-IP) detection \u2014 evaluates L1 protected-subnet aggregation (subnet-as-host)",
+    "per_ip_reference": "SYN 12.6%, Win32 39.1%, LAND 35.9% (per-IP)",
+    "feature_count": 10,
+    "features_used": [
+      "packets_per_sec",
+      "bytes_per_sec",
+      "flows_per_sec",
+      "tcp_ratio",
+      "udp_ratio",
+      "icmp_ratio",
+      "unique_src_ips",
+      "unique_dst_ports",
+      "flow_duration_avg",
+      "dst_port_density"
+    ],
+    "features": [
+      "packets_per_sec",
+      "bytes_per_sec",
+      "flows_per_sec",
+      "tcp_ratio",
+      "udp_ratio",
+      "icmp_ratio",
+      "unique_src_ips",
+      "unique_dst_ports",
+      "flow_duration_avg",
+      "dst_port_density"
+    ],
+    "features_inert_auto_excluded": [
+      "syn_per_sec",
+      "syn_ack_per_sec",
+      "ack_per_sec",
+      "rst_per_sec",
+      "fin_per_sec",
+      "other_ratio",
+      "syn_ack_ratio",
+      "rst_syn_ratio",
+      "bytes_per_packet",
+      "unique_flows",
+      "new_srcip_rate",
+      "max_flow_fraction",
+      "topk_flow_share",
+      "heavy_hitter_count",
+      "avg_packets_per_flow",
+      "syn_tcp_ratio",
+      "synack_tcp_ratio",
+      "ack_tcp_ratio",
+      "rst_tcp_ratio",
+      "fin_tcp_ratio",
+      "burst_factor",
+      "udp_flow_ratio",
+      "icmp_echo_ratio",
+      "src_ip_entropy",
+      "src_port_entropy",
+      "small_pkt_ratio",
+      "fragment_ratio",
+      "ttl_mean",
+      "tcp_completion_rate"
+    ],
+    "production_feature_set_size": 39
+  },
+  "zone_24": {
+    "n_victim_zones": 113,
+    "n_uninvolved_zones": 13,
+    "dr_pct": 69.2,
+    "fpr_pct": 36.3,
+    "dr_ci": [
+      68.7,
+      69.7
+    ],
+    "per_attack_type": {
+      "syn_flood": {
+        "dr_pct": 74.5,
+        "n": 27584
+      },
+      "land_attack": {
+        "dr_pct": 38.5,
+        "n": 5141
+      },
+      "win32_worm": {
+        "dr_pct": 59.4,
+        "n": 1189
+      },
+      "http_flood": {
+        "dr_pct": 97.5,
+        "n": 360
+      },
+      "code_red_worm": {
+        "dr_pct": 84.1,
+        "n": 345
+      },
+      "smurf": {
+        "dr_pct": 100.0,
+        "n": 299
+      },
+      "reaper_worm": {
+        "dr_pct": 64.4,
+        "n": 239
+      }
+    },
+    "n_zones_total": 178
+  },
+  "zone_16": {
+    "n_victim_zones": 3,
+    "n_uninvolved_zones": 0,
+    "dr_pct": 84.0,
+    "fpr_pct": null,
+    "dr_ci": [
+      82.4,
+      85.4
+    ],
+    "per_attack_type": {
+      "land_attack": {
+        "dr_pct": 97.2,
+        "n": 604
+      },
+      "syn_flood": {
+        "dr_pct": 70.8,
+        "n": 479
+      },
+      "http_flood": {
+        "dr_pct": 97.5,
+        "n": 360
+      },
+      "code_red_worm": {
+        "dr_pct": 87.8,
+        "n": 345
+      },
+      "smurf": {
+        "dr_pct": 100.0,
+        "n": 299
+      },
+      "reaper_worm": {
+        "dr_pct": 53.0,
+        "n": 185
+      },
+      "win32_worm": {
+        "dr_pct": 27.6,
+        "n": 123
+      }
+    },
+    "n_zones_total": 3
+  }
+}

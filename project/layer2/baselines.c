@@ -413,7 +413,27 @@ void tier_baseline_z_scores(const struct tier_baseline *tier,
 
 // ==================== Tier Selection ====================
 
+
+/* ---- offline-replay seam -------------------------------------------------
+ * get_current_hour_index()/get_current_weekly_index() choose the tier-2/3 slot from
+ * time(NULL), which is correct online, where wall-clock time IS the data's time.
+ * Replaying a historical capture needs the slot taken from the window's own
+ * timestamp instead; without it every replayed window lands in whichever slot the
+ * replay happens to run in, collapsing tiers 2 and 3 to a single slot.
+ *
+ * Negative values (the default) disable the override entirely, so the live path is
+ * bit-identical to before. */
+static int g_replay_hour = -1, g_replay_week = -1;
+
+void l2_set_replay_slot(int hour_index, int weekly_index) {
+    g_replay_hour  = (hour_index  >= 0 && hour_index  < 24)  ? hour_index  : -1;
+    g_replay_week  = (weekly_index >= 0 && weekly_index < 168) ? weekly_index : -1;
+}
+
+void l2_clear_replay_slot(void) { g_replay_hour = g_replay_week = -1; }
+
 int get_current_hour_index(void) {
+    if (g_replay_hour >= 0) return g_replay_hour;
     time_t now = time(NULL);
     struct tm tm_info;
     localtime_r(&now, &tm_info);  // Thread-safe version
@@ -421,6 +441,7 @@ int get_current_hour_index(void) {
 }
 
 int get_current_weekly_index(void) {
+    if (g_replay_week >= 0) return g_replay_week;
     time_t now = time(NULL);
     struct tm tm_info;
     localtime_r(&now, &tm_info);  // Thread-safe version

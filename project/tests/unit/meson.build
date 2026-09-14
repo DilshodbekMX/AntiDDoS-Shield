@@ -80,7 +80,7 @@ if get_option('build_tests')
         link_args: ['-lm'],
         install: false,
     )
-    test('innovation_gate_tests', test_innovation_gate)
+    # Test: Subspace-Q + EWMA Parity Fixture (pure C, no DPDK) -- bit-level C engine fidelity
 
 
 

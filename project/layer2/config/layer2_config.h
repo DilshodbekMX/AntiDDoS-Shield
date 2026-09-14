@@ -71,6 +71,12 @@
 #define L2_ENSEMBLE_RULE_INNOVATION_GATE  4    // innovation-gated z-path latch (the innovation-gate prototype)
 #define L2_DEFAULT_ENSEMBLE_RULE          L2_ENSEMBLE_RULE_OR
 #define L2_DEFAULT_CONFORMAL_ALPHA        0.001    // family-wise target alpha = 0.1%
+// CUSUM accumulator decay. 1.0 is the classic non-resetting CUSUM, whose sum grows without
+// bound and latches permanently once it crosses h; measured offline, that leaves the CUSUM
+// statistic anti-correlated with attacks (ROC AUC 0.109 over 17 scenarios). A decay of 0.99
+// caps the steady state and restores the ordering (AUC 0.930) without changing which windows
+// alarm at the shipped threshold.
+#define L2_DEFAULT_CUSUM_DECAY            0.99
 #define L2_DEFAULT_ROUTED_FDR_ALPHA       0.1      // BH-FDR level (routed needs n >= m/alpha calib)
 // Innovation-gate (innovation-gate prototype) latch: gate the z-path on a training-free surprise statistic while
 // CUSUM/JSD stay ungated (decision = (z AND latch) OR CUSUM OR JSD). Cuts stale-reference
@@ -147,6 +153,7 @@ struct layer2_config {
     // Ensemble decision rule selector (paper section4.10): OR (default) vs split-conformal.
     int ensemble_rule;                  // L2_ENSEMBLE_RULE_* (default: OR)
     double conformal_alpha;             // family-wise alpha for the conformal path (default: 0.001)
+    double cusum_decay;                 // CUSUM accumulator decay lambda (default: 0.99; 1.0 = non-resetting)
     double routed_fdr_alpha;            // BH-FDR level for the routed path (default: 0.1)
     uint32_t conformal_capacity;        // per-path calibration buffer size (default: 4096, >=3/alpha)
     double innovation_gate_kappa;       // the innovation-gate prototype latch open threshold on standardized surprise (default: 3.0)

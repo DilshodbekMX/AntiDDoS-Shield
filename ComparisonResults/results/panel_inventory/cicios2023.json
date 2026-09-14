@@ -1,0 +1,2082 @@
+[
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-ACK_Fragmentation.json",
+    "family": "DDoS-ACK_Fragmentation",
+    "victim": "192.168.137.1",
+    "mode": "crossfile",
+    "n_benign": 70447,
+    "n_attack": 18585,
+    "pps": {
+      "n": 18585,
+      "median": 3.0,
+      "p95": 10.0,
+      "max": 68.0
+    },
+    "n_fit": 42268,
+    "n_calib": 14089,
+    "n_test_benign": 14090,
+    "viable": false,
+    "reason": "max_pps=68<100 (median 3) -- not a flood victim"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-ACK_Fragmentation.json",
+    "family": "DDoS-ACK_Fragmentation",
+    "victim": "192.168.137.51",
+    "mode": "crossfile",
+    "n_benign": 11277,
+    "n_attack": 12507,
+    "pps": {
+      "n": 12507,
+      "median": 2.0,
+      "p95": 15.0,
+      "max": 185.0
+    },
+    "n_fit": 6766,
+    "n_calib": 2255,
+    "n_test_benign": 2256,
+    "viable": true,
+    "reason": "OK"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-ACK_Fragmentation.json",
+    "family": "DDoS-ACK_Fragmentation",
+    "victim": "8.8.8.8",
+    "mode": "crossfile",
+    "n_benign": 16382,
+    "n_attack": 11426,
+    "pps": {
+      "n": 11426,
+      "median": 2.0,
+      "p95": 7.0,
+      "max": 55.0
+    },
+    "n_fit": 9829,
+    "n_calib": 3276,
+    "n_test_benign": 3277,
+    "viable": false,
+    "reason": "max_pps=55<100 (median 2) -- not a flood victim"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-ACK_Fragmentation.json",
+    "family": "DDoS-ACK_Fragmentation",
+    "victim": "192.168.137.187",
+    "mode": "crossfile",
+    "n_benign": 5440,
+    "n_attack": 6597,
+    "pps": {
+      "n": 6597,
+      "median": 1.0,
+      "p95": 1516.0,
+      "max": 3112.0
+    },
+    "n_fit": 3264,
+    "n_calib": 1088,
+    "n_test_benign": 1088,
+    "viable": true,
+    "reason": "OK"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-ACK_Fragmentation.json",
+    "family": "DDoS-ACK_Fragmentation",
+    "victim": "34.238.41.119",
+    "mode": "crossfile",
+    "n_benign": 6,
+    "n_attack": 4152,
+    "pps": {
+      "n": 4152,
+      "median": 1.0,
+      "p95": 5.0,
+      "max": 25.0
+    },
+    "n_fit": 3,
+    "n_calib": 1,
+    "n_test_benign": 2,
+    "viable": false,
+    "reason": "n_fit=3<30; n_calib=1<10; n_test_benign=2<5; max_pps=25<100 (median 1) -- not a flood victim"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-ACK_Fragmentation.json",
+    "family": "DDoS-ACK_Fragmentation",
+    "victim": "192.168.137.246",
+    "mode": "crossfile",
+    "n_benign": 22,
+    "n_attack": 4022,
+    "pps": {
+      "n": 4022,
+      "median": 2.0,
+      "p95": 26.0,
+      "max": 99.0
+    },
+    "n_fit": 13,
+    "n_calib": 4,
+    "n_test_benign": 5,
+    "viable": false,
+    "reason": "n_fit=13<30; n_calib=4<10; max_pps=99<100 (median 2) -- not a flood victim"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-ACK_Fragmentation.json",
+    "family": "DDoS-ACK_Fragmentation",
+    "victim": "192.168.137.210",
+    "mode": "crossfile",
+    "n_benign": 21,
+    "n_attack": 3588,
+    "pps": {
+      "n": 3588,
+      "median": 2.0,
+      "p95": 49.0,
+      "max": 86.0
+    },
+    "n_fit": 12,
+    "n_calib": 4,
+    "n_test_benign": 5,
+    "viable": false,
+    "reason": "n_fit=12<30; n_calib=4<10; max_pps=86<100 (median 2) -- not a flood victim"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-ACK_Fragmentation.json",
+    "family": "DDoS-ACK_Fragmentation",
+    "victim": "192.168.137.46",
+    "mode": "crossfile",
+    "n_benign": 96400,
+    "n_attack": 3443,
+    "pps": {
+      "n": 3443,
+      "median": 1.0,
+      "p95": 2684.0,
+      "max": 4017.0
+    },
+    "n_fit": 57840,
+    "n_calib": 19280,
+    "n_test_benign": 19280,
+    "viable": true,
+    "reason": "OK"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-HTTP_Flood.json",
+    "family": "DDoS-HTTP_Flood",
+    "victim": "192.168.137.1",
+    "mode": "crossfile",
+    "n_benign": 70447,
+    "n_attack": 4562,
+    "pps": {
+      "n": 4562,
+      "median": 2.0,
+      "p95": 7.0,
+      "max": 26.0
+    },
+    "n_fit": 42268,
+    "n_calib": 14089,
+    "n_test_benign": 14090,
+    "viable": false,
+    "reason": "max_pps=26<100 (median 2) -- not a flood victim"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-HTTP_Flood.json",
+    "family": "DDoS-HTTP_Flood",
+    "victim": "192.168.137.82",
+    "mode": "crossfile",
+    "n_benign": 1868,
+    "n_attack": 3831,
+    "pps": {
+      "n": 3831,
+      "median": 58.0,
+      "p95": 216.0,
+      "max": 676.0
+    },
+    "n_fit": 1120,
+    "n_calib": 374,
+    "n_test_benign": 374,
+    "viable": true,
+    "reason": "OK"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-HTTP_Flood.json",
+    "family": "DDoS-HTTP_Flood",
+    "victim": "192.168.137.186",
+    "mode": "crossfile",
+    "n_benign": 15103,
+    "n_attack": 3644,
+    "pps": {
+      "n": 3644,
+      "median": 66.0,
+      "p95": 185.0,
+      "max": 537.0
+    },
+    "n_fit": 9061,
+    "n_calib": 3021,
+    "n_test_benign": 3021,
+    "viable": true,
+    "reason": "OK"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-HTTP_Flood.json",
+    "family": "DDoS-HTTP_Flood",
+    "victim": "192.168.137.23",
+    "mode": "crossfile",
+    "n_benign": 82,
+    "n_attack": 3560,
+    "pps": {
+      "n": 3560,
+      "median": 43.0,
+      "p95": 133.0,
+      "max": 528.0
+    },
+    "n_fit": 49,
+    "n_calib": 16,
+    "n_test_benign": 17,
+    "viable": true,
+    "reason": "OK"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-HTTP_Flood.json",
+    "family": "DDoS-HTTP_Flood",
+    "victim": "34.158.253.218",
+    "mode": "crossfile",
+    "n_benign": 39121,
+    "n_attack": 3024,
+    "pps": {
+      "n": 3024,
+      "median": 2.0,
+      "p95": 5.0,
+      "max": 26.0
+    },
+    "n_fit": 23472,
+    "n_calib": 7824,
+    "n_test_benign": 7825,
+    "viable": false,
+    "reason": "max_pps=26<100 (median 2) -- not a flood victim"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-HTTP_Flood.json",
+    "family": "DDoS-HTTP_Flood",
+    "victim": "8.8.8.8",
+    "mode": "crossfile",
+    "n_benign": 16382,
+    "n_attack": 1445,
+    "pps": {
+      "n": 1445,
+      "median": 2.0,
+      "p95": 4.0,
+      "max": 12.0
+    },
+    "n_fit": 9829,
+    "n_calib": 3276,
+    "n_test_benign": 3277,
+    "viable": false,
+    "reason": "max_pps=12<100 (median 2) -- not a flood victim"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-HTTP_Flood.json",
+    "family": "DDoS-HTTP_Flood",
+    "victim": "52.15.60.193",
+    "mode": "crossfile",
+    "n_benign": 9241,
+    "n_attack": 1349,
+    "pps": {
+      "n": 1349,
+      "median": 2.0,
+      "p95": 4.0,
+      "max": 13.0
+    },
+    "n_fit": 5544,
+    "n_calib": 1848,
+    "n_test_benign": 1849,
+    "viable": false,
+    "reason": "max_pps=13<100 (median 2) -- not a flood victim"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-HTTP_Flood.json",
+    "family": "DDoS-HTTP_Flood",
+    "victim": "192.168.137.41",
+    "mode": "crossfile",
+    "n_benign": 41201,
+    "n_attack": 1060,
+    "pps": {
+      "n": 1060,
+      "median": 8.0,
+      "p95": 13.0,
+      "max": 21.0
+    },
+    "n_fit": 24720,
+    "n_calib": 8240,
+    "n_test_benign": 8241,
+    "viable": false,
+    "reason": "max_pps=21<100 (median 8) -- not a flood victim"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-ICMP_Flood.json",
+    "family": "DDoS-ICMP_Flood",
+    "victim": "192.168.137.1",
+    "mode": "crossfile",
+    "n_benign": 70447,
+    "n_attack": 34130,
+    "pps": {
+      "n": 34130,
+      "median": 3.0,
+      "p95": 10.0,
+      "max": 61.0
+    },
+    "n_fit": 42268,
+    "n_calib": 14089,
+    "n_test_benign": 14090,
+    "viable": false,
+    "reason": "max_pps=61<100 (median 3) -- not a flood victim"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-ICMP_Flood.json",
+    "family": "DDoS-ICMP_Flood",
+    "victim": "8.8.8.8",
+    "mode": "crossfile",
+    "n_benign": 16382,
+    "n_attack": 16365,
+    "pps": {
+      "n": 16365,
+      "median": 2.0,
+      "p95": 6.0,
+      "max": 45.0
+    },
+    "n_fit": 9829,
+    "n_calib": 3276,
+    "n_test_benign": 3277,
+    "viable": false,
+    "reason": "max_pps=45<100 (median 2) -- not a flood victim"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-ICMP_Flood.json",
+    "family": "DDoS-ICMP_Flood",
+    "victim": "192.168.137.139",
+    "mode": "crossfile",
+    "n_benign": 1694,
+    "n_attack": 11870,
+    "pps": {
+      "n": 11870,
+      "median": 3.0,
+      "p95": 44.0,
+      "max": 27586.0
+    },
+    "n_fit": 1016,
+    "n_calib": 339,
+    "n_test_benign": 339,
+    "viable": true,
+    "reason": "OK"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-ICMP_Flood.json",
+    "family": "DDoS-ICMP_Flood",
+    "victim": "157.249.81.141",
+    "mode": "crossfile",
+    "n_benign": 25220,
+    "n_attack": 7815,
+    "pps": {
+      "n": 7815,
+      "median": 7.0,
+      "p95": 10.0,
+      "max": 11.0
+    },
+    "n_fit": 15132,
+    "n_calib": 5044,
+    "n_test_benign": 5044,
+    "viable": false,
+    "reason": "max_pps=11<100 (median 7) -- not a flood victim"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-ICMP_Flood.json",
+    "family": "DDoS-ICMP_Flood",
+    "victim": "35.185.101.66",
+    "mode": "crossfile",
+    "n_benign": 96373,
+    "n_attack": 7804,
+    "pps": {
+      "n": 7804,
+      "median": 6.0,
+      "p95": 21.0,
+      "max": 113.0
+    },
+    "n_fit": 57823,
+    "n_calib": 19275,
+    "n_test_benign": 19275,
+    "viable": true,
+    "reason": "OK"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-ICMP_Flood.json",
+    "family": "DDoS-ICMP_Flood",
+    "victim": "192.168.137.99",
+    "mode": "crossfile",
+    "n_benign": 1867,
+    "n_attack": 7210,
+    "pps": {
+      "n": 7210,
+      "median": 2.0,
+      "p95": 25.0,
+      "max": 798.0
+    },
+    "n_fit": 1120,
+    "n_calib": 373,
+    "n_test_benign": 374,
+    "viable": true,
+    "reason": "OK"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-ICMP_Flood.json",
+    "family": "DDoS-ICMP_Flood",
+    "victim": "192.168.137.175",
+    "mode": "crossfile",
+    "n_benign": 73177,
+    "n_attack": 7137,
+    "pps": {
+      "n": 7137,
+      "median": 2.0,
+      "p95": 15.0,
+      "max": 199.0
+    },
+    "n_fit": 43906,
+    "n_calib": 14635,
+    "n_test_benign": 14636,
+    "viable": true,
+    "reason": "OK"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-ICMP_Flood.json",
+    "family": "DDoS-ICMP_Flood",
+    "victim": "34.238.41.119",
+    "mode": "crossfile",
+    "n_benign": 6,
+    "n_attack": 6685,
+    "pps": {
+      "n": 6685,
+      "median": 1.0,
+      "p95": 4.0,
+      "max": 11.0
+    },
+    "n_fit": 3,
+    "n_calib": 1,
+    "n_test_benign": 2,
+    "viable": false,
+    "reason": "n_fit=3<30; n_calib=1<10; n_test_benign=2<5; max_pps=11<100 (median 1) -- not a flood victim"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-ICMP_Fragmentation.json",
+    "family": "DDoS-ICMP_Fragmentation",
+    "victim": "192.168.137.1",
+    "mode": "crossfile",
+    "n_benign": 70447,
+    "n_attack": 40319,
+    "pps": {
+      "n": 40319,
+      "median": 5.0,
+      "p95": 12.0,
+      "max": 83.0
+    },
+    "n_fit": 42268,
+    "n_calib": 14089,
+    "n_test_benign": 14090,
+    "viable": false,
+    "reason": "max_pps=83<100 (median 5) -- not a flood victim"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-ICMP_Fragmentation.json",
+    "family": "DDoS-ICMP_Fragmentation",
+    "victim": "192.168.137.41",
+    "mode": "crossfile",
+    "n_benign": 41201,
+    "n_attack": 38510,
+    "pps": {
+      "n": 38510,
+      "median": 8.0,
+      "p95": 14.0,
+      "max": 1541.0
+    },
+    "n_fit": 24720,
+    "n_calib": 8240,
+    "n_test_benign": 8241,
+    "viable": true,
+    "reason": "OK"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-ICMP_Fragmentation.json",
+    "family": "DDoS-ICMP_Fragmentation",
+    "victim": "157.249.81.141",
+    "mode": "crossfile",
+    "n_benign": 25220,
+    "n_attack": 37206,
+    "pps": {
+      "n": 37206,
+      "median": 7.0,
+      "p95": 10.0,
+      "max": 12.0
+    },
+    "n_fit": 15132,
+    "n_calib": 5044,
+    "n_test_benign": 5044,
+    "viable": false,
+    "reason": "max_pps=12<100 (median 7) -- not a flood victim"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-ICMP_Fragmentation.json",
+    "family": "DDoS-ICMP_Fragmentation",
+    "victim": "8.8.8.8",
+    "mode": "crossfile",
+    "n_benign": 16382,
+    "n_attack": 25692,
+    "pps": {
+      "n": 25692,
+      "median": 2.0,
+      "p95": 6.0,
+      "max": 44.0
+    },
+    "n_fit": 9829,
+    "n_calib": 3276,
+    "n_test_benign": 3277,
+    "viable": false,
+    "reason": "max_pps=44<100 (median 2) -- not a flood victim"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-ICMP_Fragmentation.json",
+    "family": "DDoS-ICMP_Fragmentation",
+    "victim": "192.168.137.249",
+    "mode": "crossfile",
+    "n_benign": 16391,
+    "n_attack": 23774,
+    "pps": {
+      "n": 23774,
+      "median": 1.0,
+      "p95": 4.0,
+      "max": 56.0
+    },
+    "n_fit": 9834,
+    "n_calib": 3278,
+    "n_test_benign": 3279,
+    "viable": false,
+    "reason": "max_pps=56<100 (median 1) -- not a flood victim"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-ICMP_Fragmentation.json",
+    "family": "DDoS-ICMP_Fragmentation",
+    "victim": "192.168.137.175",
+    "mode": "crossfile",
+    "n_benign": 73177,
+    "n_attack": 16973,
+    "pps": {
+      "n": 16973,
+      "median": 2.0,
+      "p95": 47.0,
+      "max": 3091.0
+    },
+    "n_fit": 43906,
+    "n_calib": 14635,
+    "n_test_benign": 14636,
+    "viable": true,
+    "reason": "OK"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-ICMP_Fragmentation.json",
+    "family": "DDoS-ICMP_Fragmentation",
+    "victim": "8.8.4.4",
+    "mode": "crossfile",
+    "n_benign": 8493,
+    "n_attack": 12601,
+    "pps": {
+      "n": 12601,
+      "median": 1.0,
+      "p95": 4.0,
+      "max": 10.0
+    },
+    "n_fit": 5095,
+    "n_calib": 1699,
+    "n_test_benign": 1699,
+    "viable": false,
+    "reason": "max_pps=10<100 (median 1) -- not a flood victim"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-ICMP_Fragmentation.json",
+    "family": "DDoS-ICMP_Fragmentation",
+    "victim": "192.168.137.51",
+    "mode": "crossfile",
+    "n_benign": 11277,
+    "n_attack": 11864,
+    "pps": {
+      "n": 11864,
+      "median": 2.0,
+      "p95": 19.0,
+      "max": 1222.0
+    },
+    "n_fit": 6766,
+    "n_calib": 2255,
+    "n_test_benign": 2256,
+    "viable": true,
+    "reason": "OK"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-PSHACK_Flood.json",
+    "family": "DDoS-PSHACK_Flood",
+    "victim": "192.168.137.1",
+    "mode": "crossfile",
+    "n_benign": 70447,
+    "n_attack": 5527,
+    "pps": {
+      "n": 5527,
+      "median": 3.0,
+      "p95": 9.0,
+      "max": 33.0
+    },
+    "n_fit": 42268,
+    "n_calib": 14089,
+    "n_test_benign": 14090,
+    "viable": false,
+    "reason": "max_pps=33<100 (median 3) -- not a flood victim"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-PSHACK_Flood.json",
+    "family": "DDoS-PSHACK_Flood",
+    "victim": "8.8.8.8",
+    "mode": "crossfile",
+    "n_benign": 16382,
+    "n_attack": 3166,
+    "pps": {
+      "n": 3166,
+      "median": 2.0,
+      "p95": 5.0,
+      "max": 16.0
+    },
+    "n_fit": 9829,
+    "n_calib": 3276,
+    "n_test_benign": 3277,
+    "viable": false,
+    "reason": "max_pps=16<100 (median 2) -- not a flood victim"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-PSHACK_Flood.json",
+    "family": "DDoS-PSHACK_Flood",
+    "victim": "192.168.137.210",
+    "mode": "crossfile",
+    "n_benign": 21,
+    "n_attack": 3116,
+    "pps": {
+      "n": 3116,
+      "median": 2.0,
+      "p95": 35.0,
+      "max": 91.0
+    },
+    "n_fit": 12,
+    "n_calib": 4,
+    "n_test_benign": 5,
+    "viable": false,
+    "reason": "n_fit=12<30; n_calib=4<10; max_pps=91<100 (median 2) -- not a flood victim"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-PSHACK_Flood.json",
+    "family": "DDoS-PSHACK_Flood",
+    "victim": "192.168.137.51",
+    "mode": "crossfile",
+    "n_benign": 11277,
+    "n_attack": 1654,
+    "pps": {
+      "n": 1654,
+      "median": 2.0,
+      "p95": 4.0,
+      "max": 17.0
+    },
+    "n_fit": 6766,
+    "n_calib": 2255,
+    "n_test_benign": 2256,
+    "viable": false,
+    "reason": "max_pps=17<100 (median 2) -- not a flood victim"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-PSHACK_Flood.json",
+    "family": "DDoS-PSHACK_Flood",
+    "victim": "192.168.137.186",
+    "mode": "crossfile",
+    "n_benign": 15103,
+    "n_attack": 1609,
+    "pps": {
+      "n": 1609,
+      "median": 70.0,
+      "p95": 450.0,
+      "max": 1374.0
+    },
+    "n_fit": 9061,
+    "n_calib": 3021,
+    "n_test_benign": 3021,
+    "viable": true,
+    "reason": "OK"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-PSHACK_Flood.json",
+    "family": "DDoS-PSHACK_Flood",
+    "victim": "192.168.137.136",
+    "mode": "crossfile",
+    "n_benign": 3493,
+    "n_attack": 1474,
+    "pps": {
+      "n": 1474,
+      "median": 1.0,
+      "p95": 4.0,
+      "max": 14.0
+    },
+    "n_fit": 2095,
+    "n_calib": 699,
+    "n_test_benign": 699,
+    "viable": false,
+    "reason": "max_pps=14<100 (median 1) -- not a flood victim"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-PSHACK_Flood.json",
+    "family": "DDoS-PSHACK_Flood",
+    "victim": "192.168.137.187",
+    "mode": "crossfile",
+    "n_benign": 5440,
+    "n_attack": 1403,
+    "pps": {
+      "n": 1403,
+      "median": 4.0,
+      "p95": 24150.0,
+      "max": 27906.0
+    },
+    "n_fit": 3264,
+    "n_calib": 1088,
+    "n_test_benign": 1088,
+    "viable": true,
+    "reason": "OK"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-PSHACK_Flood.json",
+    "family": "DDoS-PSHACK_Flood",
+    "victim": "192.168.137.139",
+    "mode": "crossfile",
+    "n_benign": 1694,
+    "n_attack": 1367,
+    "pps": {
+      "n": 1367,
+      "median": 1.0,
+      "p95": 2.0,
+      "max": 13.0
+    },
+    "n_fit": 1016,
+    "n_calib": 339,
+    "n_test_benign": 339,
+    "viable": false,
+    "reason": "max_pps=13<100 (median 1) -- not a flood victim"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-RSTFINFlood.json",
+    "family": "DDoS-RSTFINFlood",
+    "victim": "192.168.137.1",
+    "mode": "crossfile",
+    "n_benign": 70447,
+    "n_attack": 5339,
+    "pps": {
+      "n": 5339,
+      "median": 3.0,
+      "p95": 9.0,
+      "max": 40.0
+    },
+    "n_fit": 42268,
+    "n_calib": 14089,
+    "n_test_benign": 14090,
+    "viable": false,
+    "reason": "max_pps=40<100 (median 3) -- not a flood victim"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-RSTFINFlood.json",
+    "family": "DDoS-RSTFINFlood",
+    "victim": "8.8.8.8",
+    "mode": "crossfile",
+    "n_benign": 16382,
+    "n_attack": 3607,
+    "pps": {
+      "n": 3607,
+      "median": 3.0,
+      "p95": 6.0,
+      "max": 14.0
+    },
+    "n_fit": 9829,
+    "n_calib": 3276,
+    "n_test_benign": 3277,
+    "viable": false,
+    "reason": "max_pps=14<100 (median 3) -- not a flood victim"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-RSTFINFlood.json",
+    "family": "DDoS-RSTFINFlood",
+    "victim": "192.168.137.51",
+    "mode": "crossfile",
+    "n_benign": 11277,
+    "n_attack": 3372,
+    "pps": {
+      "n": 3372,
+      "median": 3.0,
+      "p95": 28.0,
+      "max": 156.0
+    },
+    "n_fit": 6766,
+    "n_calib": 2255,
+    "n_test_benign": 2256,
+    "viable": true,
+    "reason": "OK"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-RSTFINFlood.json",
+    "family": "DDoS-RSTFINFlood",
+    "victim": "192.168.137.227",
+    "mode": "crossfile",
+    "n_benign": 15767,
+    "n_attack": 2401,
+    "pps": {
+      "n": 2401,
+      "median": 2.0,
+      "p95": 13.0,
+      "max": 143.0
+    },
+    "n_fit": 9460,
+    "n_calib": 3153,
+    "n_test_benign": 3154,
+    "viable": true,
+    "reason": "OK"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-RSTFINFlood.json",
+    "family": "DDoS-RSTFINFlood",
+    "victim": "192.168.137.187",
+    "mode": "crossfile",
+    "n_benign": 5440,
+    "n_attack": 1826,
+    "pps": {
+      "n": 1826,
+      "median": 2.0,
+      "p95": 5.0,
+      "max": 18.0
+    },
+    "n_fit": 3264,
+    "n_calib": 1088,
+    "n_test_benign": 1088,
+    "viable": false,
+    "reason": "max_pps=18<100 (median 2) -- not a flood victim"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-RSTFINFlood.json",
+    "family": "DDoS-RSTFINFlood",
+    "victim": "192.168.137.86",
+    "mode": "crossfile",
+    "n_benign": 12962,
+    "n_attack": 1686,
+    "pps": {
+      "n": 1686,
+      "median": 2.0,
+      "p95": 23230.0,
+      "max": 27376.0
+    },
+    "n_fit": 7777,
+    "n_calib": 2592,
+    "n_test_benign": 2593,
+    "viable": true,
+    "reason": "OK"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-RSTFINFlood.json",
+    "family": "DDoS-RSTFINFlood",
+    "victim": "192.168.137.246",
+    "mode": "crossfile",
+    "n_benign": 22,
+    "n_attack": 1668,
+    "pps": {
+      "n": 1668,
+      "median": 2.0,
+      "p95": 28.0,
+      "max": 98.0
+    },
+    "n_fit": 13,
+    "n_calib": 4,
+    "n_test_benign": 5,
+    "viable": false,
+    "reason": "n_fit=13<30; n_calib=4<10; max_pps=98<100 (median 2) -- not a flood victim"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-RSTFINFlood.json",
+    "family": "DDoS-RSTFINFlood",
+    "victim": "192.168.137.46",
+    "mode": "crossfile",
+    "n_benign": 96400,
+    "n_attack": 1351,
+    "pps": {
+      "n": 1351,
+      "median": 1.0,
+      "p95": 3.0,
+      "max": 83.0
+    },
+    "n_fit": 57840,
+    "n_calib": 19280,
+    "n_test_benign": 19280,
+    "viable": false,
+    "reason": "max_pps=83<100 (median 1) -- not a flood victim"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-SYN_Flood.json",
+    "family": "DDoS-SYN_Flood",
+    "victim": "157.249.81.141",
+    "mode": "crossfile",
+    "n_benign": 25220,
+    "n_attack": 7999,
+    "pps": {
+      "n": 7999,
+      "median": 7.0,
+      "p95": 10.0,
+      "max": 11.0
+    },
+    "n_fit": 15132,
+    "n_calib": 5044,
+    "n_test_benign": 5044,
+    "viable": false,
+    "reason": "max_pps=11<100 (median 7) -- not a flood victim"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-SYN_Flood.json",
+    "family": "DDoS-SYN_Flood",
+    "victim": "192.168.137.1",
+    "mode": "crossfile",
+    "n_benign": 70447,
+    "n_attack": 7977,
+    "pps": {
+      "n": 7977,
+      "median": 5.0,
+      "p95": 11.0,
+      "max": 59.0
+    },
+    "n_fit": 42268,
+    "n_calib": 14089,
+    "n_test_benign": 14090,
+    "viable": false,
+    "reason": "max_pps=59<100 (median 5) -- not a flood victim"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-SYN_Flood.json",
+    "family": "DDoS-SYN_Flood",
+    "victim": "8.8.8.8",
+    "mode": "crossfile",
+    "n_benign": 16382,
+    "n_attack": 4425,
+    "pps": {
+      "n": 4425,
+      "median": 2.0,
+      "p95": 6.0,
+      "max": 21.0
+    },
+    "n_fit": 9829,
+    "n_calib": 3276,
+    "n_test_benign": 3277,
+    "viable": false,
+    "reason": "max_pps=21<100 (median 2) -- not a flood victim"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-SYN_Flood.json",
+    "family": "DDoS-SYN_Flood",
+    "victim": "192.168.137.99",
+    "mode": "crossfile",
+    "n_benign": 1867,
+    "n_attack": 3817,
+    "pps": {
+      "n": 3817,
+      "median": 2.0,
+      "p95": 14283.0,
+      "max": 21461.0
+    },
+    "n_fit": 1120,
+    "n_calib": 373,
+    "n_test_benign": 374,
+    "viable": true,
+    "reason": "OK"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-SYN_Flood.json",
+    "family": "DDoS-SYN_Flood",
+    "victim": "192.168.137.51",
+    "mode": "crossfile",
+    "n_benign": 11277,
+    "n_attack": 3047,
+    "pps": {
+      "n": 3047,
+      "median": 1.0,
+      "p95": 20926.0,
+      "max": 25432.0
+    },
+    "n_fit": 6766,
+    "n_calib": 2255,
+    "n_test_benign": 2256,
+    "viable": true,
+    "reason": "OK"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-SYN_Flood.json",
+    "family": "DDoS-SYN_Flood",
+    "victim": "192.168.137.135",
+    "mode": "crossfile",
+    "n_benign": 3550,
+    "n_attack": 2354,
+    "pps": {
+      "n": 2354,
+      "median": 1.0,
+      "p95": 20514.0,
+      "max": 26060.0
+    },
+    "n_fit": 2130,
+    "n_calib": 710,
+    "n_test_benign": 710,
+    "viable": true,
+    "reason": "OK"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-SYN_Flood.json",
+    "family": "DDoS-SYN_Flood",
+    "victim": "192.168.137.173",
+    "mode": "crossfile",
+    "n_benign": 101,
+    "n_attack": 2351,
+    "pps": {
+      "n": 2351,
+      "median": 1.0,
+      "p95": 3.0,
+      "max": 22.0
+    },
+    "n_fit": 60,
+    "n_calib": 20,
+    "n_test_benign": 21,
+    "viable": false,
+    "reason": "max_pps=22<100 (median 1) -- not a flood victim"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-SYN_Flood.json",
+    "family": "DDoS-SYN_Flood",
+    "victim": "192.168.137.240",
+    "mode": "crossfile",
+    "n_benign": 24,
+    "n_attack": 2238,
+    "pps": {
+      "n": 2238,
+      "median": 35.0,
+      "p95": 313.0,
+      "max": 897.0
+    },
+    "n_fit": 14,
+    "n_calib": 5,
+    "n_test_benign": 5,
+    "viable": false,
+    "reason": "n_fit=14<30; n_calib=5<10"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-SlowLoris.json",
+    "family": "DDoS-SlowLoris",
+    "victim": "192.168.137.1",
+    "mode": "crossfile",
+    "n_benign": 70447,
+    "n_attack": 6438,
+    "pps": {
+      "n": 6438,
+      "median": 2.0,
+      "p95": 7.0,
+      "max": 28.0
+    },
+    "n_fit": 42268,
+    "n_calib": 14089,
+    "n_test_benign": 14090,
+    "viable": false,
+    "reason": "max_pps=28<100 (median 2) -- not a flood victim"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-SlowLoris.json",
+    "family": "DDoS-SlowLoris",
+    "victim": "192.168.137.210",
+    "mode": "crossfile",
+    "n_benign": 21,
+    "n_attack": 5389,
+    "pps": {
+      "n": 5389,
+      "median": 26.0,
+      "p95": 72.0,
+      "max": 304.0
+    },
+    "n_fit": 12,
+    "n_calib": 4,
+    "n_test_benign": 5,
+    "viable": false,
+    "reason": "n_fit=12<30; n_calib=4<10"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-SlowLoris.json",
+    "family": "DDoS-SlowLoris",
+    "victim": "192.168.137.82",
+    "mode": "crossfile",
+    "n_benign": 1868,
+    "n_attack": 5032,
+    "pps": {
+      "n": 5032,
+      "median": 3.0,
+      "p95": 102.0,
+      "max": 444.0
+    },
+    "n_fit": 1120,
+    "n_calib": 374,
+    "n_test_benign": 374,
+    "viable": true,
+    "reason": "OK"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-SlowLoris.json",
+    "family": "DDoS-SlowLoris",
+    "victim": "3.141.212.7",
+    "mode": "crossfile",
+    "n_benign": 7717,
+    "n_attack": 4821,
+    "pps": {
+      "n": 4821,
+      "median": 2.0,
+      "p95": 4.0,
+      "max": 24.0
+    },
+    "n_fit": 4630,
+    "n_calib": 1543,
+    "n_test_benign": 1544,
+    "viable": false,
+    "reason": "max_pps=24<100 (median 2) -- not a flood victim"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-SlowLoris.json",
+    "family": "DDoS-SlowLoris",
+    "victim": "192.168.137.3",
+    "mode": "crossfile",
+    "n_benign": 1688,
+    "n_attack": 4029,
+    "pps": {
+      "n": 4029,
+      "median": 2.0,
+      "p95": 9.0,
+      "max": 999.0
+    },
+    "n_fit": 1012,
+    "n_calib": 338,
+    "n_test_benign": 338,
+    "viable": true,
+    "reason": "OK"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-SlowLoris.json",
+    "family": "DDoS-SlowLoris",
+    "victim": "192.168.137.45",
+    "mode": "crossfile",
+    "n_benign": 3455,
+    "n_attack": 3925,
+    "pps": {
+      "n": 3925,
+      "median": 2.0,
+      "p95": 5.0,
+      "max": 19.0
+    },
+    "n_fit": 2073,
+    "n_calib": 691,
+    "n_test_benign": 691,
+    "viable": false,
+    "reason": "max_pps=19<100 (median 2) -- not a flood victim"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-SlowLoris.json",
+    "family": "DDoS-SlowLoris",
+    "victim": "34.158.253.218",
+    "mode": "crossfile",
+    "n_benign": 39121,
+    "n_attack": 3217,
+    "pps": {
+      "n": 3217,
+      "median": 2.0,
+      "p95": 4.0,
+      "max": 34.0
+    },
+    "n_fit": 23472,
+    "n_calib": 7824,
+    "n_test_benign": 7825,
+    "viable": false,
+    "reason": "max_pps=34<100 (median 2) -- not a flood victim"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-SlowLoris.json",
+    "family": "DDoS-SlowLoris",
+    "victim": "192.168.137.23",
+    "mode": "crossfile",
+    "n_benign": 82,
+    "n_attack": 2471,
+    "pps": {
+      "n": 2471,
+      "median": 12.0,
+      "p95": 150.0,
+      "max": 590.0
+    },
+    "n_fit": 49,
+    "n_calib": 16,
+    "n_test_benign": 17,
+    "viable": true,
+    "reason": "OK"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-SynonymousIP_Flood.json",
+    "family": "DDoS-SynonymousIP_Flood",
+    "victim": "192.168.137.1",
+    "mode": "crossfile",
+    "n_benign": 70447,
+    "n_attack": 4973,
+    "pps": {
+      "n": 4973,
+      "median": 3.0,
+      "p95": 9.0,
+      "max": 32.0
+    },
+    "n_fit": 42268,
+    "n_calib": 14089,
+    "n_test_benign": 14090,
+    "viable": false,
+    "reason": "max_pps=32<100 (median 3) -- not a flood victim"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-SynonymousIP_Flood.json",
+    "family": "DDoS-SynonymousIP_Flood",
+    "victim": "192.168.137.90",
+    "mode": "crossfile",
+    "n_benign": 8723,
+    "n_attack": 3324,
+    "pps": {
+      "n": 3324,
+      "median": 3.0,
+      "p95": 23989.0,
+      "max": 27968.0
+    },
+    "n_fit": 5233,
+    "n_calib": 1745,
+    "n_test_benign": 1745,
+    "viable": true,
+    "reason": "OK"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-SynonymousIP_Flood.json",
+    "family": "DDoS-SynonymousIP_Flood",
+    "victim": "8.8.8.8",
+    "mode": "crossfile",
+    "n_benign": 16382,
+    "n_attack": 2950,
+    "pps": {
+      "n": 2950,
+      "median": 2.0,
+      "p95": 6.0,
+      "max": 17.0
+    },
+    "n_fit": 9829,
+    "n_calib": 3276,
+    "n_test_benign": 3277,
+    "viable": false,
+    "reason": "max_pps=17<100 (median 2) -- not a flood victim"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-SynonymousIP_Flood.json",
+    "family": "DDoS-SynonymousIP_Flood",
+    "victim": "192.168.137.176",
+    "mode": "crossfile",
+    "n_benign": 1852,
+    "n_attack": 2066,
+    "pps": {
+      "n": 2066,
+      "median": 4.0,
+      "p95": 22723.0,
+      "max": 27328.0
+    },
+    "n_fit": 1111,
+    "n_calib": 370,
+    "n_test_benign": 371,
+    "viable": true,
+    "reason": "OK"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-SynonymousIP_Flood.json",
+    "family": "DDoS-SynonymousIP_Flood",
+    "victim": "192.168.137.227",
+    "mode": "crossfile",
+    "n_benign": 15767,
+    "n_attack": 2001,
+    "pps": {
+      "n": 2001,
+      "median": 2.0,
+      "p95": 22.0,
+      "max": 124.0
+    },
+    "n_fit": 9460,
+    "n_calib": 3153,
+    "n_test_benign": 3154,
+    "viable": true,
+    "reason": "OK"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-SynonymousIP_Flood.json",
+    "family": "DDoS-SynonymousIP_Flood",
+    "victim": "192.168.137.86",
+    "mode": "crossfile",
+    "n_benign": 12962,
+    "n_attack": 1927,
+    "pps": {
+      "n": 1927,
+      "median": 3.0,
+      "p95": 24907.0,
+      "max": 29606.0
+    },
+    "n_fit": 7777,
+    "n_calib": 2592,
+    "n_test_benign": 2593,
+    "viable": true,
+    "reason": "OK"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-SynonymousIP_Flood.json",
+    "family": "DDoS-SynonymousIP_Flood",
+    "victim": "192.168.137.23",
+    "mode": "crossfile",
+    "n_benign": 82,
+    "n_attack": 1498,
+    "pps": {
+      "n": 1498,
+      "median": 1.0,
+      "p95": 3.0,
+      "max": 10.0
+    },
+    "n_fit": 49,
+    "n_calib": 16,
+    "n_test_benign": 17,
+    "viable": false,
+    "reason": "max_pps=10<100 (median 1) -- not a flood victim"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-SynonymousIP_Flood.json",
+    "family": "DDoS-SynonymousIP_Flood",
+    "victim": "192.168.137.210",
+    "mode": "crossfile",
+    "n_benign": 21,
+    "n_attack": 1421,
+    "pps": {
+      "n": 1421,
+      "median": 2.0,
+      "p95": 5.0,
+      "max": 17.0
+    },
+    "n_fit": 12,
+    "n_calib": 4,
+    "n_test_benign": 5,
+    "viable": false,
+    "reason": "n_fit=12<30; n_calib=4<10; max_pps=17<100 (median 2) -- not a flood victim"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-TCP_Flood.json",
+    "family": "DDoS-TCP_Flood",
+    "victim": "157.249.81.141",
+    "mode": "crossfile",
+    "n_benign": 25220,
+    "n_attack": 6716,
+    "pps": {
+      "n": 6716,
+      "median": 7.0,
+      "p95": 10.0,
+      "max": 12.0
+    },
+    "n_fit": 15132,
+    "n_calib": 5044,
+    "n_test_benign": 5044,
+    "viable": false,
+    "reason": "max_pps=12<100 (median 7) -- not a flood victim"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-TCP_Flood.json",
+    "family": "DDoS-TCP_Flood",
+    "victim": "192.168.137.1",
+    "mode": "crossfile",
+    "n_benign": 70447,
+    "n_attack": 6630,
+    "pps": {
+      "n": 6630,
+      "median": 4.0,
+      "p95": 11.0,
+      "max": 77.0
+    },
+    "n_fit": 42268,
+    "n_calib": 14089,
+    "n_test_benign": 14090,
+    "viable": false,
+    "reason": "max_pps=77<100 (median 4) -- not a flood victim"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-TCP_Flood.json",
+    "family": "DDoS-TCP_Flood",
+    "victim": "8.8.8.8",
+    "mode": "crossfile",
+    "n_benign": 16382,
+    "n_attack": 3943,
+    "pps": {
+      "n": 3943,
+      "median": 2.0,
+      "p95": 14.0,
+      "max": 29.0
+    },
+    "n_fit": 9829,
+    "n_calib": 3276,
+    "n_test_benign": 3277,
+    "viable": false,
+    "reason": "max_pps=29<100 (median 2) -- not a flood victim"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-TCP_Flood.json",
+    "family": "DDoS-TCP_Flood",
+    "victim": "192.168.137.99",
+    "mode": "crossfile",
+    "n_benign": 1867,
+    "n_attack": 3681,
+    "pps": {
+      "n": 3681,
+      "median": 3.0,
+      "p95": 20200.0,
+      "max": 26936.0
+    },
+    "n_fit": 1120,
+    "n_calib": 373,
+    "n_test_benign": 374,
+    "viable": true,
+    "reason": "OK"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-TCP_Flood.json",
+    "family": "DDoS-TCP_Flood",
+    "victim": "192.168.137.224",
+    "mode": "crossfile",
+    "n_benign": 9182,
+    "n_attack": 3431,
+    "pps": {
+      "n": 3431,
+      "median": 8.0,
+      "p95": 13.0,
+      "max": 24.0
+    },
+    "n_fit": 5509,
+    "n_calib": 1836,
+    "n_test_benign": 1837,
+    "viable": false,
+    "reason": "max_pps=24<100 (median 8) -- not a flood victim"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-TCP_Flood.json",
+    "family": "DDoS-TCP_Flood",
+    "victim": "192.168.137.128",
+    "mode": "crossfile",
+    "n_benign": 26808,
+    "n_attack": 2443,
+    "pps": {
+      "n": 2443,
+      "median": 1.0,
+      "p95": 19.0,
+      "max": 47.0
+    },
+    "n_fit": 16084,
+    "n_calib": 5362,
+    "n_test_benign": 5362,
+    "viable": false,
+    "reason": "max_pps=47<100 (median 1) -- not a flood victim"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-TCP_Flood.json",
+    "family": "DDoS-TCP_Flood",
+    "victim": "35.185.101.66",
+    "mode": "crossfile",
+    "n_benign": 96373,
+    "n_attack": 1401,
+    "pps": {
+      "n": 1401,
+      "median": 7.0,
+      "p95": 35.0,
+      "max": 114.0
+    },
+    "n_fit": 57823,
+    "n_calib": 19275,
+    "n_test_benign": 19275,
+    "viable": true,
+    "reason": "OK"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-TCP_Flood.json",
+    "family": "DDoS-TCP_Flood",
+    "victim": "35.164.195.39",
+    "mode": "crossfile",
+    "n_benign": 19,
+    "n_attack": 1336,
+    "pps": {
+      "n": 1336,
+      "median": 1.0,
+      "p95": 4.0,
+      "max": 18.0
+    },
+    "n_fit": 11,
+    "n_calib": 4,
+    "n_test_benign": 4,
+    "viable": false,
+    "reason": "n_fit=11<30; n_calib=4<10; n_test_benign=4<5; max_pps=18<100 (median 1) -- not a flood victim"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-UDP_Flood.json",
+    "family": "DDoS-UDP_Flood",
+    "victim": "192.168.137.1",
+    "mode": "crossfile",
+    "n_benign": 70447,
+    "n_attack": 32660,
+    "pps": {
+      "n": 32660,
+      "median": 4.0,
+      "p95": 11.0,
+      "max": 89.0
+    },
+    "n_fit": 42268,
+    "n_calib": 14089,
+    "n_test_benign": 14090,
+    "viable": false,
+    "reason": "max_pps=89<100 (median 4) -- not a flood victim"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-UDP_Flood.json",
+    "family": "DDoS-UDP_Flood",
+    "victim": "157.249.81.141",
+    "mode": "crossfile",
+    "n_benign": 25220,
+    "n_attack": 31648,
+    "pps": {
+      "n": 31648,
+      "median": 7.0,
+      "p95": 10.0,
+      "max": 22.0
+    },
+    "n_fit": 15132,
+    "n_calib": 5044,
+    "n_test_benign": 5044,
+    "viable": false,
+    "reason": "max_pps=22<100 (median 7) -- not a flood victim"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-UDP_Flood.json",
+    "family": "DDoS-UDP_Flood",
+    "victim": "8.8.8.8",
+    "mode": "crossfile",
+    "n_benign": 16382,
+    "n_attack": 16973,
+    "pps": {
+      "n": 16973,
+      "median": 2.0,
+      "p95": 6.0,
+      "max": 57.0
+    },
+    "n_fit": 9829,
+    "n_calib": 3276,
+    "n_test_benign": 3277,
+    "viable": false,
+    "reason": "max_pps=57<100 (median 2) -- not a flood victim"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-UDP_Flood.json",
+    "family": "DDoS-UDP_Flood",
+    "victim": "192.168.137.99",
+    "mode": "crossfile",
+    "n_benign": 1867,
+    "n_attack": 10587,
+    "pps": {
+      "n": 10587,
+      "median": 2.0,
+      "p95": 19914.0,
+      "max": 29676.0
+    },
+    "n_fit": 1120,
+    "n_calib": 373,
+    "n_test_benign": 374,
+    "viable": true,
+    "reason": "OK"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-UDP_Flood.json",
+    "family": "DDoS-UDP_Flood",
+    "victim": "192.168.137.224",
+    "mode": "crossfile",
+    "n_benign": 9182,
+    "n_attack": 8767,
+    "pps": {
+      "n": 8767,
+      "median": 2.0,
+      "p95": 18358.0,
+      "max": 27113.0
+    },
+    "n_fit": 5509,
+    "n_calib": 1836,
+    "n_test_benign": 1837,
+    "viable": true,
+    "reason": "OK"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-UDP_Flood.json",
+    "family": "DDoS-UDP_Flood",
+    "victim": "34.238.41.119",
+    "mode": "crossfile",
+    "n_benign": 6,
+    "n_attack": 6847,
+    "pps": {
+      "n": 6847,
+      "median": 1.0,
+      "p95": 4.0,
+      "max": 25.0
+    },
+    "n_fit": 3,
+    "n_calib": 1,
+    "n_test_benign": 2,
+    "viable": false,
+    "reason": "n_fit=3<30; n_calib=1<10; n_test_benign=2<5; max_pps=25<100 (median 1) -- not a flood victim"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-UDP_Flood.json",
+    "family": "DDoS-UDP_Flood",
+    "victim": "35.185.101.66",
+    "mode": "crossfile",
+    "n_benign": 96373,
+    "n_attack": 6713,
+    "pps": {
+      "n": 6713,
+      "median": 6.0,
+      "p95": 22.0,
+      "max": 116.0
+    },
+    "n_fit": 57823,
+    "n_calib": 19275,
+    "n_test_benign": 19275,
+    "viable": true,
+    "reason": "OK"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-UDP_Flood.json",
+    "family": "DDoS-UDP_Flood",
+    "victim": "192.168.137.68",
+    "mode": "crossfile",
+    "n_benign": 1696,
+    "n_attack": 6495,
+    "pps": {
+      "n": 6495,
+      "median": 8.0,
+      "p95": 123.0,
+      "max": 565.0
+    },
+    "n_fit": 1017,
+    "n_calib": 339,
+    "n_test_benign": 340,
+    "viable": true,
+    "reason": "OK"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-UDP_Fragmentation.json",
+    "family": "DDoS-UDP_Fragmentation",
+    "victim": "192.168.137.1",
+    "mode": "crossfile",
+    "n_benign": 70447,
+    "n_attack": 23936,
+    "pps": {
+      "n": 23936,
+      "median": 3.0,
+      "p95": 10.0,
+      "max": 44.0
+    },
+    "n_fit": 42268,
+    "n_calib": 14089,
+    "n_test_benign": 14090,
+    "viable": false,
+    "reason": "max_pps=44<100 (median 3) -- not a flood victim"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-UDP_Fragmentation.json",
+    "family": "DDoS-UDP_Fragmentation",
+    "victim": "192.168.137.210",
+    "mode": "crossfile",
+    "n_benign": 21,
+    "n_attack": 14490,
+    "pps": {
+      "n": 14490,
+      "median": 2.0,
+      "p95": 50.0,
+      "max": 1987.0
+    },
+    "n_fit": 12,
+    "n_calib": 4,
+    "n_test_benign": 5,
+    "viable": false,
+    "reason": "n_fit=12<30; n_calib=4<10"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-UDP_Fragmentation.json",
+    "family": "DDoS-UDP_Fragmentation",
+    "victim": "8.8.8.8",
+    "mode": "crossfile",
+    "n_benign": 16382,
+    "n_attack": 14403,
+    "pps": {
+      "n": 14403,
+      "median": 2.0,
+      "p95": 6.0,
+      "max": 36.0
+    },
+    "n_fit": 9829,
+    "n_calib": 3276,
+    "n_test_benign": 3277,
+    "viable": false,
+    "reason": "max_pps=36<100 (median 2) -- not a flood victim"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-UDP_Fragmentation.json",
+    "family": "DDoS-UDP_Fragmentation",
+    "victim": "192.168.137.187",
+    "mode": "crossfile",
+    "n_benign": 5440,
+    "n_attack": 10086,
+    "pps": {
+      "n": 10086,
+      "median": 2.0,
+      "p95": 24.0,
+      "max": 642.0
+    },
+    "n_fit": 3264,
+    "n_calib": 1088,
+    "n_test_benign": 1088,
+    "viable": true,
+    "reason": "OK"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-UDP_Fragmentation.json",
+    "family": "DDoS-UDP_Fragmentation",
+    "victim": "192.168.137.86",
+    "mode": "crossfile",
+    "n_benign": 12962,
+    "n_attack": 9818,
+    "pps": {
+      "n": 9818,
+      "median": 2.0,
+      "p95": 824.0,
+      "max": 3130.0
+    },
+    "n_fit": 7777,
+    "n_calib": 2592,
+    "n_test_benign": 2593,
+    "viable": true,
+    "reason": "OK"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-UDP_Fragmentation.json",
+    "family": "DDoS-UDP_Fragmentation",
+    "victim": "192.168.137.3",
+    "mode": "crossfile",
+    "n_benign": 1688,
+    "n_attack": 6643,
+    "pps": {
+      "n": 6643,
+      "median": 3.0,
+      "p95": 1547.0,
+      "max": 3028.0
+    },
+    "n_fit": 1012,
+    "n_calib": 338,
+    "n_test_benign": 338,
+    "viable": true,
+    "reason": "OK"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-UDP_Fragmentation.json",
+    "family": "DDoS-UDP_Fragmentation",
+    "victim": "192.168.137.23",
+    "mode": "crossfile",
+    "n_benign": 82,
+    "n_attack": 6219,
+    "pps": {
+      "n": 6219,
+      "median": 1.0,
+      "p95": 5.0,
+      "max": 135.0
+    },
+    "n_fit": 49,
+    "n_calib": 16,
+    "n_test_benign": 17,
+    "viable": true,
+    "reason": "OK"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_DDoS-UDP_Fragmentation.json",
+    "family": "DDoS-UDP_Fragmentation",
+    "victim": "34.238.41.119",
+    "mode": "crossfile",
+    "n_benign": 6,
+    "n_attack": 5747,
+    "pps": {
+      "n": 5747,
+      "median": 2.0,
+      "p95": 5.0,
+      "max": 15.0
+    },
+    "n_fit": 3,
+    "n_calib": 1,
+    "n_test_benign": 2,
+    "viable": false,
+    "reason": "n_fit=3<30; n_calib=1<10; n_test_benign=2<5; max_pps=15<100 (median 2) -- not a flood victim"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_Mirai-udpplain.json",
+    "family": "Mirai-udpplain",
+    "victim": "192.168.137.1",
+    "mode": "crossfile",
+    "n_benign": 70447,
+    "n_attack": 29809,
+    "pps": {
+      "n": 29809,
+      "median": 3.0,
+      "p95": 12.0,
+      "max": 78.0
+    },
+    "n_fit": 42268,
+    "n_calib": 14089,
+    "n_test_benign": 14090,
+    "viable": false,
+    "reason": "max_pps=78<100 (median 3) -- not a flood victim"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_Mirai-udpplain.json",
+    "family": "Mirai-udpplain",
+    "victim": "8.8.8.8",
+    "mode": "crossfile",
+    "n_benign": 16382,
+    "n_attack": 14633,
+    "pps": {
+      "n": 14633,
+      "median": 2.0,
+      "p95": 6.0,
+      "max": 76.0
+    },
+    "n_fit": 9829,
+    "n_calib": 3276,
+    "n_test_benign": 3277,
+    "viable": false,
+    "reason": "max_pps=76<100 (median 2) -- not a flood victim"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_Mirai-udpplain.json",
+    "family": "Mirai-udpplain",
+    "victim": "192.168.137.209",
+    "mode": "crossfile",
+    "n_benign": 1657,
+    "n_attack": 9771,
+    "pps": {
+      "n": 9771,
+      "median": 2.0,
+      "p95": 2035.0,
+      "max": 5359.0
+    },
+    "n_fit": 994,
+    "n_calib": 331,
+    "n_test_benign": 332,
+    "viable": true,
+    "reason": "OK"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_Mirai-udpplain.json",
+    "family": "Mirai-udpplain",
+    "victim": "192.168.137.224",
+    "mode": "crossfile",
+    "n_benign": 9182,
+    "n_attack": 7889,
+    "pps": {
+      "n": 7889,
+      "median": 1.0,
+      "p95": 4547.0,
+      "max": 7519.0
+    },
+    "n_fit": 5509,
+    "n_calib": 1836,
+    "n_test_benign": 1837,
+    "viable": true,
+    "reason": "OK"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_Mirai-udpplain.json",
+    "family": "Mirai-udpplain",
+    "victim": "34.238.41.119",
+    "mode": "crossfile",
+    "n_benign": 6,
+    "n_attack": 6957,
+    "pps": {
+      "n": 6957,
+      "median": 1.0,
+      "p95": 5.0,
+      "max": 11.0
+    },
+    "n_fit": 3,
+    "n_calib": 1,
+    "n_test_benign": 2,
+    "viable": false,
+    "reason": "n_fit=3<30; n_calib=1<10; n_test_benign=2<5; max_pps=11<100 (median 1) -- not a flood victim"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_Mirai-udpplain.json",
+    "family": "Mirai-udpplain",
+    "victim": "192.168.137.207",
+    "mode": "crossfile",
+    "n_benign": 5985,
+    "n_attack": 6387,
+    "pps": {
+      "n": 6387,
+      "median": 1.0,
+      "p95": 20.0,
+      "max": 293.0
+    },
+    "n_fit": 3591,
+    "n_calib": 1197,
+    "n_test_benign": 1197,
+    "viable": true,
+    "reason": "OK"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_Mirai-udpplain.json",
+    "family": "Mirai-udpplain",
+    "victim": "192.168.137.128",
+    "mode": "crossfile",
+    "n_benign": 26808,
+    "n_attack": 5706,
+    "pps": {
+      "n": 5706,
+      "median": 1.0,
+      "p95": 20.0,
+      "max": 232.0
+    },
+    "n_fit": 16084,
+    "n_calib": 5362,
+    "n_test_benign": 5362,
+    "viable": true,
+    "reason": "OK"
+  },
+  {
+    "group": "CIC-IoT-2023",
+    "cache": "cicios2023_Mirai-udpplain.json",
+    "family": "Mirai-udpplain",
+    "victim": "192.168.137.58",
+    "mode": "crossfile",
+    "n_benign": 32257,
+    "n_attack": 4329,
+    "pps": {
+      "n": 4329,
+      "median": 1.0,
+      "p95": 2052.0,
+      "max": 5512.0
+    },
+    "n_fit": 19354,
+    "n_calib": 6451,
+    "n_test_benign": 6452,
+    "viable": true,
+    "reason": "OK"
+  }
+]

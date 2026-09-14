@@ -402,6 +402,20 @@ struct tier_baseline *get_current_weekly_baseline(struct three_tier_baseline *ba
 int get_current_hour_index(void);
 
 /**
+ * Offline-replay seam: force the tier-2/3 slot indices instead of reading the wall clock.
+ *
+ * Online, wall-clock time is the data's time and no override is needed. Replaying a
+ * historical capture must select the slot from each window's own timestamp, or every
+ * window lands in the slot the replay happens to execute in. Pass hour 0-23 and weekly
+ * 0-167 (Monday = 0); any out-of-range value clears that override. The live path is
+ * unchanged while no override is set.
+ */
+void l2_set_replay_slot(int hour_index, int weekly_index);
+
+/** Clear both replay overrides and return to wall-clock slot selection. */
+void l2_clear_replay_slot(void);
+
+/**
  * Get weekly baseline index (0-167) for current time
  */
 int get_current_weekly_index(void);

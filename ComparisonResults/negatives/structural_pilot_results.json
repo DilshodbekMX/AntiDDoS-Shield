@@ -1,0 +1,620 @@
+{
+  "metadata": {
+    "clear_threshold": 0.7,
+    "directions_committed": true,
+    "note": "inbound-only, no re-extraction; one-sided per mechanism; AUC_burst = attack vs top-quartile-volume benign",
+    "runtime_s": 82.8
+  },
+  "per_feature_summary": {
+    "ack_to_syn": {
+      "cleared_cases": 3,
+      "n_cases": 13,
+      "median_auc_all": 0.5,
+      "median_auc_burst": 0.522
+    },
+    "nonsyn_to_syn": {
+      "cleared_cases": 1,
+      "n_cases": 13,
+      "median_auc_all": 0.5,
+      "median_auc_burst": 0.5
+    },
+    "tcp_completion_rate": {
+      "cleared_cases": 1,
+      "n_cases": 13,
+      "median_auc_all": 0.5,
+      "median_auc_burst": 0.5
+    },
+    "bytes_per_packet": {
+      "cleared_cases": 2,
+      "n_cases": 13,
+      "median_auc_all": 0.5,
+      "median_auc_burst": 0.5
+    },
+    "small_pkt_ratio": {
+      "cleared_cases": 5,
+      "n_cases": 13,
+      "median_auc_all": 0.63,
+      "median_auc_burst": 0.607
+    },
+    "syn_share": {
+      "cleared_cases": 2,
+      "n_cases": 13,
+      "median_auc_all": 0.5,
+      "median_auc_burst": 0.5
+    }
+  },
+  "cases": [
+    {
+      "label": "CIC-IDS-2017 (LOIC HTTP DDoS)",
+      "n_attack": 1427,
+      "n_benign": 8316,
+      "n_benign_burst": 2203,
+      "features": {
+        "ack_to_syn": {
+          "dir": "low",
+          "auc_all": 0.804,
+          "auc_burst": 0.925,
+          "clears": true
+        },
+        "nonsyn_to_syn": {
+          "dir": "low",
+          "auc_all": 0.916,
+          "auc_burst": 0.925,
+          "clears": true
+        },
+        "tcp_completion_rate": {
+          "dir": "low",
+          "auc_all": 0.506,
+          "auc_burst": 0.948,
+          "clears": false
+        },
+        "bytes_per_packet": {
+          "dir": "low",
+          "auc_all": 0.883,
+          "auc_burst": 0.98,
+          "clears": true
+        },
+        "small_pkt_ratio": {
+          "dir": "high",
+          "auc_all": 0.827,
+          "auc_burst": 0.984,
+          "clears": true
+        },
+        "syn_share": {
+          "dir": "high",
+          "auc_all": 0.916,
+          "auc_burst": 0.925,
+          "clears": true
+        }
+      }
+    },
+    {
+      "label": "CIC-IDS-2018 Wed LOIC-UDP+HOIC",
+      "n_attack": 4399,
+      "n_benign": 2431,
+      "n_benign_burst": 691,
+      "features": {
+        "ack_to_syn": {
+          "dir": "low",
+          "auc_all": 0.265,
+          "auc_burst": 0.565,
+          "clears": false
+        },
+        "nonsyn_to_syn": {
+          "dir": "low",
+          "auc_all": 0.675,
+          "auc_burst": 0.514,
+          "clears": false
+        },
+        "tcp_completion_rate": {
+          "dir": "low",
+          "auc_all": 0.224,
+          "auc_burst": 0.458,
+          "clears": false
+        },
+        "bytes_per_packet": {
+          "dir": "low",
+          "auc_all": 0.719,
+          "auc_burst": 0.491,
+          "clears": false
+        },
+        "small_pkt_ratio": {
+          "dir": "high",
+          "auc_all": 0.766,
+          "auc_burst": 0.607,
+          "clears": false
+        },
+        "syn_share": {
+          "dir": "high",
+          "auc_all": 0.676,
+          "auc_burst": 0.516,
+          "clears": false
+        }
+      }
+    },
+    {
+      "label": "CIC-IDS-2018 Thu GoldenEye+Slowloris",
+      "n_attack": 3309,
+      "n_benign": 1436,
+      "n_benign_burst": 667,
+      "features": {
+        "ack_to_syn": {
+          "dir": "low",
+          "auc_all": 0.183,
+          "auc_burst": 0.315,
+          "clears": false
+        },
+        "nonsyn_to_syn": {
+          "dir": "low",
+          "auc_all": 0.273,
+          "auc_burst": 0.337,
+          "clears": false
+        },
+        "tcp_completion_rate": {
+          "dir": "low",
+          "auc_all": 0.089,
+          "auc_burst": 0.177,
+          "clears": false
+        },
+        "bytes_per_packet": {
+          "dir": "low",
+          "auc_all": 0.102,
+          "auc_burst": 0.126,
+          "clears": false
+        },
+        "small_pkt_ratio": {
+          "dir": "high",
+          "auc_all": 0.118,
+          "auc_burst": 0.147,
+          "clears": false
+        },
+        "syn_share": {
+          "dir": "high",
+          "auc_all": 0.274,
+          "auc_burst": 0.338,
+          "clears": false
+        }
+      }
+    },
+    {
+      "label": "CIC-IDS-2018 Fri Hulk+SlowHTTPTest",
+      "n_attack": 4033,
+      "n_benign": 1508,
+      "n_benign_burst": 740,
+      "features": {
+        "ack_to_syn": {
+          "dir": "low",
+          "auc_all": 0.562,
+          "auc_burst": 0.693,
+          "clears": false
+        },
+        "nonsyn_to_syn": {
+          "dir": "low",
+          "auc_all": 0.673,
+          "auc_burst": 0.835,
+          "clears": false
+        },
+        "tcp_completion_rate": {
+          "dir": "low",
+          "auc_all": 0.533,
+          "auc_burst": 0.649,
+          "clears": false
+        },
+        "bytes_per_packet": {
+          "dir": "low",
+          "auc_all": 0.268,
+          "auc_burst": 0.424,
+          "clears": false
+        },
+        "small_pkt_ratio": {
+          "dir": "high",
+          "auc_all": 0.536,
+          "auc_burst": 0.638,
+          "clears": false
+        },
+        "syn_share": {
+          "dir": "high",
+          "auc_all": 0.85,
+          "auc_burst": 0.883,
+          "clears": true
+        }
+      }
+    },
+    {
+      "label": "CIC-DDoS2019 (victim flood)",
+      "n_attack": 11171,
+      "n_benign": 3183,
+      "n_benign_burst": 3183,
+      "features": {
+        "ack_to_syn": {
+          "dir": "low",
+          "auc_all": 0.288,
+          "auc_burst": 0.288,
+          "clears": false
+        },
+        "nonsyn_to_syn": {
+          "dir": "low",
+          "auc_all": 0.645,
+          "auc_burst": 0.645,
+          "clears": false
+        },
+        "tcp_completion_rate": {
+          "dir": "low",
+          "auc_all": 0.284,
+          "auc_burst": 0.284,
+          "clears": false
+        },
+        "bytes_per_packet": {
+          "dir": "low",
+          "auc_all": 0.195,
+          "auc_burst": 0.195,
+          "clears": false
+        },
+        "small_pkt_ratio": {
+          "dir": "high",
+          "auc_all": 0.115,
+          "auc_burst": 0.115,
+          "clears": false
+        },
+        "syn_share": {
+          "dir": "high",
+          "auc_all": 0.645,
+          "auc_burst": 0.645,
+          "clears": false
+        }
+      }
+    },
+    {
+      "label": "LITNET Code Red worm",
+      "n_attack": 345,
+      "n_benign": 2518,
+      "n_benign_burst": 636,
+      "features": {
+        "ack_to_syn": {
+          "dir": "low",
+          "auc_all": 0.5,
+          "auc_burst": 0.5,
+          "clears": false
+        },
+        "nonsyn_to_syn": {
+          "dir": "low",
+          "auc_all": 0.5,
+          "auc_burst": 0.5,
+          "clears": false
+        },
+        "tcp_completion_rate": {
+          "dir": "low",
+          "auc_all": 0.5,
+          "auc_burst": 0.5,
+          "clears": false
+        },
+        "bytes_per_packet": {
+          "dir": "low",
+          "auc_all": 0.5,
+          "auc_burst": 0.5,
+          "clears": false
+        },
+        "small_pkt_ratio": {
+          "dir": "high",
+          "auc_all": 0.5,
+          "auc_burst": 0.5,
+          "clears": false
+        },
+        "syn_share": {
+          "dir": "high",
+          "auc_all": 0.5,
+          "auc_burst": 0.5,
+          "clears": false
+        }
+      }
+    },
+    {
+      "label": "LITNET Smurf",
+      "n_attack": 299,
+      "n_benign": 2229,
+      "n_benign_burst": 564,
+      "features": {
+        "ack_to_syn": {
+          "dir": "low",
+          "auc_all": 0.5,
+          "auc_burst": 0.5,
+          "clears": false
+        },
+        "nonsyn_to_syn": {
+          "dir": "low",
+          "auc_all": 0.5,
+          "auc_burst": 0.5,
+          "clears": false
+        },
+        "tcp_completion_rate": {
+          "dir": "low",
+          "auc_all": 0.5,
+          "auc_burst": 0.5,
+          "clears": false
+        },
+        "bytes_per_packet": {
+          "dir": "low",
+          "auc_all": 0.5,
+          "auc_burst": 0.5,
+          "clears": false
+        },
+        "small_pkt_ratio": {
+          "dir": "high",
+          "auc_all": 0.5,
+          "auc_burst": 0.5,
+          "clears": false
+        },
+        "syn_share": {
+          "dir": "high",
+          "auc_all": 0.5,
+          "auc_burst": 0.5,
+          "clears": false
+        }
+      }
+    },
+    {
+      "label": "LITNET HTTP flood",
+      "n_attack": 360,
+      "n_benign": 1318,
+      "n_benign_burst": 340,
+      "features": {
+        "ack_to_syn": {
+          "dir": "low",
+          "auc_all": 0.5,
+          "auc_burst": 0.5,
+          "clears": false
+        },
+        "nonsyn_to_syn": {
+          "dir": "low",
+          "auc_all": 0.5,
+          "auc_burst": 0.5,
+          "clears": false
+        },
+        "tcp_completion_rate": {
+          "dir": "low",
+          "auc_all": 0.5,
+          "auc_burst": 0.5,
+          "clears": false
+        },
+        "bytes_per_packet": {
+          "dir": "low",
+          "auc_all": 0.5,
+          "auc_burst": 0.5,
+          "clears": false
+        },
+        "small_pkt_ratio": {
+          "dir": "high",
+          "auc_all": 0.5,
+          "auc_burst": 0.5,
+          "clears": false
+        },
+        "syn_share": {
+          "dir": "high",
+          "auc_all": 0.5,
+          "auc_burst": 0.5,
+          "clears": false
+        }
+      }
+    },
+    {
+      "label": "CIC-IoT-2023 DDoS-SlowLoris",
+      "n_attack": 5032,
+      "n_benign": 1868,
+      "n_benign_burst": 1868,
+      "features": {
+        "ack_to_syn": {
+          "dir": "low",
+          "auc_all": 0.528,
+          "auc_burst": 0.528,
+          "clears": false
+        },
+        "nonsyn_to_syn": {
+          "dir": "low",
+          "auc_all": 0.5,
+          "auc_burst": 0.5,
+          "clears": false
+        },
+        "tcp_completion_rate": {
+          "dir": "low",
+          "auc_all": 0.26,
+          "auc_burst": 0.26,
+          "clears": false
+        },
+        "bytes_per_packet": {
+          "dir": "low",
+          "auc_all": 0.523,
+          "auc_burst": 0.523,
+          "clears": false
+        },
+        "small_pkt_ratio": {
+          "dir": "high",
+          "auc_all": 0.799,
+          "auc_burst": 0.799,
+          "clears": true
+        },
+        "syn_share": {
+          "dir": "high",
+          "auc_all": 0.5,
+          "auc_burst": 0.5,
+          "clears": false
+        }
+      }
+    },
+    {
+      "label": "CIC-IoT-2023 DDoS-SYN_Flood",
+      "n_attack": 3817,
+      "n_benign": 1867,
+      "n_benign_burst": 1867,
+      "features": {
+        "ack_to_syn": {
+          "dir": "low",
+          "auc_all": 0.736,
+          "auc_burst": 0.736,
+          "clears": true
+        },
+        "nonsyn_to_syn": {
+          "dir": "low",
+          "auc_all": 0.622,
+          "auc_burst": 0.622,
+          "clears": false
+        },
+        "tcp_completion_rate": {
+          "dir": "low",
+          "auc_all": 0.61,
+          "auc_burst": 0.61,
+          "clears": false
+        },
+        "bytes_per_packet": {
+          "dir": "low",
+          "auc_all": 0.697,
+          "auc_burst": 0.697,
+          "clears": false
+        },
+        "small_pkt_ratio": {
+          "dir": "high",
+          "auc_all": 0.91,
+          "auc_burst": 0.91,
+          "clears": true
+        },
+        "syn_share": {
+          "dir": "high",
+          "auc_all": 0.622,
+          "auc_burst": 0.622,
+          "clears": false
+        }
+      }
+    },
+    {
+      "label": "CIC-IoT-2023 DDoS-ICMP_Fragmentation",
+      "n_attack": 38510,
+      "n_benign": 41201,
+      "n_benign_burst": 10455,
+      "features": {
+        "ack_to_syn": {
+          "dir": "low",
+          "auc_all": 0.495,
+          "auc_burst": 0.522,
+          "clears": false
+        },
+        "nonsyn_to_syn": {
+          "dir": "low",
+          "auc_all": 0.5,
+          "auc_burst": 0.5,
+          "clears": false
+        },
+        "tcp_completion_rate": {
+          "dir": "low",
+          "auc_all": 0.392,
+          "auc_burst": 0.804,
+          "clears": false
+        },
+        "bytes_per_packet": {
+          "dir": "low",
+          "auc_all": 0.54,
+          "auc_burst": 0.543,
+          "clears": false
+        },
+        "small_pkt_ratio": {
+          "dir": "high",
+          "auc_all": 0.63,
+          "auc_burst": 0.567,
+          "clears": false
+        },
+        "syn_share": {
+          "dir": "high",
+          "auc_all": 0.5,
+          "auc_burst": 0.5,
+          "clears": false
+        }
+      }
+    },
+    {
+      "label": "CIC-IoT-2023 DDoS-HTTP_Flood",
+      "n_attack": 3831,
+      "n_benign": 1868,
+      "n_benign_burst": 1868,
+      "features": {
+        "ack_to_syn": {
+          "dir": "low",
+          "auc_all": 0.504,
+          "auc_burst": 0.504,
+          "clears": false
+        },
+        "nonsyn_to_syn": {
+          "dir": "low",
+          "auc_all": 0.5,
+          "auc_burst": 0.5,
+          "clears": false
+        },
+        "tcp_completion_rate": {
+          "dir": "low",
+          "auc_all": 0.044,
+          "auc_burst": 0.044,
+          "clears": false
+        },
+        "bytes_per_packet": {
+          "dir": "low",
+          "auc_all": 0.453,
+          "auc_burst": 0.453,
+          "clears": false
+        },
+        "small_pkt_ratio": {
+          "dir": "high",
+          "auc_all": 0.966,
+          "auc_burst": 0.966,
+          "clears": true
+        },
+        "syn_share": {
+          "dir": "high",
+          "auc_all": 0.5,
+          "auc_burst": 0.5,
+          "clears": false
+        }
+      }
+    },
+    {
+      "label": "CIC-IoT-2023 Mirai-udpplain",
+      "n_attack": 9771,
+      "n_benign": 1657,
+      "n_benign_burst": 1657,
+      "features": {
+        "ack_to_syn": {
+          "dir": "low",
+          "auc_all": 0.828,
+          "auc_burst": 0.828,
+          "clears": true
+        },
+        "nonsyn_to_syn": {
+          "dir": "low",
+          "auc_all": 0.5,
+          "auc_burst": 0.5,
+          "clears": false
+        },
+        "tcp_completion_rate": {
+          "dir": "low",
+          "auc_all": 0.779,
+          "auc_burst": 0.779,
+          "clears": true
+        },
+        "bytes_per_packet": {
+          "dir": "low",
+          "auc_all": 0.791,
+          "auc_burst": 0.791,
+          "clears": true
+        },
+        "small_pkt_ratio": {
+          "dir": "high",
+          "auc_all": 0.935,
+          "auc_burst": 0.935,
+          "clears": true
+        },
+        "syn_share": {
+          "dir": "high",
+          "auc_all": 0.5,
+          "auc_burst": 0.5,
+          "clears": false
+        }
+      }
+    }
+  ]
+}

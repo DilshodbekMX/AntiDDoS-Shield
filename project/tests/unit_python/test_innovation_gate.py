@@ -4,10 +4,20 @@ import numpy as np
 import os, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-PROJECT_DIR = os.path.abspath(os.path.join(HERE, "..", ".."))
-EXP_DIR = os.path.abspath(os.path.join(PROJECT_DIR, "..", "experiments"))
-if EXP_DIR not in sys.path:
-    sys.path.insert(0, EXP_DIR)
+for _candidate in (
+    os.path.join(HERE, "..", "..", "ComparisonResults"),
+    os.path.join(HERE, "..", "..", "..", "ComparisonResults"),
+    os.path.join(HERE, "..", "..", "experiment"),
+    os.path.join(HERE, "..", "..", "experiments"),
+    os.path.join(HERE, "..", "..", "..", "experiment"),
+    os.path.join(HERE, "..", "..", "..", "experiments"),
+    os.path.join(os.environ.get("ANTIDDOS_BASE", ""), "ComparisonResults"),
+    os.path.join(os.environ.get("ANTIDDOS_BASE", ""), "experiment"),
+    os.path.join(os.environ.get("ANTIDDOS_BASE", ""), "experiments"),
+):
+    _candidate = os.path.abspath(_candidate)
+    if os.path.isdir(_candidate) and _candidate not in sys.path:
+        sys.path.insert(0, _candidate)
 
 from negatives.innovation_path import InnovationPath
 

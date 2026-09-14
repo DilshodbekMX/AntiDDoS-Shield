@@ -97,6 +97,7 @@ struct cusum_state {
     bool alarm_high;             // High alarm triggered
     bool alarm_low;              // Low alarm triggered
     uint32_t samples_since_reset; // Samples since last reset
+    int      reset_on_alarm;      // zero the accumulator after an alarm latches
 } __attribute__((aligned(64)));
 
 /**
@@ -106,6 +107,8 @@ struct cusum_detector {
     struct cusum_state states[L2_MAX_FEATURES];
     double k_factor;             // k = k_factor * stddev (default: 0.5)
     double h_factor;             // h = h_factor * stddev (default: 5.0)
+    double decay;                // accumulator decay lambda (1.0 = classic non-resetting CUSUM)
+    int    reset_on_alarm;       // restart the accumulator after each alarm
     uint32_t min_samples;        // Minimum samples before triggering
     double last_max_norm;        // max_f max(S_high,S_low)/h from the last cusum_detect (for conformal)
     double last_norms[L2_MAX_FEATURES];  // per-feature normalized CUSUM stat (for routed FDR)
@@ -117,11 +120,27 @@ struct cusum_detector {
 void cusum_detector_init(struct cusum_detector *det, double k_factor, double h_factor);
 
 /**
+ * Set the CUSUM accumulator decay (lambda).
+ *
+ * lambda = 1.0 is the classic non-resetting CUSUM: S grows without bound and, once it
+ * crosses h, stays there permanently. lambda < 1.0 caps the steady state at
+ * (deviation - k) / (1 - lambda), so the statistic falls back once an excursion ends.
+ */
+void cusum_detector_set_decay(struct cusum_detector *det, double lambda);
+
+/** Restart the CUSUM accumulator after each alarm (classical CUSUM restart). */
+void cusum_detector_set_reset_on_alarm(struct cusum_detector *det, int on);
+
+/**
  * Update CUSUM state with new value
  * @return true if alarm triggered
  */
 bool cusum_update(struct cusum_state *state, double value, double mean, double stddev,
                   double k_factor, double h_factor);
+
+/** cusum_update with an explicit accumulator decay (lambda). */
+bool cusum_update_decayed(struct cusum_state *state, double value, double mean, double stddev,
+                          double k_factor, double h_factor, double decay);
 
 /**
  * Reset CUSUM state (after alarm or periodically)

@@ -3,6 +3,7 @@
     "min_tier_agreement": 2,
     "ensemble_rule": 0,
     "conformal_alpha": 0.001,
+    "cusum_decay": 0.99,
     "routed_fdr_alpha": 0.1,
     "conformal_capacity": 4096,
     "alpha_immediate": 0.15,

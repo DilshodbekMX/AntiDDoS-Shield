@@ -1,0 +1,50 @@
+[
+  {
+    "group": "CIC-IDS-2018 wed",
+    "cache": "cicids2018_pcap_wed.json",
+    "victim": "172.31.69.28",
+    "mode": "within",
+    "n_total": 6830,
+    "n_attack_total": 4400,
+    "first_atk_idx": 845,
+    "n_pre_benign": 845,
+    "n_fit": 507,
+    "n_calib": 338,
+    "n_test_benign": 1585,
+    "n_test_attack": 4400,
+    "viable": true,
+    "reason": "OK"
+  },
+  {
+    "group": "CIC-IDS-2018 thu",
+    "cache": "cicids2018_pcap_thu.json",
+    "victim": "172.31.69.25",
+    "mode": "within",
+    "n_total": 4745,
+    "n_attack_total": 3309,
+    "first_atk_idx": 236,
+    "n_pre_benign": 236,
+    "n_fit": 141,
+    "n_calib": 95,
+    "n_test_benign": 1200,
+    "n_test_attack": 3309,
+    "viable": true,
+    "reason": "OK"
+  },
+  {
+    "group": "CIC-IDS-2018 fri",
+    "cache": "cicids2018_pcap_fri.json",
+    "victim": "172.31.69.25",
+    "mode": "within",
+    "n_total": 5541,
+    "n_attack_total": 4033,
+    "first_atk_idx": 405,
+    "n_pre_benign": 405,
+    "n_fit": 243,
+    "n_calib": 162,
+    "n_test_benign": 1103,
+    "n_test_attack": 4033,
+    "viable": true,
+    "reason": "OK"
+  }
+]

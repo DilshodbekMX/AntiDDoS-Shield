@@ -17,6 +17,8 @@ from scipy import stats as st
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
+sys.path.insert(0, os.path.abspath(os.path.join(HERE, '..')))
+sys.path.insert(0, os.path.abspath(os.path.join(HERE, '..', '..', 'experiment')))
 sys.path.insert(0, os.path.join(HERE, 'negatives'))
 
 from config import RESULTS_DIR

@@ -95,6 +95,7 @@ void layer2_config_init_defaults(struct layer2_config *config) {
     // Ensemble decision rule (OR default; conformal selectable, paper section4.10)
     config->ensemble_rule = L2_DEFAULT_ENSEMBLE_RULE;
     config->conformal_alpha = L2_DEFAULT_CONFORMAL_ALPHA;
+    config->cusum_decay = L2_DEFAULT_CUSUM_DECAY;
     config->routed_fdr_alpha = L2_DEFAULT_ROUTED_FDR_ALPHA;
     config->conformal_capacity = L2_DEFAULT_CONFORMAL_CAPACITY;
     config->innovation_gate_kappa = L2_DEFAULT_INNOVATION_GATE_KAPPA;
@@ -323,6 +324,10 @@ int layer2_config_load(struct layer2_config *config, const char *filepath) {
         if (item->valuedouble > 0.0 && item->valuedouble < 1.0)
             config->conformal_alpha = item->valuedouble;
     }
+    if ((item = cJSON_GetObjectItem(root, "cusum_decay")) && cJSON_IsNumber(item)) {
+        if (item->valuedouble > 0.0 && item->valuedouble <= 1.0)
+            config->cusum_decay = item->valuedouble;
+    }
     if ((item = cJSON_GetObjectItem(root, "routed_fdr_alpha")) && cJSON_IsNumber(item)) {
         if (item->valuedouble > 0.0 && item->valuedouble < 1.0)
             config->routed_fdr_alpha = item->valuedouble;
@@ -473,6 +478,7 @@ int layer2_config_save(const struct layer2_config *config, const char *filepath)
     // Ensemble decision rule + conformal params (round-trips with the parse block above)
     cJSON_AddNumberToObject(root, "ensemble_rule", config->ensemble_rule);
     cJSON_AddNumberToObject(root, "conformal_alpha", config->conformal_alpha);
+    cJSON_AddNumberToObject(root, "cusum_decay", config->cusum_decay);
     cJSON_AddNumberToObject(root, "routed_fdr_alpha", config->routed_fdr_alpha);
     cJSON_AddNumberToObject(root, "conformal_capacity", (double)config->conformal_capacity);
     cJSON_AddNumberToObject(root, "innovation_gate_kappa", config->innovation_gate_kappa);

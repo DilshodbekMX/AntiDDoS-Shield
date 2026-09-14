@@ -1,0 +1,278 @@
+{
+  "metadata": {
+    "dataset": "LITNET-2020 (per-destination-IP)",
+    "source_dir": "datasets/LITNET-2020/parts",
+    "keep_prefixes": [
+      "193.219.",
+      "83.171."
+    ],
+    "keep_exact": [
+      "23.32.104.60"
+    ],
+    "feature_count": 10,
+    "features_used": [
+      "packets_per_sec",
+      "bytes_per_sec",
+      "flows_per_sec",
+      "tcp_ratio",
+      "udp_ratio",
+      "icmp_ratio",
+      "unique_src_ips",
+      "unique_dst_ports",
+      "flow_duration_avg",
+      "dst_port_density"
+    ],
+    "features": [
+      "packets_per_sec",
+      "bytes_per_sec",
+      "flows_per_sec",
+      "tcp_ratio",
+      "udp_ratio",
+      "icmp_ratio",
+      "unique_src_ips",
+      "unique_dst_ports",
+      "flow_duration_avg",
+      "dst_port_density"
+    ],
+    "features_inert_auto_excluded": [
+      "syn_per_sec",
+      "syn_ack_per_sec",
+      "ack_per_sec",
+      "rst_per_sec",
+      "fin_per_sec",
+      "other_ratio",
+      "syn_ack_ratio",
+      "rst_syn_ratio",
+      "bytes_per_packet",
+      "unique_flows",
+      "new_srcip_rate",
+      "max_flow_fraction",
+      "topk_flow_share",
+      "heavy_hitter_count",
+      "avg_packets_per_flow",
+      "syn_tcp_ratio",
+      "synack_tcp_ratio",
+      "ack_tcp_ratio",
+      "rst_tcp_ratio",
+      "fin_tcp_ratio",
+      "burst_factor",
+      "udp_flow_ratio",
+      "icmp_echo_ratio",
+      "src_ip_entropy",
+      "src_port_entropy",
+      "small_pkt_ratio",
+      "fragment_ratio",
+      "ttl_mean",
+      "tcp_completion_rate",
+      "unique_dst_ips"
+    ],
+    "production_feature_set_size": 39,
+    "n_ips_evaluated": 18124,
+    "min_windows_per_ip": 100,
+    "methodology": "per-(dst_ip,1s) windows; benign 60/20/20 split per IP; train on benign-only; test = held-out benign + all attack",
+    "runtime_s": 497.6
+  },
+  "split_metrics": {
+    "victim_ips_count": 15363,
+    "uninvolved_ips_count": 565,
+    "dr_on_victims_pct": 12.6,
+    "dr_on_victims_ci": [
+      12.5,
+      12.7
+    ],
+    "fpr_on_uninvolved_pct": 22.9,
+    "fpr_on_uninvolved_ci": [
+      22.6,
+      23.2
+    ],
+    "fpr_on_uninvolved_cluster_ci": [
+      20.9,
+      24.9
+    ],
+    "dr_on_victims_fixed_theta_pct": 14.8,
+    "fpr_on_uninvolved_fixed_theta_pct": 45.5,
+    "fpr_on_uninvolved_fixed_theta_cluster_ci": [
+      43.3,
+      47.5
+    ],
+    "fixed_theta_note": "fixed theta=4.0 + h=5sigma = shipped production operating point (no per-IP calibration); per-IP-calibrated uninvolved IPs use higher theta which suppresses their FPR",
+    "tp_on_victims": 84070,
+    "fn_on_victims": 583335,
+    "fp_on_uninvolved": 16166,
+    "tn_on_uninvolved": 54472
+  },
+  "per_attack_type": {
+    "syn_flood": {
+      "dr": 12.9,
+      "dr_ci": [
+        12.8,
+        12.9
+      ],
+      "dr_fixed_theta": 15.3,
+      "n_windows": 678911,
+      "tp": 87329
+    },
+    "land_attack": {
+      "dr": 5.1,
+      "dr_ci": [
+        4.6,
+        5.7
+      ],
+      "dr_fixed_theta": 9.3,
+      "n_windows": 6056,
+      "tp": 310
+    },
+    "win32_worm": {
+      "dr": 10.6,
+      "dr_ci": [
+        9.7,
+        11.6
+      ],
+      "dr_fixed_theta": 14.2,
+      "n_windows": 3783,
+      "tp": 402
+    },
+    "http_flood": {
+      "dr": 97.5,
+      "dr_ci": [
+        95.3,
+        98.7
+      ],
+      "dr_fixed_theta": 87.2,
+      "n_windows": 360,
+      "tp": 351
+    },
+    "code_red_worm": {
+      "dr": 89.0,
+      "dr_ci": [
+        85.2,
+        91.9
+      ],
+      "dr_fixed_theta": 100.0,
+      "n_windows": 345,
+      "tp": 307
+    },
+    "smurf": {
+      "dr": 100.0,
+      "dr_ci": [
+        98.7,
+        100.0
+      ],
+      "dr_fixed_theta": 100.0,
+      "n_windows": 299,
+      "tp": 299
+    },
+    "reaper_worm": {
+      "dr": 89.9,
+      "dr_ci": [
+        85.5,
+        93.0
+      ],
+      "dr_fixed_theta": 97.2,
+      "n_windows": 247,
+      "tp": 222
+    },
+    "icmp_flood": {
+      "dr": 0.0,
+      "dr_ci": [
+        0.0,
+        79.3
+      ],
+      "dr_fixed_theta": 0.0,
+      "n_windows": 1,
+      "tp": 0
+    }
+  },
+  "top_victims": [
+    {
+      "ip": "23.32.104.60",
+      "n_attack": 360,
+      "n_benign": 265,
+      "dr": 97.5,
+      "fpr": 7.2,
+      "theta": 17.5,
+      "dominant_attack": "http_flood"
+    },
+    {
+      "ip": "193.219.81.138",
+      "n_attack": 345,
+      "n_benign": 505,
+      "dr": 89.0,
+      "fpr": 5.7,
+      "theta": 20.0,
+      "dominant_attack": "code_red_worm"
+    },
+    {
+      "ip": "193.219.88.36",
+      "n_attack": 299,
+      "n_benign": 447,
+      "dr": 100.0,
+      "fpr": 16.3,
+      "theta": 4.0,
+      "dominant_attack": "smurf"
+    },
+    {
+      "ip": "83.171.16.161",
+      "n_attack": 178,
+      "n_benign": 50,
+      "dr": 38.8,
+      "fpr": 24.0,
+      "theta": 4.0,
+      "dominant_attack": "syn_flood"
+    },
+    {
+      "ip": "83.171.16.130",
+      "n_attack": 178,
+      "n_benign": 53,
+      "dr": 16.9,
+      "fpr": 35.8,
+      "theta": 13.0,
+      "dominant_attack": "syn_flood"
+    },
+    {
+      "ip": "83.171.30.123",
+      "n_attack": 177,
+      "n_benign": 51,
+      "dr": 23.2,
+      "fpr": 19.6,
+      "theta": 6.0,
+      "dominant_attack": "syn_flood"
+    },
+    {
+      "ip": "83.171.16.176",
+      "n_attack": 176,
+      "n_benign": 54,
+      "dr": 42.0,
+      "fpr": 20.4,
+      "theta": 4.0,
+      "dominant_attack": "syn_flood"
+    },
+    {
+      "ip": "83.171.16.193",
+      "n_attack": 176,
+      "n_benign": 51,
+      "dr": 46.0,
+      "fpr": 25.5,
+      "theta": 4.0,
+      "dominant_attack": "syn_flood"
+    },
+    {
+      "ip": "83.171.16.174",
+      "n_attack": 176,
+      "n_benign": 54,
+      "dr": 47.2,
+      "fpr": 16.7,
+      "theta": 4.5,
+      "dominant_attack": "syn_flood"
+    },
+    {
+      "ip": "83.171.16.212",
+      "n_attack": 175,
+      "n_benign": 47,
+      "dr": 47.4,
+      "fpr": 23.4,
+      "theta": 4.0,
+      "dominant_attack": "syn_flood"
+    }
+  ]
+}

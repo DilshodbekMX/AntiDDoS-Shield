@@ -17,7 +17,6 @@
 !/LICENSE
 !/README.md
 !/INSTALL.md
-!/OfflineExperiments
 !/ComparisonResults
 !/layer2
 !/project
@@ -58,3 +57,8 @@ venv/
 *.pre_*
 *.tmp
 .DS_Store
+
+# build artifacts must never reach the deposit
+*.so
+*.o
+**/__pycache__/

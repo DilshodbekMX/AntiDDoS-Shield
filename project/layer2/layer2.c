@@ -938,6 +938,9 @@ int layer2_init(const char *config_file) {
     // attacks) and the paper section4.3.2 specification. Prior call-site used 0.5, which
     // overrode the E2 FIX and made the deployed engine less sensitive than documented.
     cusum_detector_init(&g_layer2.cusum, 0.25, 5.0);
+    /* Bound the CUSUM accumulator so it cannot latch permanently on benign drift.
+     * See L2_DEFAULT_CUSUM_DECAY in layer2/config/layer2_config.h. */
+    cusum_detector_set_decay(&g_layer2.cusum, g_layer2.config.cusum_decay);
 
     // JSD: alpha=0.1 (same as tier 2), min_samples=30
     jsd_baseline_init(&g_layer2.jsd, 0.1, 30);

@@ -26,6 +26,8 @@ from scipy import stats as st
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
+sys.path.insert(0, os.path.abspath(os.path.join(HERE, '..')))
+sys.path.insert(0, os.path.abspath(os.path.join(HERE, '..', '..', 'experiment')))
 sys.path.insert(0, os.path.join(HERE, 'negatives'))
 
 from config import RESULTS_DIR
@@ -34,38 +36,54 @@ import post2023_competitors as C
 
 OUT = os.path.join(RESULTS_DIR, 'post2023_benchmark_results.json')
 TARGETS = (0.01, 0.02, 0.05)
+REF = 'SPOT'
+
+
+def dr_at(scores, y, fpr_target):
+    th = np.percentile(scores[y == 0], (1.0 - fpr_target) * 100.0)
+    return float(np.mean(scores[y == 1] > th) * 100.0)
 
 
 def tkey(r):
     return r.get('_id_time', r.get('_dt', 0))
 
 
-def dr_at(scores, y, target):
-    b, a = scores[y == 0], scores[y == 1]
-    if len(b) == 0:
-        return float('nan')
-    return float(np.mean(a > np.percentile(b, (1.0 - target) * 100.0)) * 100.0)
-
-
 def load_case(entry):
-    """fit / calib / test-benign / attack for one panel entry.
+    """Return (fit, calib, test_benign, test_attack) for a panel entry.
 
-    Same protocol as the panel's own loader, reimplemented here so this tree does
-    not depend on a module that lives only in a sibling tree.
-      within/crossfile -- causal: fit on the first 60% of strictly PRE-attack
-                          benign rows, calibrate on the rest, test on everything
-                          from the first attack onward.
-      treefile         -- benign 60/20/20, used where benign comes from a
+    Modes:
+      within (default) -- causal split on the attack day: fit on pre-attack
+                          benign, calib on trailing 20% of pre-attack, test on
+                          post-attack benign + attack interleaved.
+      treefile         -- file-based 60/20/20 benign split. Used where the
+                          pre-attack benign window is too short (<300 s).
+      crossfile        -- benign from an explicit benign file. Used where the
+                          attack scenario has no pre-attack benign slice (e.g.
+                          CIC-IoT-2023 DDoS-ICMP_Flood). The benign file is a
                           separate capture and so has no pre-attack history.
       crossday         -- fit on the training day, test on the attack day.
     """
-    from config import CACHE_DIR
+    from config import CACHE_DIR, BASE
     mode = entry.get('mode', 'within')
     victim = entry.get('victim')
 
     def _load(p):
-        p = p if os.path.exists(p) else os.path.join(CACHE_DIR, p)
-        d = json.load(open(p))
+        actual_p = p
+        if not os.path.exists(actual_p):
+            candidates = [
+                os.path.join(CACHE_DIR, p),
+                os.path.join(CACHE_DIR, os.path.basename(p)),
+                os.path.join(BASE, 'datasets', 'feature_caches', os.path.basename(p)),
+                os.path.join(BASE, 'datasets', 'extracted', p.lstrip('./')),
+                os.path.join(BASE, 'experiment', 'cache', os.path.basename(p)),
+                os.path.join(HERE, '..', 'datasets', 'feature_caches', os.path.basename(p)),
+                os.path.join(HERE, '..', '..', 'datasets', 'feature_caches', os.path.basename(p)),
+            ]
+            for c in candidates:
+                if os.path.exists(c):
+                    actual_p = c
+                    break
+        d = json.load(open(actual_p))
         return d.get('per_ip_windows', d)
 
     if mode == 'crossday':

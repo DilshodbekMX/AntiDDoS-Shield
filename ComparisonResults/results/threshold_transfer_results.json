@@ -1,0 +1,28 @@
+{
+ "n": 23,
+ "labels": [
+  "CIC-IDS-2017 Fri-07-07_DDoS-LOIT",
+  "CIC-IDS-2017 Wed-05-07_DoS-GoldenEye",
+  "CIC-IDS-2017 Wed-05-07_DoS-Hulk",
+  "CIC-IDS-2017 Wed-05-07_DoS-Slowhttptest",
+  "CIC-IDS-2017 Wed-05-07_DoS-Slowloris",
+  "CIC-IDS-2018 Fri-16-02_DoS-Hulk",
+  "CIC-IDS-2018 Fri-16-02_DoS-SlowHTTPTest",
+  "CIC-IDS-2018 Thu-15-02_DoS-Slowloris",
+  "CIC-IDS-2018 Tue-20-02_DDoS-LOIC-HTTP",
+  "CIC-IDS-2018 Wed-21-02_DDoS-HOIC",
+  "CIC-IDS-2018 Wed-21-02_DDoS-LOIC-UDP",
+  "CIC-DDoS2019 cicddos_03-11_192-168-50-4_LDAP",
+  "CIC-DDoS2019 cicddos_03-11_192-168-50-4_Syn",
+  "CIC-DDoS2019 cicddos_03-11_192-168-50-4_UDP",
+  "CIC-DDoS2019 cicddos_03-11_192-168-50-4_UDPLag",
+  "CIC-IoT-2023 DDoS-ICMP_Flood",
+  "CIC-IoT-2023 DDoS-SYN_Flood",
+  "CIC-IoT-2023 DDoS-SynonymousIP_Flood",
+  "CIC-IoT-2023 DDoS-TCP_Flood",
+  "CIC-IoT-2023 DDoS-UDP_Flood",
+  "CIC-IoT-2023 Mirai-udpplain",
+  "LITNET-2020 code_red_worm",
+  "CIC-IDS-2017 Fri-07-07_DDoS-LOIT (cross-day Mon->Fri)"
+ ]
+}

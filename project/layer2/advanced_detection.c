@@ -138,6 +138,17 @@ static const struct l2_feature_config l2_default_feature_configs_const[L2_MAX_FE
 
 // ==================== CUSUM Implementation ====================
 
+void cusum_detector_set_decay(struct cusum_detector *det, double lambda) {
+    if (!det) return;
+    det->decay = (lambda > 0.0 && lambda <= 1.0) ? lambda : 1.0;
+}
+
+void cusum_detector_set_reset_on_alarm(struct cusum_detector *det, int on) {
+    if (!det) return;
+    det->reset_on_alarm = on ? 1 : 0;
+    for (int i = 0; i < L2_MAX_FEATURES; i++) det->states[i].reset_on_alarm = det->reset_on_alarm;
+}
+
 void cusum_detector_init(struct cusum_detector *det, double k_factor, double h_factor) {
     if (!det) return;
 
@@ -147,6 +158,10 @@ void cusum_detector_init(struct cusum_detector *det, double k_factor, double h_f
     det->k_factor = (k_factor > 0) ? k_factor : 0.25;
     det->h_factor = (h_factor > 0) ? h_factor : 5.0;
     det->min_samples = 30;  // Need 30 samples before CUSUM triggers
+    /* Default preserves the historical non-resetting CUSUM exactly; layer2.c applies
+     * the configured value (layer2_config.h: L2_DEFAULT_CUSUM_DECAY) right after init. */
+    det->decay = 1.0;
+    det->reset_on_alarm = 0;   /* historical behaviour */
 
     for (int i = 0; i < L2_MAX_FEATURES; i++) {
         cusum_reset(&det->states[i]);
@@ -165,6 +180,11 @@ void cusum_reset(struct cusum_state *state) {
 
 bool cusum_update(struct cusum_state *state, double value, double mean, double stddev,
                   double k_factor, double h_factor) {
+    return cusum_update_decayed(state, value, mean, stddev, k_factor, h_factor, 1.0);
+}
+
+bool cusum_update_decayed(struct cusum_state *state, double value, double mean, double stddev,
+                          double k_factor, double h_factor, double decay) {
     if (!state) return false;
 
     state->mean = mean;
@@ -187,14 +207,24 @@ bool cusum_update(struct cusum_state *state, double value, double mean, double s
     double deviation = value - mean;
 
     // Update high-side CUSUM (detecting increases)
-    state->S_high = fmax(0.0, state->S_high + deviation - k);
+    state->S_high = fmax(0.0, decay * state->S_high + deviation - k);
 
     // Update low-side CUSUM (detecting decreases)
-    state->S_low = fmax(0.0, state->S_low - deviation - k);
+    state->S_low = fmax(0.0, decay * state->S_low - deviation - k);
 
     // Check for alarms
     state->alarm_high = (state->S_high > h);
     state->alarm_low = (state->S_low > h);
+
+    /* Restart after an alarm (classical CUSUM). Zeroing AFTER the flags latch keeps this
+     * cycle's alarm intact while letting the next excursion start from scratch. Without
+     * it the accumulator stays above h forever, and because layer2.c freezes the
+     * baselines for the duration of an alarm, the frozen mean guarantees it can never
+     * come back down -- the alarm latches permanently. */
+    if (state->reset_on_alarm) {
+        if (state->alarm_high) state->S_high = 0.0;
+        if (state->alarm_low)  state->S_low  = 0.0;
+    }
 
     return state->alarm_high || state->alarm_low;
 }
@@ -232,8 +262,9 @@ int cusum_detect(struct cusum_detector *det,
         double mean = fb->mean;
         double stddev = feature_baseline_stddev(fb);
 
-        bool triggered = cusum_update(&det->states[feat_idx], value, mean, stddev,
-                                      det->k_factor, det->h_factor);
+
+        bool triggered = cusum_update_decayed(&det->states[feat_idx], value, mean, stddev,
+                                              det->k_factor, det->h_factor, det->decay);
 
         // Continuous normalized statistic: S/h, where h = h_factor * stddev (alarm at >1).
         double h = det->h_factor * stddev;

@@ -97,20 +97,20 @@
       "dr_5pct": 38.88373391531924
     },
     {
-      "name": "LODA Raw (Pevny Machine Learning 2016)",
-      "mean_auc": 0.6209148531797832,
-      "median_auc": 0.7249680958804913,
-      "dr_1pct": 17.046078276199246,
-      "dr_2pct": 22.997258325985744,
-      "dr_5pct": 34.1034652032213
+      "name": "LODA + EWMA (Pevny ML 2016 + EWMA)",
+      "mean_auc": 0.630385303122261,
+      "median_auc": 0.7063524017497933,
+      "dr_1pct": 18.648932545551197,
+      "dr_2pct": 26.186403024613327,
+      "dr_5pct": 37.1132953300537
     },
     {
-      "name": "LODA + EWMA (Pevny ML 2016 + EWMA)",
-      "mean_auc": 0.580720794874225,
-      "median_auc": 0.6855600657871714,
-      "dr_1pct": 21.943556184812106,
-      "dr_2pct": 27.99195197453092,
-      "dr_5pct": 41.089394807572205
+      "name": "LODA Raw (Pevny Machine Learning 2016)",
+      "mean_auc": 0.6172016366909717,
+      "median_auc": 0.7132627262256146,
+      "dr_1pct": 15.100068755606237,
+      "dr_2pct": 22.60641366049466,
+      "dr_5pct": 38.43386918735989
     },
     {
       "name": "DIF (Xu et al. IEEE TKDE 2024)",
