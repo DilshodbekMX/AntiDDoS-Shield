@@ -242,4 +242,5 @@ filter, one causal split, ours +0.0232 over SPOT at p=0.011.
       post2023_competitors.py        the 9-detector registry
       runners/                       scripts that produced each artifact
       results/                       the artifacts
-      SHA256SUMS                     checksums, verify with: sha256sum -c SHA256SUMS
+      SHA256SUMS.results             record checksums; from results/: sha256sum -c ../SHA256SUMS.results
+      SHA256SUMS                     earlier checksums of code and records; several entries no longer match
