@@ -19,7 +19,7 @@ for _candidate in (
     if os.path.isdir(_candidate) and _candidate not in sys.path:
         sys.path.insert(0, _candidate)
 
-from negatives.innovation_path import InnovationPath
+from innovation_path import InnovationPath
 
 def test_innovation_path_initialization():
     """Verify InnovationPath initializes with features and default lambda=0.01."""

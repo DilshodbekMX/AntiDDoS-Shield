@@ -29,7 +29,6 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 sys.path.insert(0, os.path.abspath(os.path.join(HERE, '..')))
 sys.path.insert(0, os.path.abspath(os.path.join(HERE, '..', '..', 'experiment')))
-sys.path.insert(0, os.path.join(HERE, 'negatives'))
 
 from config import RESULTS_DIR, TAR_PATH, TIMES_TAR, MIN_IP_ROWS_PER_IP
 import run_crosscorpus_auc as R

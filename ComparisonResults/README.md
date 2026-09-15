@@ -10,8 +10,13 @@
 >    depending on batch composition (PyOD concatenates train onto the scored batch
 >    and recomputes the ECDF). Reimplemented inductively; DIF's representation
 >    scaler is now frozen after the train pass. `runners/verify_inductive.py` is
->    the gate: all 10 arms now score fixed benign rows **bit-identically**
->    (max drift 0.00e+00) across batches padded with 0, 16 and 3,779 attack rows.
+>    the gate. With 0, 16 or 3,779 attack rows appended after fixed benign rows,
+>    all 10 corrected arms score them **bit-identically** (max drift 0.00e+00);
+>    the archived registry fails that append axis on ECOD, COPOD and DIF, three
+>    of its eight deterministic arms (LODA is stochastic there and excluded from
+>    that count). Prepending the same rows is a separate, reported axis: among
+>    the corrected arms it moves only the two sequential ones, ours and DSPOT.
+>    Verdicts: `results/batch_invariance_gate.json`.
 > 2. **DSPOT.** Rebuilt to Siffer Algorithm 3 (drift window frozen on alarm).
 > 3. **LODA.** Seeded; its row is reproducible.
 > 4. **Citations.** `competitors.bib` — 9 entries, every DOI resolved against
