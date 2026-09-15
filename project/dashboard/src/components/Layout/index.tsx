@@ -68,9 +68,9 @@ export function Layout() {
           {/* Footer */}
           <footer className="border-t border-slate-200 dark:border-slate-800 py-4 px-4 lg:px-6">
             <div className="mx-auto max-w-7xl flex items-center justify-between text-xs text-slate-500">
-              <span>ShieldNet Enterprise DDoS Protection v2.0</span>
+              <span>ShieldNet v2.0 (research prototype)</span>
               <span className="hidden sm:inline">
-                Powered by DPDK &bull; Layer 1-5 Analysis &bull; ML-Driven Detection
+                DPDK packet I/O &bull; Statistical detection &bull; Throughput not measured
               </span>
             </div>
           </footer>

@@ -1,6 +1,8 @@
-# project — Production system
+# project — AntiDDoS Shield research prototype
 
-All production source code. Build with Meson + Ninja from this directory.
+Source code of the AntiDDoS Shield research prototype, supplied as context for the manuscript and
+not evaluated in it. Throughput and detection latency have not been measured. Build with Meson +
+Ninja from this directory.
 
 | Path | Contents |
 |---|---|
@@ -9,7 +11,7 @@ All production source code. Build with Meson + Ninja from this directory.
 | `common/` | Shared headers (`config_path.h`, `siphash.h`, `organization.h`). |
 | `core/` | DPDK glue (`dpdk_core.{c,h}`, `control_socket.{c,h}`, `stats_socket.{c,h}`, `prometheus_exporter.{c,h}`). |
 | `proto/`, `external/` | Protobuf schema; vendored cJSON. |
-| `tests/` | `unit/` (C unit tests), `integration/` (cross-layer + carpet-bomb subnet), `benchmarks/`, **`unit_python/`** (12 Python tests covering the fidelity-fix invariants — tier readiness, poison recovery, update regime, L1-subnet loader). |
+| `tests/` | `unit/` (C unit tests), `integration/` (cross-layer + carpet-bomb subnet), `benchmarks/`, **`unit_python/`** (7 Python test files: tier readiness, poison recovery, update regime, L1-subnet loader, adaptive timebase, innovation gate, tenant carpet-bomb toggle). `benchmarks/` holds benchmark programs; no throughput or latency result from them is reported. |
 | `backend/` | FastAPI control API. See [`backend/README.md`](backend/README.md). |
 | `dashboard/` | React + Vite UI. See [`dashboard/README.md`](dashboard/README.md). |
 | `config/` | Single-org and multi-tenant orchestration configs (`single_org_config.json`, `tenants.json`). Per-layer JSON lives in `layer1/config/` and `layer2/config/`. |
@@ -29,9 +31,7 @@ meson test -C build --print-errorlogs
 python -m pytest tests/unit_python/
 ```
 
-Covers four fidelity invariants the C engine maintains and the experiment
-harness mirrors. See the manuscript's §7.4 fidelity-audit summary for the audit
-context.
+Covers invariants the C engine maintains and the evaluation harness mirrors.
 
 ## Configuration
 

@@ -18,7 +18,7 @@ Every command is exact and copy-pasteable. Nothing is assumed pre-installed.
 9. [Step 8 - Configure Hugepages](#9-step-8---configure-hugepages)
 10. [Step 9 - Setup IOMMU and Bind NICs to DPDK](#10-step-9---setup-iommu-and-bind-nics-to-dpdk)
 11. [Step 10 - Setup Python Virtual Environment and Backend](#11-step-10---setup-python-virtual-environment-and-backend)
-12. [Step 11 - Install Layer 3 ML Engine](#12-step-11---install-layer-3-ml-engine)
+12. [Step 11 - Layer 3 anomaly detection (in-process)](#12-step-11---layer-3-anomaly-detection-in-process)
 13. [Step 12 - Install Dashboard](#13-step-12---install-dashboard)
 14. [Step 13 - Create Required Directories and Config Files](#14-step-13---create-required-directories-and-config-files)
 15. [Step 14 - Run the System](#15-step-14---run-the-system)
@@ -28,7 +28,7 @@ Every command is exact and copy-pasteable. Nothing is assumed pre-installed.
 19. [Optional: Redis Cache](#19-optional-redis-cache)
 20. [Optional: GeoIP Database](#20-optional-geoip-database)
 21. [Optional: Persistent Hugepages Across Reboots](#21-optional-persistent-hugepages-across-reboots)
-22. [Optional: Performance Tuning for Production](#22-optional-performance-tuning-for-production)
+22. [Optional: DPDK Host Tuning (untested)](#22-optional-dpdk-host-tuning-untested)
 23. [Troubleshooting A-Z](#23-troubleshooting-a-z)
 24. [Quick Reference](#24-quick-reference)
 25. [Architecture Overview](#25-architecture-overview)
@@ -812,10 +812,11 @@ This starts the backend and dashboard but NOT the DPDK data plane.
 | Prometheus metrics | http://localhost:9100/metrics  | DPDK metrics (when running)|
 | WebSocket          | ws://localhost:8000/api/v2/ws/ | Real-time updates         |
 
-### Default credentials
+### Admin credentials
 
-- **Username:** `admin`
-- **Password:** `REMOVED_DEV_DEFAULT`
+There is no default password. `start.sh` writes a random one into `project/backend/.env` when it
+creates that file; otherwise set `ANTIDDOS_ADMIN_PASS` (or `ANTIDDOS_ADMIN_PASS_HASH`) there
+yourself. The username is `admin` unless `ANTIDDOS_ADMIN_USER` is set.
 
 ---
 
@@ -840,14 +841,14 @@ curl -s http://localhost:8000/api/v2/system/health
 ```bash
 curl -s -X POST http://localhost:8000/api/v2/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"username": "admin", "password": "REMOVED_DEV_DEFAULT"}'
+  -d '{"username": "admin", "password": "<your admin password>"}'
 # Should return a JSON response with an access_token
 ```
 
 ### Check 4: Dashboard loads
 
 Open http://localhost:5173 in your browser. You should see the login page.
-Log in with `admin` / `REMOVED_DEV_DEFAULT`.
+Log in with `admin` and the password from `project/backend/.env`.
 
 ### Check 5: DPDK is processing (only if running)
 
@@ -987,7 +988,7 @@ echo 'vfio-pci' | sudo tee -a /etc/modules-load.d/dpdk.conf
 
 ---
 
-## 22. Optional: Performance Tuning for Production
+## 22. Optional: DPDK Host Tuning (untested)
 
 Run `make perf-tips` for a summary. Key recommendations:
 
@@ -1265,8 +1266,8 @@ make help                # Show all Makefile targets
     |  Layer 2: Anomaly Detection          |
     |    EWMA baselines, z-score           |
     |              |                       |
-    |  Layer 3: ML Detection (Python)      |
-    |    XGBoost, Isolation Forest         |
+    |  Layer 3: Attribution (backend API)  |
+    |    no ML model in this release       |
     |              |                       |
     |  Layer 4: IP Reputation              |
     |    Scoring, challenges, bot detect   |
@@ -1280,4 +1281,4 @@ make help                # Show all Makefile targets
 ```
 
 **Data flow:** Packets arrive on port 0, pass through all layers, clean traffic exits on port 1.
-Malicious packets are dropped at the earliest possible layer for maximum performance.
+Malicious packets are dropped at the earliest layer whose rule matches them. Throughput and latency have not been measured.

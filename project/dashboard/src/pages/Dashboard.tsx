@@ -371,7 +371,7 @@ export function Dashboard() {
           size="lg"
           sparklineData={sparklineData.rxBps}
           loading={statsLoading}
-          subtitle={selectedIP ? 'Per-IP bandwidth' : 'Real-time bandwidth'}
+          subtitle={selectedIP ? 'Per-IP bandwidth' : 'Current bandwidth'}
           className="animate-stagger-1"
         />
         <MetricCard

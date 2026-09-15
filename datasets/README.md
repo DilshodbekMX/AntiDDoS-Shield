@@ -1,15 +1,14 @@
 # Evaluation Datasets
 
-Download pointers for the six public corpora used in the AntiDDoS Shield Layer-2
-evaluation (paper §5.1, Table 6). **No dataset files are committed to this repository** —
-they are large and redistribution-restricted. This directory holds only this README and a
-`.gitkeep`; download the corpora from the official sources below into the matching
-subfolders, then run the harness (`experiment/run_all.sh`).
+Download pointers for the six public corpora used in the evaluation. **No dataset files are
+committed to this repository** — they are large and redistribution-restricted. This directory
+holds only this README; download the corpora from the official sources below.
 
-Integrity: raw-input checksums are regenerated locally after download
-(`experiment/make_sha_manifest.sh`) and are **not shipped**, since these corpora are third-party
-downloads subject to occasional re-releases and cannot be third-party-verified from our copy (§7.3).
-The committed result-artifact and feature-cache manifests are in `experiment/SHA256SUMS.{results,caches}`.
+The `experiment/...` file paths cited further down this page refer to a harness tree that is not
+part of this repository. The deposited runners are under `ComparisonResults/runners/`, and the
+deposited result records are verified by `ComparisonResults/SHA256SUMS.results` (run
+`sha256sum -c ../SHA256SUMS.results` from inside `ComparisonResults/results/`). Raw-input
+checksums for the corpora are not shipped.
 
 ---
 

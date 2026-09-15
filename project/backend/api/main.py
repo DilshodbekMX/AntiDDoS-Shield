@@ -241,20 +241,28 @@ app.add_middleware(
 )
 
 
-# ==================== Admin credential safety (production) ====================
-# Fail closed if the shipped weak default admin password would be live in production,
-# mirroring the CORS guard above. The 'REMOVED_DEV_DEFAULT' default is for local development only.
-if _app_env == 'production':
-    _admin_pass = os.environ.get('ANTIDDOS_ADMIN_PASS')
-    _admin_hash = os.environ.get('ANTIDDOS_ADMIN_PASS_HASH')
-    if not _admin_hash and (not _admin_pass or _admin_pass == 'REMOVED_DEV_DEFAULT'):
-        logger.error(
-            "FATAL: default or blank admin password in production mode. "
-            "Set ANTIDDOS_ADMIN_PASS (or ANTIDDOS_ADMIN_PASS_HASH) to a strong secret; "
-            "the development default 'REMOVED_DEV_DEFAULT' is refused when APP_ENV=production."
-        )
-        import sys
-        sys.exit(1)
+# ==================== Admin credential safety ====================
+# The development default admin password shipped in an earlier release is public, so it is
+# refused in every mode (compared by digest; the literal is not kept in the source). In
+# production a blank password is refused too, mirroring the CORS guard above.
+import hashlib as _hashlib
+_LEAKED_DEFAULT_ADMIN_PASS_SHA256 = '494a715f7e9b4071aca61bac42ca858a309524e5864f0920030862a4ae7589be'
+_admin_pass = os.environ.get('ANTIDDOS_ADMIN_PASS')
+_admin_hash = os.environ.get('ANTIDDOS_ADMIN_PASS_HASH')
+if not _admin_hash and _admin_pass and _hashlib.sha256(_admin_pass.encode()).hexdigest() == _LEAKED_DEFAULT_ADMIN_PASS_SHA256:
+    logger.error(
+        "FATAL: ANTIDDOS_ADMIN_PASS is the public development default from an earlier release. "
+        "Set a new password (or ANTIDDOS_ADMIN_PASS_HASH) and restart."
+    )
+    import sys
+    sys.exit(1)
+if _app_env == 'production' and not _admin_hash and not _admin_pass:
+    logger.error(
+        "FATAL: blank admin password in production mode. "
+        "Set ANTIDDOS_ADMIN_PASS (or ANTIDDOS_ADMIN_PASS_HASH) to a strong secret."
+    )
+    import sys
+    sys.exit(1)
 
 
 # ==================== CSRF Protection ====================

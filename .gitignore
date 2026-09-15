@@ -62,3 +62,14 @@ venv/
 *.so
 *.o
 **/__pycache__/
+
+# ── Secrets and runtime databases: never tracked ────────────────────────────
+.env
+.env.*
+!.env.example
+*.db
+*.db-shm
+*.db-wal
+*.db-journal
+*.sqlite
+*.sqlite3

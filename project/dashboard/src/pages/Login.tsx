@@ -1,5 +1,5 @@
 /**
- * Login Page -- Enterprise authentication screen
+ * Login Page -- authentication screen
  *
  * Split-panel design with animated branding on left,
  * clean login form on right. Fully responsive.
@@ -111,20 +111,20 @@ export function LoginPage() {
         {/* Center content */}
         <div className="relative z-10 max-w-lg">
           <h2 className="text-4xl font-bold text-white leading-tight mb-6">
-            Enterprise-Grade<br />
-            <span className="text-brand-400">DDoS Protection</span>
+            Research Prototype<br />
+            <span className="text-brand-400">DDoS Detection</span>
           </h2>
           <p className="text-lg text-slate-400 leading-relaxed mb-10">
-            Multi-layer defense powered by DPDK, real-time ML analysis, and adaptive threat mitigation across layers 1 through 5.
+            A DPDK packet datapath, a statistical anomaly detector scored per destination host, and a management backend. Throughput and detection latency have not been measured.
           </p>
 
           {/* Feature highlights */}
           <div className="grid grid-cols-2 gap-4">
             {[
-              { label: 'Packet Processing', value: '100M+ pps' },
-              { label: 'Detection Latency', value: '<1ms' },
-              { label: 'ML Models Active', value: '5 layers' },
-              { label: 'Uptime SLA', value: '99.999%' },
+              { label: 'Packet I/O', value: 'DPDK' },
+              { label: 'Detection, per destination host', value: 'Statistical' },
+              { label: 'Throughput and latency', value: 'Not measured' },
+              { label: 'Scope', value: 'Research prototype' },
             ].map((stat) => (
               <div key={stat.label} className="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 p-4">
                 <p className="text-2xl font-bold text-white">{stat.value}</p>
@@ -136,11 +136,11 @@ export function LoginPage() {
 
         {/* Bottom content */}
         <div className="relative z-10 flex items-center gap-6 text-sm text-slate-500">
-          <span>DPDK Accelerated</span>
+          <span>DPDK packet I/O</span>
           <span className="w-1 h-1 rounded-full bg-slate-600" />
-          <span>ML-Driven Detection</span>
+          <span>Statistical detection</span>
           <span className="w-1 h-1 rounded-full bg-slate-600" />
-          <span>Real-Time Analytics</span>
+          <span>Research prototype</span>
         </div>
       </div>
 
@@ -156,7 +156,7 @@ export function LoginPage() {
               <ShieldCheckIcon className="h-8 w-8 text-white" />
             </div>
             <h1 className="text-xl font-bold text-slate-900 dark:text-white">ShieldNet</h1>
-            <p className="text-sm text-slate-500 dark:text-slate-400">Enterprise DDoS Protection</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400">DDoS detection research prototype</p>
           </div>
 
           {/* Welcome text */}

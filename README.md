@@ -1,21 +1,39 @@
 # AntiDDoS Shield
 
-A multi-layer DDoS detection and mitigation system. Combines a DPDK-accelerated
-Layer-1 datapath, a 1-Hz Layer-2 statistical anomaly detector in C, a FastAPI
-backend, and a React/Vite operator dashboard.
+This repository holds three things with different status.
 
-This repository accompanies the paper *Training-Free Streaming DDoS Detection:
-Characterizing the Per-Window False-Alarm Floor in a Reproducible Six-Corpus
-Study* (see [`paper/`](paper/)).
+## 1. `ComparisonResults/`: evaluation deposit
 
-## Layout
+[`ComparisonResults/`](ComparisonResults/) is the deposit for the manuscript *An Evaluation
+Protocol for Training-Free DDoS Detection: Three Corrections*, prepared for the MDPI *Journal of
+Cybersecurity and Privacy*. It holds the evaluation runners, the baseline registry and the 39 JSON
+result records from which the manuscript's detector results and test statistics are read. See
+[`ComparisonResults/README.md`](ComparisonResults/README.md).
 
-| Folder | Contents |
-|---|---|
-| [`project/`](project/) | The production system — Layer 1 DPDK datapath, Layer 2 statistical detector, common headers, interlayer plumbing, FastAPI backend, React dashboard, C and Python tests, build files. Build with Meson + Ninja. |
-| [`experiments/`](experiments/) | Paper-reproducibility code: per-IP and /24-subnet runners for the six evaluation datasets, iso-pipeline baselines, and committed result JSONs that every paper number reproduces from. |
-| [`datasets/`](datasets/) | **Markdown only — no data.** Per-dataset download URLs, SHA-256 hashes, expected layout. |
-| [`paper/`](paper/) | The paper itself (Markdown + DOCX + PDF + BibTeX references). |
+Verify the records against their manifest from inside `results/`:
+
+```bash
+cd ComparisonResults/results
+sha256sum -c ../SHA256SUMS.results    # 39 lines, each ending in OK
+```
+
+`ComparisonResults/SHA256SUMS` is an earlier manifest of code and records; several of its entries
+no longer match, and it is not the manuscript's manifest. The deposit contains neither the six
+corpora nor the derived per-window feature tree the runners read, so apart from
+`runners/run_joint_filter.py` the runners do not execute as deposited.
+
+## 2. `project/`: the AntiDDoS Shield system (context only)
+
+[`project/`](project/) is the AntiDDoS Shield system: a DPDK packet datapath (Layer 1), a 1 Hz
+statistical anomaly detector in C (Layer 2), a FastAPI backend and a React/Vite dashboard. It is a
+research prototype, supplied as context for the manuscript's engine figures and not an evaluated
+contribution of it. Its throughput and detection latency have not been measured, and it contains no
+machine-learning model. Build instructions are in [`INSTALL.md`](INSTALL.md).
+
+## 3. `datasets/README.md`: corpus download pointers
+
+[`datasets/README.md`](datasets/README.md) lists where to obtain the six public corpora. No corpus
+data is committed to this repository.
 
 ## Quick start
 
@@ -27,7 +45,7 @@ Study* (see [`paper/`](paper/)).
    ```
 2. **Run the backend** — `cd project/backend && pip install -r api/requirements.txt && uvicorn api.main:app`.
 3. **Run the dashboard** — `cd project/dashboard && npm install && npm run dev`.
-4. **Reproduce paper headlines** — see [`experiments/README.md`](experiments/README.md) and [`datasets/README.md`](datasets/README.md).
+4. **Check the evaluation deposit** — see [`ComparisonResults/README.md`](ComparisonResults/README.md) and [`datasets/README.md`](datasets/README.md).
 5. **Run the fidelity unit tests**:
    ```bash
    python -m pytest project/tests/unit_python/

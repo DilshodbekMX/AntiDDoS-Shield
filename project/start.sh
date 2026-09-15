@@ -34,6 +34,10 @@ else
     echo "WARNING: backend/.env not found!"
     echo "Creating from .env.example..."
     cp "$SCRIPT_DIR/backend/.env.example" "$SCRIPT_DIR/backend/.env"
+    chmod 600 "$SCRIPT_DIR/backend/.env"
+    GEN_PASS=$(python3 -c 'import secrets; print(secrets.token_urlsafe(18))')
+    sed -i "s|^ANTIDDOS_ADMIN_PASS=.*|ANTIDDOS_ADMIN_PASS=${GEN_PASS}|" "$SCRIPT_DIR/backend/.env"
+    echo "Generated a random admin password in backend/.env (username: admin)."
     export $(grep -v '^#' "$SCRIPT_DIR/backend/.env" | xargs)
 fi
 
