@@ -172,8 +172,11 @@ exactly why a floor measured here cannot be dismissed as a testbed artifact.
 | SPOT | **5.00** | 6.87 | 11.47 | 17.36 |
 | INNE + EWMA | 10.87 | 13.38 | 19.34 | 26.48 |
 
-Every arm overshoots its nominal target by 4–5 pp — the calibration floor this
-project has documented repeatedly. We are marginally better than SPOT at 2/5/10%
+Every arm overshoots its nominal target: by +4.00 (SPOT at 1%) to +16.48 pp
+(INNE + EWMA at 10%); ours by +4.22 to +6.38 pp. These three arms were scored
+through the archived registry; `cesnet_corrected.json`
+(`runners/run_cesnet_corrected.py`) re-scores them, with ECOD, COPOD and LODA,
+through `competitors_fixed` and leaves all twelve cells above unchanged. We are marginally better than SPOT at 2/5/10%
 and marginally worse at 1%. INNE + EWMA, the arm that rivals us on AUC, is
 roughly twice as badly calibrated here. This is the strongest argument for the
 detector that the AUC tables do not make.
@@ -239,8 +242,10 @@ filter, one causal split, ours +0.0232 over SPOT at p=0.011.
 
     ComparisonResults/
       README.md                      this index
-      post2023_competitors.py        the 9-detector registry
-      runners/                       scripts that produced each artifact
-      results/                       the artifacts
+      post2023_competitors.py        the archived 9-detector registry (uncorrected)
+      competitors_fixed.py           the corrected registry
+      runners/                       scripts that wrote the records; run_joint_filter.py and
+                                     run_admissibility_ledger.py run from deposited records alone
+      results/                       the artifacts; admissibility_inputs.json has no deposited runner
       SHA256SUMS.results             record checksums; from results/: sha256sum -c ../SHA256SUMS.results
       SHA256SUMS                     earlier checksums of code and records; several entries no longer match
