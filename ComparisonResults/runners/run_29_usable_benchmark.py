@@ -20,7 +20,8 @@ from run_post2023_benchmark import dr_at
 import run_crosscorpus_auc as R
 import post2023_competitors as C
 
-TREE = '/home/detector/Projects/antiddos/datasets/extracted'
+TREE = os.path.join(os.environ.get('ANTIDDOS_BASE', '/home/detector/Projects/antiddos'),
+       'datasets', 'extracted')
 OUT_JSON = os.path.join(RESULTS_DIR, 'usable_29_scenarios_benchmark.json')
 
 def tkey(r): return r.get('_id_time', r.get('_dt', 0))

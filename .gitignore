@@ -39,7 +39,7 @@
 # ── Never published, and why ─────────────────────────────────────────────────
 # academic-research-skills/  vendored tooling, unrelated to this study
 # jcp_paper/                 manuscript sources, build artefacts, backups
-# .claude/                   assistant configuration
+# local tool state          editor and assistant caches, unrelated to this study
 # datasets/extracted/        2.9 GB derived corpus features (see above)
 
 # ── Regenerable / local noise ────────────────────────────────────────────────

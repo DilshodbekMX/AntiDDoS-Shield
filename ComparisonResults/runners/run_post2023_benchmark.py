@@ -74,6 +74,7 @@ def load_case(entry):
                 os.path.join(CACHE_DIR, p),
                 os.path.join(CACHE_DIR, os.path.basename(p)),
                 os.path.join(BASE, 'datasets', 'feature_caches', os.path.basename(p)),
+                os.path.join(BASE, p.lstrip('./')),   # scrubbed records store './datasets/...'
                 os.path.join(BASE, 'datasets', 'extracted', p.lstrip('./')),
                 os.path.join(BASE, 'experiment', 'cache', os.path.basename(p)),
                 os.path.join(HERE, '..', 'datasets', 'feature_caches', os.path.basename(p)),

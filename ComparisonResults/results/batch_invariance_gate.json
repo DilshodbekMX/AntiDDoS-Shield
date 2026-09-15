@@ -1,0 +1,373 @@
+{
+  "scenario": "CIC-IDS-2018 Tue-20-02_DDoS-LOIC-HTTP",
+  "tolerance": 1e-09,
+  "n_train": 157,
+  "n_benign": 304,
+  "n_attack": 3779,
+  "archived": {
+    "registry": "ARCHIVED (pre-correction)",
+    "n_arms": 9,
+    "n_failed": 4,
+    "failed": [
+      "ECOD",
+      "COPOD",
+      "LODA",
+      "DIF"
+    ],
+    "n_failed_deterministic": 3,
+    "failed_deterministic": [
+      "ECOD",
+      "COPOD",
+      "DIF"
+    ],
+    "n_stochastic": 1,
+    "stochastic": [
+      "LODA"
+    ],
+    "n_sequential": 5,
+    "sequential": [
+      "DSPOT",
+      "ECOD",
+      "COPOD",
+      "LODA",
+      "DIF"
+    ],
+    "pads": [
+      "0/0",
+      "0/16",
+      "0/3779",
+      "16/0",
+      "3779/0"
+    ],
+    "arms": {
+      "Subspace-ECOD (ours)": {
+        "append_drift": 0.0,
+        "prepend_drift": 0.0,
+        "repeat_drift": 0.0,
+        "deterministic": true,
+        "min_spearman_append": 0.9999999999999999,
+        "verdict": "PASS",
+        "sequential": false,
+        "mean_by_pad": {
+          "0/0": 2.0147819299674112,
+          "0/16": 2.0147819299674112,
+          "0/3779": 2.0147819299674112,
+          "16/0": 2.0147819299674112,
+          "3779/0": 2.0147819299674112
+        }
+      },
+      "SPOT": {
+        "append_drift": 0.0,
+        "prepend_drift": 0.0,
+        "repeat_drift": 0.0,
+        "deterministic": true,
+        "min_spearman_append": 0.9999999999999999,
+        "verdict": "PASS",
+        "sequential": false,
+        "mean_by_pad": {
+          "0/0": 1.017471793884051,
+          "0/16": 1.017471793884051,
+          "0/3779": 1.017471793884051,
+          "16/0": 1.017471793884051,
+          "3779/0": 1.017471793884051
+        }
+      },
+      "DSPOT": {
+        "append_drift": 0.0,
+        "prepend_drift": 14.746582766415855,
+        "repeat_drift": 0.0,
+        "deterministic": true,
+        "min_spearman_append": 1.0,
+        "verdict": "PASS",
+        "sequential": true,
+        "mean_by_pad": {
+          "0/0": 9.756725428389439,
+          "0/16": 9.756725428389439,
+          "0/3779": 9.756725428389439,
+          "16/0": 9.915750159946098,
+          "3779/0": 10.400417952743506
+        }
+      },
+      "ECOD": {
+        "append_drift": 45.66408605988542,
+        "prepend_drift": 45.66408605988542,
+        "repeat_drift": 0.0,
+        "deterministic": true,
+        "min_spearman_append": 0.7221129098058814,
+        "verdict": "FAIL",
+        "sequential": true,
+        "mean_by_pad": {
+          "0/0": 17.639042754162602,
+          "0/16": 17.390014248039545,
+          "0/3779": 52.414154643884665,
+          "16/0": 17.390014248039545,
+          "3779/0": 52.414154643884665
+        }
+      },
+      "COPOD": {
+        "append_drift": 37.19857077669076,
+        "prepend_drift": 37.19857077669076,
+        "repeat_drift": 0.0,
+        "deterministic": true,
+        "min_spearman_append": 0.804619684086777,
+        "verdict": "FAIL",
+        "sequential": true,
+        "mean_by_pad": {
+          "0/0": 14.700825821172316,
+          "0/16": 14.285060648760703,
+          "0/3779": 41.261989753541414,
+          "16/0": 14.285060648760703,
+          "3779/0": 41.261989753541414
+        }
+      },
+      "HBOS": {
+        "append_drift": 0.0,
+        "prepend_drift": 0.0,
+        "repeat_drift": 0.0,
+        "deterministic": true,
+        "min_spearman_append": 1.0,
+        "verdict": "PASS",
+        "sequential": false,
+        "mean_by_pad": {
+          "0/0": -11.898607405921927,
+          "0/16": -11.898607405921927,
+          "0/3779": -11.898607405921927,
+          "16/0": -11.898607405921927,
+          "3779/0": -11.898607405921927
+        }
+      },
+      "LODA": {
+        "append_drift": 0.0230660451870979,
+        "prepend_drift": 0.028741071521148118,
+        "repeat_drift": 0.030216943436446667,
+        "deterministic": false,
+        "min_spearman_append": 0.16746776176258385,
+        "verdict": "FAIL (confounded: stochastic)",
+        "sequential": true,
+        "mean_by_pad": {
+          "0/0": 0.06220670058848393,
+          "0/16": 0.06738501472213158,
+          "0/3779": 0.06985524650854645,
+          "16/0": 0.06002496337508417,
+          "3779/0": 0.0654026900777349
+        }
+      },
+      "INNE": {
+        "append_drift": 0.0,
+        "prepend_drift": 0.0,
+        "repeat_drift": 0.0,
+        "deterministic": true,
+        "min_spearman_append": 1.0,
+        "verdict": "PASS",
+        "sequential": false,
+        "mean_by_pad": {
+          "0/0": 0.7316105703346766,
+          "0/16": 0.7316105703346766,
+          "0/3779": 0.7316105703346766,
+          "16/0": 0.7316105703346766,
+          "3779/0": 0.7316105703346766
+        }
+      },
+      "DIF": {
+        "append_drift": 0.24925958385655003,
+        "prepend_drift": 0.24925958385655003,
+        "repeat_drift": 0.0,
+        "deterministic": true,
+        "min_spearman_append": -0.2750434021844627,
+        "verdict": "FAIL",
+        "sequential": true,
+        "mean_by_pad": {
+          "0/0": 0.28468857176452156,
+          "0/16": 0.28375056078126026,
+          "0/3779": 0.46479914871395067,
+          "16/0": 0.28375056078126026,
+          "3779/0": 0.46479914871395067
+        }
+      }
+    }
+  },
+  "corrected": {
+    "registry": "CORRECTED (reported)",
+    "n_arms": 10,
+    "n_failed": 0,
+    "failed": [],
+    "n_failed_deterministic": 0,
+    "failed_deterministic": [],
+    "n_stochastic": 0,
+    "stochastic": [],
+    "n_sequential": 2,
+    "sequential": [
+      "Subspace-Q + EWMA (ours)",
+      "DSPOT"
+    ],
+    "pads": [
+      "0/0",
+      "0/16",
+      "0/3779",
+      "16/0",
+      "3779/0"
+    ],
+    "arms": {
+      "Subspace-Q + EWMA (ours)": {
+        "append_drift": 0.0,
+        "prepend_drift": 2.531223170152246,
+        "repeat_drift": 0.0,
+        "deterministic": true,
+        "min_spearman_append": 1.0,
+        "verdict": "PASS",
+        "sequential": true,
+        "mean_by_pad": {
+          "0/0": 1.3259962209970424,
+          "0/16": 1.3259962209970424,
+          "0/3779": 1.3259962209970424,
+          "16/0": 1.3426490050112019,
+          "3779/0": 1.3324683789883953
+        }
+      },
+      "POT": {
+        "append_drift": 0.0,
+        "prepend_drift": 0.0,
+        "repeat_drift": 0.0,
+        "deterministic": true,
+        "min_spearman_append": 0.9999999999999999,
+        "verdict": "PASS",
+        "sequential": false,
+        "mean_by_pad": {
+          "0/0": 1.017471793884051,
+          "0/16": 1.017471793884051,
+          "0/3779": 1.017471793884051,
+          "16/0": 1.017471793884051,
+          "3779/0": 1.017471793884051
+        }
+      },
+      "DSPOT": {
+        "append_drift": 0.0,
+        "prepend_drift": 13.002006006488903,
+        "repeat_drift": 0.0,
+        "deterministic": true,
+        "min_spearman_append": 1.0,
+        "verdict": "PASS",
+        "sequential": true,
+        "mean_by_pad": {
+          "0/0": 11.224914474894291,
+          "0/16": 11.224914474894291,
+          "0/3779": 11.224914474894291,
+          "16/0": 12.494058860206206,
+          "3779/0": 18.704106658592114
+        }
+      },
+      "ECOD": {
+        "append_drift": 0.0,
+        "prepend_drift": 0.0,
+        "repeat_drift": 0.0,
+        "deterministic": true,
+        "min_spearman_append": 0.9999999999999999,
+        "verdict": "PASS",
+        "sequential": false,
+        "mean_by_pad": {
+          "0/0": 17.975815653622696,
+          "0/16": 17.975815653622696,
+          "0/3779": 17.975815653622696,
+          "16/0": 17.975815653622696,
+          "3779/0": 17.975815653622696
+        }
+      },
+      "COPOD": {
+        "append_drift": 0.0,
+        "prepend_drift": 0.0,
+        "repeat_drift": 0.0,
+        "deterministic": true,
+        "min_spearman_append": 1.0,
+        "verdict": "PASS",
+        "sequential": false,
+        "mean_by_pad": {
+          "0/0": 15.014287407134612,
+          "0/16": 15.014287407134612,
+          "0/3779": 15.014287407134612,
+          "16/0": 15.014287407134612,
+          "3779/0": 15.014287407134612
+        }
+      },
+      "HBOS": {
+        "append_drift": 0.0,
+        "prepend_drift": 0.0,
+        "repeat_drift": 0.0,
+        "deterministic": true,
+        "min_spearman_append": 1.0,
+        "verdict": "PASS",
+        "sequential": false,
+        "mean_by_pad": {
+          "0/0": -11.898607405921927,
+          "0/16": -11.898607405921927,
+          "0/3779": -11.898607405921927,
+          "16/0": -11.898607405921927,
+          "3779/0": -11.898607405921927
+        }
+      },
+      "LODA": {
+        "append_drift": 0.0,
+        "prepend_drift": 0.0,
+        "repeat_drift": 0.0,
+        "deterministic": true,
+        "min_spearman_append": 0.9999999999999999,
+        "verdict": "PASS",
+        "sequential": false,
+        "mean_by_pad": {
+          "0/0": 0.06602890367462322,
+          "0/16": 0.06602890367462322,
+          "0/3779": 0.06602890367462322,
+          "16/0": 0.06602890367462322,
+          "3779/0": 0.06602890367462322
+        }
+      },
+      "INNE": {
+        "append_drift": 0.0,
+        "prepend_drift": 0.0,
+        "repeat_drift": 0.0,
+        "deterministic": true,
+        "min_spearman_append": 1.0,
+        "verdict": "PASS",
+        "sequential": false,
+        "mean_by_pad": {
+          "0/0": 0.7316105703346766,
+          "0/16": 0.7316105703346766,
+          "0/3779": 0.7316105703346766,
+          "16/0": 0.7316105703346766,
+          "3779/0": 0.7316105703346766
+        }
+      },
+      "IForest": {
+        "append_drift": 0.0,
+        "prepend_drift": 0.0,
+        "repeat_drift": 0.0,
+        "deterministic": true,
+        "min_spearman_append": 1.0,
+        "verdict": "PASS",
+        "sequential": false,
+        "mean_by_pad": {
+          "0/0": -0.13903767216068513,
+          "0/16": -0.13903767216068513,
+          "0/3779": -0.13903767216068513,
+          "16/0": -0.13903767216068513,
+          "3779/0": -0.13903767216068513
+        }
+      },
+      "DIF": {
+        "append_drift": 0.0,
+        "prepend_drift": 0.0,
+        "repeat_drift": 0.0,
+        "deterministic": true,
+        "min_spearman_append": 1.0,
+        "verdict": "PASS",
+        "sequential": false,
+        "mean_by_pad": {
+          "0/0": 0.2619155954069829,
+          "0/16": 0.2619155954069829,
+          "0/3779": 0.2619155954069829,
+          "16/0": 0.2619155954069829,
+          "3779/0": 0.2619155954069829
+        }
+      }
+    }
+  }
+}

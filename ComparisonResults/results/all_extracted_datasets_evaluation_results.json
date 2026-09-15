@@ -3,7 +3,7 @@
     {
       "corpus": "CIC-IDS-2017",
       "label": "CIC-IDS-2017 Fri-07-07_DDoS-LOIT",
-      "cache": "/home/detector/Projects/antiddos/datasets/extracted/CIC-IDS-2017/Fri-07-07_DDoS-LOIT.json",
+      "cache": "./datasets/extracted/CIC-IDS-2017/Fri-07-07_DDoS-LOIT.json",
       "victim": "192.168.10.50",
       "mode": "within",
       "n_attack": 1136,
@@ -56,7 +56,7 @@
     {
       "corpus": "CIC-IDS-2017",
       "label": "CIC-IDS-2017 Wed-05-07_DoS-GoldenEye",
-      "cache": "/home/detector/Projects/antiddos/datasets/extracted/CIC-IDS-2017/Wed-05-07_DoS-GoldenEye.json",
+      "cache": "./datasets/extracted/CIC-IDS-2017/Wed-05-07_DoS-GoldenEye.json",
       "victim": "192.168.10.50",
       "mode": "within",
       "n_attack": 422,
@@ -109,7 +109,7 @@
     {
       "corpus": "CIC-IDS-2017",
       "label": "CIC-IDS-2017 Wed-05-07_DoS-Hulk",
-      "cache": "/home/detector/Projects/antiddos/datasets/extracted/CIC-IDS-2017/Wed-05-07_DoS-Hulk.json",
+      "cache": "./datasets/extracted/CIC-IDS-2017/Wed-05-07_DoS-Hulk.json",
       "victim": "192.168.10.50",
       "mode": "within",
       "n_attack": 463,
@@ -162,7 +162,7 @@
     {
       "corpus": "CIC-IDS-2017",
       "label": "CIC-IDS-2017 Wed-05-07_DoS-Slowhttptest",
-      "cache": "/home/detector/Projects/antiddos/datasets/extracted/CIC-IDS-2017/Wed-05-07_DoS-Slowhttptest.json",
+      "cache": "./datasets/extracted/CIC-IDS-2017/Wed-05-07_DoS-Slowhttptest.json",
       "victim": "192.168.10.50",
       "mode": "within",
       "n_attack": 788,
@@ -215,7 +215,7 @@
     {
       "corpus": "CIC-IDS-2017",
       "label": "CIC-IDS-2017 Wed-05-07_DoS-Slowloris",
-      "cache": "/home/detector/Projects/antiddos/datasets/extracted/CIC-IDS-2017/Wed-05-07_DoS-Slowloris.json",
+      "cache": "./datasets/extracted/CIC-IDS-2017/Wed-05-07_DoS-Slowloris.json",
       "victim": "192.168.10.50",
       "mode": "within",
       "n_attack": 1267,
@@ -268,7 +268,7 @@
     {
       "corpus": "CIC-IDS-2018",
       "label": "CIC-IDS-2018 Fri-16-02_DoS-Hulk",
-      "cache": "/home/detector/Projects/antiddos/datasets/extracted/CIC-IDS2018/Fri-16-02_DoS-Hulk.json",
+      "cache": "./datasets/extracted/CIC-IDS2018/Fri-16-02_DoS-Hulk.json",
       "victim": "172.31.69.25",
       "mode": "within",
       "n_attack": 844,
@@ -321,7 +321,7 @@
     {
       "corpus": "CIC-IDS-2018",
       "label": "CIC-IDS-2018 Fri-16-02_DoS-SlowHTTPTest",
-      "cache": "/home/detector/Projects/antiddos/datasets/extracted/CIC-IDS2018/Fri-16-02_DoS-SlowHTTPTest.json",
+      "cache": "./datasets/extracted/CIC-IDS2018/Fri-16-02_DoS-SlowHTTPTest.json",
       "victim": "172.31.69.25",
       "mode": "within",
       "n_attack": 3189,
@@ -374,7 +374,7 @@
     {
       "corpus": "CIC-IDS-2018",
       "label": "CIC-IDS-2018 Thu-15-02_DoS-Slowloris",
-      "cache": "/home/detector/Projects/antiddos/datasets/extracted/CIC-IDS2018/Thu-15-02_DoS-Slowloris.json",
+      "cache": "./datasets/extracted/CIC-IDS2018/Thu-15-02_DoS-Slowloris.json",
       "victim": "172.31.69.25",
       "mode": "within",
       "n_attack": 2392,
@@ -427,7 +427,7 @@
     {
       "corpus": "CIC-IDS-2018",
       "label": "CIC-IDS-2018 Tue-20-02_DDoS-LOIC-HTTP",
-      "cache": "/home/detector/Projects/antiddos/datasets/extracted/CIC-IDS2018/Tue-20-02_DDoS-LOIC-HTTP.json",
+      "cache": "./datasets/extracted/CIC-IDS2018/Tue-20-02_DDoS-LOIC-HTTP.json",
       "victim": "172.31.69.25",
       "mode": "within",
       "n_attack": 3779,
@@ -480,7 +480,7 @@
     {
       "corpus": "CIC-IDS-2018",
       "label": "CIC-IDS-2018 Wed-21-02_DDoS-HOIC",
-      "cache": "/home/detector/Projects/antiddos/datasets/extracted/CIC-IDS2018/Wed-21-02_DDoS-HOIC.json",
+      "cache": "./datasets/extracted/CIC-IDS2018/Wed-21-02_DDoS-HOIC.json",
       "victim": "172.31.69.28",
       "mode": "within",
       "n_attack": 3298,
@@ -533,7 +533,7 @@
     {
       "corpus": "CIC-IDS-2018",
       "label": "CIC-IDS-2018 Wed-21-02_DDoS-LOIC-UDP",
-      "cache": "/home/detector/Projects/antiddos/datasets/extracted/CIC-IDS2018/Wed-21-02_DDoS-LOIC-UDP.json",
+      "cache": "./datasets/extracted/CIC-IDS2018/Wed-21-02_DDoS-LOIC-UDP.json",
       "victim": "172.31.69.28",
       "mode": "within",
       "n_attack": 1101,
@@ -586,7 +586,7 @@
     {
       "corpus": "CIC-DDoS2019",
       "label": "CIC-DDoS2019 cicddos_03-11_192-168-50-4_LDAP",
-      "cache": "/home/detector/Projects/antiddos/datasets/extracted/CICDDoS2019/cicddos_03-11_192-168-50-4_LDAP.json",
+      "cache": "./datasets/extracted/CICDDoS2019/cicddos_03-11_192-168-50-4_LDAP.json",
       "victim": "192.168.50.4",
       "mode": "within",
       "n_attack": 593,
@@ -639,7 +639,7 @@
     {
       "corpus": "CIC-DDoS2019",
       "label": "CIC-DDoS2019 cicddos_03-11_192-168-50-4_Syn",
-      "cache": "/home/detector/Projects/antiddos/datasets/extracted/CICDDoS2019/cicddos_03-11_192-168-50-4_Syn.json",
+      "cache": "./datasets/extracted/CICDDoS2019/cicddos_03-11_192-168-50-4_Syn.json",
       "victim": "192.168.50.4",
       "mode": "within",
       "n_attack": 6272,
@@ -692,7 +692,7 @@
     {
       "corpus": "CIC-DDoS2019",
       "label": "CIC-DDoS2019 cicddos_03-11_192-168-50-4_UDP",
-      "cache": "/home/detector/Projects/antiddos/datasets/extracted/CICDDoS2019/cicddos_03-11_192-168-50-4_UDP.json",
+      "cache": "./datasets/extracted/CICDDoS2019/cicddos_03-11_192-168-50-4_UDP.json",
       "victim": "192.168.50.4",
       "mode": "within",
       "n_attack": 831,
@@ -745,7 +745,7 @@
     {
       "corpus": "CIC-DDoS2019",
       "label": "CIC-DDoS2019 cicddos_03-11_192-168-50-4_UDPLag",
-      "cache": "/home/detector/Projects/antiddos/datasets/extracted/CICDDoS2019/cicddos_03-11_192-168-50-4_UDPLag.json",
+      "cache": "./datasets/extracted/CICDDoS2019/cicddos_03-11_192-168-50-4_UDPLag.json",
       "victim": "192.168.50.4",
       "mode": "within",
       "n_attack": 472,
@@ -798,7 +798,7 @@
     {
       "corpus": "CIC-IoT-2023",
       "label": "CIC-IoT-2023 DDoS-ICMP_Flood",
-      "cache": "/home/detector/Projects/antiddos/datasets/extracted/CIC_IOT_Dataset2023/DDoS-ICMP_Flood.json",
+      "cache": "./datasets/extracted/CIC_IOT_Dataset2023/DDoS-ICMP_Flood.json",
       "victim": "192.168.137.139",
       "mode": "treefile",
       "n_attack": 11870,
@@ -851,7 +851,7 @@
     {
       "corpus": "CIC-IoT-2023",
       "label": "CIC-IoT-2023 DDoS-SYN_Flood",
-      "cache": "/home/detector/Projects/antiddos/datasets/extracted/CIC_IOT_Dataset2023/DDoS-SYN_Flood.json",
+      "cache": "./datasets/extracted/CIC_IOT_Dataset2023/DDoS-SYN_Flood.json",
       "victim": "192.168.137.99",
       "mode": "treefile",
       "n_attack": 3817,
@@ -904,7 +904,7 @@
     {
       "corpus": "CIC-IoT-2023",
       "label": "CIC-IoT-2023 DDoS-SynonymousIP_Flood",
-      "cache": "/home/detector/Projects/antiddos/datasets/extracted/CIC_IOT_Dataset2023/DDoS-SynonymousIP_Flood.json",
+      "cache": "./datasets/extracted/CIC_IOT_Dataset2023/DDoS-SynonymousIP_Flood.json",
       "victim": "192.168.137.90",
       "mode": "treefile",
       "n_attack": 3324,
@@ -957,7 +957,7 @@
     {
       "corpus": "CIC-IoT-2023",
       "label": "CIC-IoT-2023 DDoS-TCP_Flood",
-      "cache": "/home/detector/Projects/antiddos/datasets/extracted/CIC_IOT_Dataset2023/DDoS-TCP_Flood.json",
+      "cache": "./datasets/extracted/CIC_IOT_Dataset2023/DDoS-TCP_Flood.json",
       "victim": "192.168.137.99",
       "mode": "treefile",
       "n_attack": 3681,
@@ -1010,7 +1010,7 @@
     {
       "corpus": "CIC-IoT-2023",
       "label": "CIC-IoT-2023 DDoS-UDP_Flood",
-      "cache": "/home/detector/Projects/antiddos/datasets/extracted/CIC_IOT_Dataset2023/DDoS-UDP_Flood.json",
+      "cache": "./datasets/extracted/CIC_IOT_Dataset2023/DDoS-UDP_Flood.json",
       "victim": "192.168.137.99",
       "mode": "treefile",
       "n_attack": 10587,
@@ -1063,7 +1063,7 @@
     {
       "corpus": "CIC-IoT-2023",
       "label": "CIC-IoT-2023 Mirai-udpplain",
-      "cache": "/home/detector/Projects/antiddos/datasets/extracted/CIC_IOT_Dataset2023/Mirai-udpplain.json",
+      "cache": "./datasets/extracted/CIC_IOT_Dataset2023/Mirai-udpplain.json",
       "victim": "192.168.137.209",
       "mode": "treefile",
       "n_attack": 9771,
@@ -1116,7 +1116,7 @@
     {
       "corpus": "LITNET-2020",
       "label": "LITNET-2020 code_red_worm",
-      "cache": "/home/detector/Projects/antiddos/datasets/extracted/LITNET-2020/code_red_worm.json",
+      "cache": "./datasets/extracted/LITNET-2020/code_red_worm.json",
       "victim": "193.219.81.138",
       "mode": "within",
       "n_attack": 345,
@@ -1169,7 +1169,7 @@
     {
       "corpus": "CIC-IDS-2017",
       "label": "CIC-IDS-2017 Fri-07-07_DDoS-LOIT (cross-day Mon->Fri)",
-      "cache": "/home/detector/Projects/antiddos/datasets/extracted/CIC-IDS-2017/Fri-07-07_DDoS-LOIT.json",
+      "cache": "./datasets/extracted/CIC-IDS-2017/Fri-07-07_DDoS-LOIT.json",
       "victim": "192.168.10.50",
       "mode": "crossday",
       "n_attack": 1136,

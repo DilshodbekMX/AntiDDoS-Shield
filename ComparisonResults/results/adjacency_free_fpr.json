@@ -1,0 +1,2960 @@
+{
+ "note": "Stream-realized vs adjacency-free false-alarm rate, for every arm.\n\nThe published realized FPR (run_29_scenarios_corrected.py) scores ONE array: the\ncalibration prefix followed by the timestamp-merged benign-test and attack rows. Arms\nthat carry state across that array -- ours, through its EWMA accumulator; DSPOT, through\nits drift window -- let a benign window that directly follows an attack window inherit\npart of that attack window's surprise. Memoryless arms inherit nothing.\n\nComparing a stateful arm's realized FPR against a memoryless arm's is therefore not a\ncalibration comparison. This runner reports both quantities:\n\n  stream-realized : attack rows present in the scored array (what the paper published)\n  adjacency-free  : the same benign rows scored with the attack rows excised\n\nOnly the second compares like with like across stateful and stateless arms. Neither is\n\"the\" right number -- a streaming detector really does carry state, and a benign window\njust after a flood really would score high -- but they answer different questions and\nmust not be differenced.\n\nThreshold control: thresholds come from the calibration prefix in both passes and are\nasserted equal, so any movement is test-side, not threshold-side.\n\nWrites results/adjacency_free_fpr.json.",
+ "threshold_control": {
+  "compared": 870,
+  "unequal": 0
+ },
+ "summary": {
+  "ALL-29": {
+   "Subspace-Q + EWMA (ours)": {
+    "stream_fpr@1": 4.05,
+    "free_fpr@1": 1.19,
+    "stream_fpr@2": 6.03,
+    "free_fpr@2": 2.0,
+    "stream_fpr@5": 10.13,
+    "free_fpr@5": 5.26,
+    "moved": 20
+   },
+   "POT": {
+    "stream_fpr@1": 3.22,
+    "free_fpr@1": 3.22,
+    "stream_fpr@2": 4.33,
+    "free_fpr@2": 4.33,
+    "stream_fpr@5": 7.34,
+    "free_fpr@5": 7.34,
+    "moved": 0
+   },
+   "DSPOT": {
+    "stream_fpr@1": 71.33,
+    "free_fpr@1": 46.64,
+    "stream_fpr@2": 80.51,
+    "free_fpr@2": 49.88,
+    "stream_fpr@5": 83.54,
+    "free_fpr@5": 59.65,
+    "moved": 22
+   },
+   "ECOD": {
+    "stream_fpr@1": 1.7,
+    "free_fpr@1": 1.7,
+    "stream_fpr@2": 2.68,
+    "free_fpr@2": 2.68,
+    "stream_fpr@5": 6.41,
+    "free_fpr@5": 6.41,
+    "moved": 0
+   },
+   "COPOD": {
+    "stream_fpr@1": 1.65,
+    "free_fpr@1": 1.65,
+    "stream_fpr@2": 2.7,
+    "free_fpr@2": 2.7,
+    "stream_fpr@5": 6.81,
+    "free_fpr@5": 6.81,
+    "moved": 0
+   },
+   "HBOS": {
+    "stream_fpr@1": 1.18,
+    "free_fpr@1": 1.18,
+    "stream_fpr@2": 2.0,
+    "free_fpr@2": 2.0,
+    "stream_fpr@5": 5.11,
+    "free_fpr@5": 5.11,
+    "moved": 0
+   },
+   "LODA": {
+    "stream_fpr@1": 1.11,
+    "free_fpr@1": 1.19,
+    "stream_fpr@2": 2.13,
+    "free_fpr@2": 2.21,
+    "stream_fpr@5": 3.91,
+    "free_fpr@5": 3.99,
+    "moved": 3
+   },
+   "INNE": {
+    "stream_fpr@1": 2.66,
+    "free_fpr@1": 2.66,
+    "stream_fpr@2": 3.84,
+    "free_fpr@2": 3.84,
+    "stream_fpr@5": 6.43,
+    "free_fpr@5": 6.43,
+    "moved": 0
+   },
+   "IForest": {
+    "stream_fpr@1": 1.75,
+    "free_fpr@1": 1.75,
+    "stream_fpr@2": 2.85,
+    "free_fpr@2": 2.85,
+    "stream_fpr@5": 6.44,
+    "free_fpr@5": 6.44,
+    "moved": 0
+   },
+   "DIF": {
+    "stream_fpr@1": 3.6,
+    "free_fpr@1": 3.6,
+    "stream_fpr@2": 4.85,
+    "free_fpr@2": 4.85,
+    "stream_fpr@5": 7.94,
+    "free_fpr@5": 7.94,
+    "moved": 0
+   }
+  },
+  "USABLE-22": {
+   "Subspace-Q + EWMA (ours)": {
+    "stream_fpr@1": 4.38,
+    "free_fpr@1": 1.42,
+    "stream_fpr@2": 6.73,
+    "free_fpr@2": 2.33,
+    "stream_fpr@5": 10.78,
+    "free_fpr@5": 5.57,
+    "moved": 15
+   },
+   "POT": {
+    "stream_fpr@1": 3.97,
+    "free_fpr@1": 3.97,
+    "stream_fpr@2": 5.29,
+    "free_fpr@2": 5.29,
+    "stream_fpr@5": 8.18,
+    "free_fpr@5": 8.18,
+    "moved": 0
+   },
+   "DSPOT": {
+    "stream_fpr@1": 77.21,
+    "free_fpr@1": 49.06,
+    "stream_fpr@2": 89.3,
+    "free_fpr@2": 53.33,
+    "stream_fpr@5": 92.97,
+    "free_fpr@5": 65.37,
+    "moved": 18
+   },
+   "ECOD": {
+    "stream_fpr@1": 1.99,
+    "free_fpr@1": 1.99,
+    "stream_fpr@2": 3.06,
+    "free_fpr@2": 3.06,
+    "stream_fpr@5": 6.94,
+    "free_fpr@5": 6.94,
+    "moved": 0
+   },
+   "COPOD": {
+    "stream_fpr@1": 1.93,
+    "free_fpr@1": 1.93,
+    "stream_fpr@2": 3.06,
+    "free_fpr@2": 3.06,
+    "stream_fpr@5": 7.43,
+    "free_fpr@5": 7.43,
+    "moved": 0
+   },
+   "HBOS": {
+    "stream_fpr@1": 1.3,
+    "free_fpr@1": 1.3,
+    "stream_fpr@2": 2.14,
+    "free_fpr@2": 2.14,
+    "stream_fpr@5": 5.41,
+    "free_fpr@5": 5.41,
+    "moved": 0
+   },
+   "LODA": {
+    "stream_fpr@1": 1.23,
+    "free_fpr@1": 1.34,
+    "stream_fpr@2": 2.51,
+    "free_fpr@2": 2.62,
+    "stream_fpr@5": 4.6,
+    "free_fpr@5": 4.71,
+    "moved": 3
+   },
+   "INNE": {
+    "stream_fpr@1": 3.33,
+    "free_fpr@1": 3.33,
+    "stream_fpr@2": 4.59,
+    "free_fpr@2": 4.59,
+    "stream_fpr@5": 7.48,
+    "free_fpr@5": 7.48,
+    "moved": 0
+   },
+   "IForest": {
+    "stream_fpr@1": 2.07,
+    "free_fpr@1": 2.07,
+    "stream_fpr@2": 3.17,
+    "free_fpr@2": 3.17,
+    "stream_fpr@5": 7.05,
+    "free_fpr@5": 7.05,
+    "moved": 0
+   },
+   "DIF": {
+    "stream_fpr@1": 4.48,
+    "free_fpr@1": 4.48,
+    "stream_fpr@2": 5.94,
+    "free_fpr@2": 5.94,
+    "stream_fpr@5": 9.08,
+    "free_fpr@5": 9.08,
+    "moved": 0
+   }
+  },
+  "crossfile-admissible": {
+   "Subspace-Q + EWMA (ours)": {
+    "stream_fpr@1": 10.56,
+    "free_fpr@1": 0.41,
+    "stream_fpr@2": 16.61,
+    "free_fpr@2": 1.47,
+    "stream_fpr@5": 21.71,
+    "free_fpr@5": 4.34,
+    "moved": 3
+   },
+   "POT": {
+    "stream_fpr@1": 0.55,
+    "free_fpr@1": 0.55,
+    "stream_fpr@2": 1.08,
+    "free_fpr@2": 1.08,
+    "stream_fpr@5": 2.95,
+    "free_fpr@5": 2.95,
+    "moved": 0
+   },
+   "DSPOT": {
+    "stream_fpr@1": 100.0,
+    "free_fpr@1": 47.86,
+    "stream_fpr@2": 100.0,
+    "free_fpr@2": 48.15,
+    "stream_fpr@5": 100.0,
+    "free_fpr@5": 64.06,
+    "moved": 6
+   },
+   "ECOD": {
+    "stream_fpr@1": 0.63,
+    "free_fpr@1": 0.63,
+    "stream_fpr@2": 0.87,
+    "free_fpr@2": 0.87,
+    "stream_fpr@5": 3.14,
+    "free_fpr@5": 3.14,
+    "moved": 0
+   },
+   "COPOD": {
+    "stream_fpr@1": 0.62,
+    "free_fpr@1": 0.62,
+    "stream_fpr@2": 0.86,
+    "free_fpr@2": 0.86,
+    "stream_fpr@5": 3.13,
+    "free_fpr@5": 3.13,
+    "moved": 0
+   },
+   "HBOS": {
+    "stream_fpr@1": 0.37,
+    "free_fpr@1": 0.37,
+    "stream_fpr@2": 0.73,
+    "free_fpr@2": 0.73,
+    "stream_fpr@5": 3.33,
+    "free_fpr@5": 3.33,
+    "moved": 0
+   },
+   "LODA": {
+    "stream_fpr@1": 0.19,
+    "free_fpr@1": 0.58,
+    "stream_fpr@2": 0.28,
+    "free_fpr@2": 0.69,
+    "stream_fpr@5": 0.28,
+    "free_fpr@5": 0.69,
+    "moved": 3
+   },
+   "INNE": {
+    "stream_fpr@1": 0.42,
+    "free_fpr@1": 0.42,
+    "stream_fpr@2": 1.95,
+    "free_fpr@2": 1.95,
+    "stream_fpr@5": 3.62,
+    "free_fpr@5": 3.62,
+    "moved": 0
+   },
+   "IForest": {
+    "stream_fpr@1": 1.2,
+    "free_fpr@1": 1.2,
+    "stream_fpr@2": 1.86,
+    "free_fpr@2": 1.86,
+    "stream_fpr@5": 3.82,
+    "free_fpr@5": 3.82,
+    "moved": 0
+   },
+   "DIF": {
+    "stream_fpr@1": 0.79,
+    "free_fpr@1": 0.79,
+    "stream_fpr@2": 1.59,
+    "free_fpr@2": 1.59,
+    "stream_fpr@5": 3.63,
+    "free_fpr@5": 3.63,
+    "moved": 0
+   }
+  }
+ },
+ "n": {
+  "ALL-29": 29,
+  "USABLE-22": 22,
+  "crossfile-admissible": 6
+ },
+ "per_scenario": [
+  {
+   "corpus": "CIC-IDS-2017",
+   "file": "Fri-07-07_DDoS-LOIT.json",
+   "label": "CIC-IDS-2017 Fri-07-07_DDoS-LOIT",
+   "verdict": "USABLE",
+   "split_mode": "within",
+   "causal": true,
+   "adjacency": 0.0283,
+   "attack_frac": 0.8427,
+   "arms": {
+    "Subspace-Q + EWMA (ours)": {
+     "stream_fpr@1": 1.42,
+     "free_fpr@1": 0.94,
+     "stream_fpr@2": 2.36,
+     "free_fpr@2": 1.42,
+     "stream_fpr@5": 7.08,
+     "free_fpr@5": 4.25
+    },
+    "POT": {
+     "stream_fpr@1": 1.42,
+     "free_fpr@1": 1.42,
+     "stream_fpr@2": 2.83,
+     "free_fpr@2": 2.83,
+     "stream_fpr@5": 7.55,
+     "free_fpr@5": 7.55
+    },
+    "DSPOT": {
+     "stream_fpr@1": 91.04,
+     "free_fpr@1": 0.0,
+     "stream_fpr@2": 91.04,
+     "free_fpr@2": 0.0,
+     "stream_fpr@5": 98.11,
+     "free_fpr@5": 0.0
+    },
+    "ECOD": {
+     "stream_fpr@1": 1.89,
+     "free_fpr@1": 1.89,
+     "stream_fpr@2": 2.36,
+     "free_fpr@2": 2.36,
+     "stream_fpr@5": 2.83,
+     "free_fpr@5": 2.83
+    },
+    "COPOD": {
+     "stream_fpr@1": 1.89,
+     "free_fpr@1": 1.89,
+     "stream_fpr@2": 2.36,
+     "free_fpr@2": 2.36,
+     "stream_fpr@5": 10.38,
+     "free_fpr@5": 10.38
+    },
+    "HBOS": {
+     "stream_fpr@1": 1.89,
+     "free_fpr@1": 1.89,
+     "stream_fpr@2": 2.83,
+     "free_fpr@2": 2.83,
+     "stream_fpr@5": 13.68,
+     "free_fpr@5": 13.68
+    },
+    "LODA": {
+     "stream_fpr@1": 0.47,
+     "free_fpr@1": 0.47,
+     "stream_fpr@2": 1.89,
+     "free_fpr@2": 1.89,
+     "stream_fpr@5": 4.25,
+     "free_fpr@5": 4.25
+    },
+    "INNE": {
+     "stream_fpr@1": 2.36,
+     "free_fpr@1": 2.36,
+     "stream_fpr@2": 2.83,
+     "free_fpr@2": 2.83,
+     "stream_fpr@5": 2.83,
+     "free_fpr@5": 2.83
+    },
+    "IForest": {
+     "stream_fpr@1": 1.89,
+     "free_fpr@1": 1.89,
+     "stream_fpr@2": 2.83,
+     "free_fpr@2": 2.83,
+     "stream_fpr@5": 4.25,
+     "free_fpr@5": 4.25
+    },
+    "DIF": {
+     "stream_fpr@1": 1.89,
+     "free_fpr@1": 1.89,
+     "stream_fpr@2": 1.89,
+     "free_fpr@2": 1.89,
+     "stream_fpr@5": 2.36,
+     "free_fpr@5": 2.36
+    }
+   }
+  },
+  {
+   "corpus": "CIC-IDS-2017",
+   "file": "Wed-05-07_DoS-GoldenEye.json",
+   "label": "CIC-IDS-2017 Wed-05-07_DoS-GoldenEye",
+   "verdict": "USABLE",
+   "split_mode": "within",
+   "causal": true,
+   "adjacency": 0.0021,
+   "attack_frac": 0.148,
+   "arms": {
+    "Subspace-Q + EWMA (ours)": {
+     "stream_fpr@1": 0.66,
+     "free_fpr@1": 0.53,
+     "stream_fpr@2": 0.78,
+     "free_fpr@2": 0.7,
+     "stream_fpr@5": 2.51,
+     "free_fpr@5": 2.47
+    },
+    "POT": {
+     "stream_fpr@1": 1.44,
+     "free_fpr@1": 1.44,
+     "stream_fpr@2": 3.05,
+     "free_fpr@2": 3.05,
+     "stream_fpr@5": 6.38,
+     "free_fpr@5": 6.38
+    },
+    "DSPOT": {
+     "stream_fpr@1": 98.64,
+     "free_fpr@1": 89.26,
+     "stream_fpr@2": 98.64,
+     "free_fpr@2": 89.26,
+     "stream_fpr@5": 99.09,
+     "free_fpr@5": 89.75
+    },
+    "ECOD": {
+     "stream_fpr@1": 1.6,
+     "free_fpr@1": 1.6,
+     "stream_fpr@2": 1.81,
+     "free_fpr@2": 1.81,
+     "stream_fpr@5": 8.68,
+     "free_fpr@5": 8.68
+    },
+    "COPOD": {
+     "stream_fpr@1": 1.6,
+     "free_fpr@1": 1.6,
+     "stream_fpr@2": 1.81,
+     "free_fpr@2": 1.81,
+     "stream_fpr@5": 8.81,
+     "free_fpr@5": 8.81
+    },
+    "HBOS": {
+     "stream_fpr@1": 1.73,
+     "free_fpr@1": 1.73,
+     "stream_fpr@2": 1.98,
+     "free_fpr@2": 1.98,
+     "stream_fpr@5": 7.65,
+     "free_fpr@5": 7.65
+    },
+    "LODA": {
+     "stream_fpr@1": 0.74,
+     "free_fpr@1": 0.74,
+     "stream_fpr@2": 1.07,
+     "free_fpr@2": 1.07,
+     "stream_fpr@5": 4.32,
+     "free_fpr@5": 4.32
+    },
+    "INNE": {
+     "stream_fpr@1": 0.04,
+     "free_fpr@1": 0.04,
+     "stream_fpr@2": 2.47,
+     "free_fpr@2": 2.47,
+     "stream_fpr@5": 5.14,
+     "free_fpr@5": 5.14
+    },
+    "IForest": {
+     "stream_fpr@1": 0.82,
+     "free_fpr@1": 0.82,
+     "stream_fpr@2": 1.56,
+     "free_fpr@2": 1.56,
+     "stream_fpr@5": 6.09,
+     "free_fpr@5": 6.09
+    },
+    "DIF": {
+     "stream_fpr@1": 0.25,
+     "free_fpr@1": 0.25,
+     "stream_fpr@2": 1.48,
+     "free_fpr@2": 1.48,
+     "stream_fpr@5": 4.36,
+     "free_fpr@5": 4.36
+    }
+   }
+  },
+  {
+   "corpus": "CIC-IDS-2017",
+   "file": "Wed-05-07_DoS-Hulk.json",
+   "label": "CIC-IDS-2017 Wed-05-07_DoS-Hulk",
+   "verdict": "USABLE",
+   "split_mode": "within",
+   "causal": true,
+   "adjacency": 0.0213,
+   "attack_frac": 0.1542,
+   "arms": {
+    "Subspace-Q + EWMA (ours)": {
+     "stream_fpr@1": 2.05,
+     "free_fpr@1": 0.87,
+     "stream_fpr@2": 5.16,
+     "free_fpr@2": 3.39,
+     "stream_fpr@5": 6.1,
+     "free_fpr@5": 4.33
+    },
+    "POT": {
+     "stream_fpr@1": 1.42,
+     "free_fpr@1": 1.42,
+     "stream_fpr@2": 3.31,
+     "free_fpr@2": 3.31,
+     "stream_fpr@5": 7.09,
+     "free_fpr@5": 7.09
+    },
+    "DSPOT": {
+     "stream_fpr@1": 99.92,
+     "free_fpr@1": 89.37,
+     "stream_fpr@2": 99.92,
+     "free_fpr@2": 89.37,
+     "stream_fpr@5": 99.92,
+     "free_fpr@5": 91.53
+    },
+    "ECOD": {
+     "stream_fpr@1": 1.89,
+     "free_fpr@1": 1.89,
+     "stream_fpr@2": 2.91,
+     "free_fpr@2": 2.91,
+     "stream_fpr@5": 7.52,
+     "free_fpr@5": 7.52
+    },
+    "COPOD": {
+     "stream_fpr@1": 1.89,
+     "free_fpr@1": 1.89,
+     "stream_fpr@2": 2.88,
+     "free_fpr@2": 2.88,
+     "stream_fpr@5": 7.52,
+     "free_fpr@5": 7.52
+    },
+    "HBOS": {
+     "stream_fpr@1": 2.01,
+     "free_fpr@1": 2.01,
+     "stream_fpr@2": 2.88,
+     "free_fpr@2": 2.88,
+     "stream_fpr@5": 7.25,
+     "free_fpr@5": 7.25
+    },
+    "LODA": {
+     "stream_fpr@1": 1.22,
+     "free_fpr@1": 1.22,
+     "stream_fpr@2": 3.31,
+     "free_fpr@2": 3.31,
+     "stream_fpr@5": 6.22,
+     "free_fpr@5": 6.22
+    },
+    "INNE": {
+     "stream_fpr@1": 2.09,
+     "free_fpr@1": 2.09,
+     "stream_fpr@2": 2.4,
+     "free_fpr@2": 2.4,
+     "stream_fpr@5": 6.34,
+     "free_fpr@5": 6.34
+    },
+    "IForest": {
+     "stream_fpr@1": 1.61,
+     "free_fpr@1": 1.61,
+     "stream_fpr@2": 2.56,
+     "free_fpr@2": 2.56,
+     "stream_fpr@5": 6.26,
+     "free_fpr@5": 6.26
+    },
+    "DIF": {
+     "stream_fpr@1": 0.75,
+     "free_fpr@1": 0.75,
+     "stream_fpr@2": 1.38,
+     "free_fpr@2": 1.38,
+     "stream_fpr@5": 5.75,
+     "free_fpr@5": 5.75
+    }
+   }
+  },
+  {
+   "corpus": "CIC-IDS-2017",
+   "file": "Wed-05-07_DoS-Slowhttptest.json",
+   "label": "CIC-IDS-2017 Wed-05-07_DoS-Slowhttptest",
+   "verdict": "USABLE",
+   "split_mode": "within",
+   "causal": true,
+   "adjacency": 0.0042,
+   "attack_frac": 0.2312,
+   "arms": {
+    "Subspace-Q + EWMA (ours)": {
+     "stream_fpr@1": 0.73,
+     "free_fpr@1": 0.65,
+     "stream_fpr@2": 1.3,
+     "free_fpr@2": 1.15,
+     "stream_fpr@5": 2.02,
+     "free_fpr@5": 1.83
+    },
+    "POT": {
+     "stream_fpr@1": 0.23,
+     "free_fpr@1": 0.23,
+     "stream_fpr@2": 0.23,
+     "free_fpr@2": 0.23,
+     "stream_fpr@5": 0.73,
+     "free_fpr@5": 0.73
+    },
+    "DSPOT": {
+     "stream_fpr@1": 99.92,
+     "free_fpr@1": 90.53,
+     "stream_fpr@2": 99.92,
+     "free_fpr@2": 91.3,
+     "stream_fpr@5": 100.0,
+     "free_fpr@5": 92.37
+    },
+    "ECOD": {
+     "stream_fpr@1": 2.14,
+     "free_fpr@1": 2.14,
+     "stream_fpr@2": 2.56,
+     "free_fpr@2": 2.56,
+     "stream_fpr@5": 4.16,
+     "free_fpr@5": 4.16
+    },
+    "COPOD": {
+     "stream_fpr@1": 2.14,
+     "free_fpr@1": 2.14,
+     "stream_fpr@2": 2.56,
+     "free_fpr@2": 2.56,
+     "stream_fpr@5": 4.08,
+     "free_fpr@5": 4.08
+    },
+    "HBOS": {
+     "stream_fpr@1": 1.83,
+     "free_fpr@1": 1.83,
+     "stream_fpr@2": 2.44,
+     "free_fpr@2": 2.44,
+     "stream_fpr@5": 2.94,
+     "free_fpr@5": 2.94
+    },
+    "LODA": {
+     "stream_fpr@1": 3.02,
+     "free_fpr@1": 3.02,
+     "stream_fpr@2": 4.96,
+     "free_fpr@2": 4.96,
+     "stream_fpr@5": 7.6,
+     "free_fpr@5": 7.6
+    },
+    "INNE": {
+     "stream_fpr@1": 1.95,
+     "free_fpr@1": 1.95,
+     "stream_fpr@2": 2.56,
+     "free_fpr@2": 2.56,
+     "stream_fpr@5": 4.96,
+     "free_fpr@5": 4.96
+    },
+    "IForest": {
+     "stream_fpr@1": 2.14,
+     "free_fpr@1": 2.14,
+     "stream_fpr@2": 2.44,
+     "free_fpr@2": 2.44,
+     "stream_fpr@5": 5.11,
+     "free_fpr@5": 5.11
+    },
+    "DIF": {
+     "stream_fpr@1": 1.45,
+     "free_fpr@1": 1.45,
+     "stream_fpr@2": 2.94,
+     "free_fpr@2": 2.94,
+     "stream_fpr@5": 3.85,
+     "free_fpr@5": 3.85
+    }
+   }
+  },
+  {
+   "corpus": "CIC-IDS-2017",
+   "file": "Wed-05-07_DoS-Slowloris.json",
+   "label": "CIC-IDS-2017 Wed-05-07_DoS-Slowloris",
+   "verdict": "USABLE",
+   "split_mode": "within",
+   "causal": true,
+   "adjacency": 0.0008,
+   "attack_frac": 0.3243,
+   "arms": {
+    "Subspace-Q + EWMA (ours)": {
+     "stream_fpr@1": 0.0,
+     "free_fpr@1": 0.0,
+     "stream_fpr@2": 0.0,
+     "free_fpr@2": 0.0,
+     "stream_fpr@5": 0.0,
+     "free_fpr@5": 0.0
+    },
+    "POT": {
+     "stream_fpr@1": 0.72,
+     "free_fpr@1": 0.72,
+     "stream_fpr@2": 1.17,
+     "free_fpr@2": 1.17,
+     "stream_fpr@5": 4.81,
+     "free_fpr@5": 4.81
+    },
+    "DSPOT": {
+     "stream_fpr@1": 98.98,
+     "free_fpr@1": 90.45,
+     "stream_fpr@2": 98.98,
+     "free_fpr@2": 90.83,
+     "stream_fpr@5": 99.51,
+     "free_fpr@5": 92.31
+    },
+    "ECOD": {
+     "stream_fpr@1": 2.08,
+     "free_fpr@1": 2.08,
+     "stream_fpr@2": 2.54,
+     "free_fpr@2": 2.54,
+     "stream_fpr@5": 4.13,
+     "free_fpr@5": 4.13
+    },
+    "COPOD": {
+     "stream_fpr@1": 2.12,
+     "free_fpr@1": 2.12,
+     "stream_fpr@2": 2.54,
+     "free_fpr@2": 2.54,
+     "stream_fpr@5": 4.05,
+     "free_fpr@5": 4.05
+    },
+    "HBOS": {
+     "stream_fpr@1": 1.82,
+     "free_fpr@1": 1.82,
+     "stream_fpr@2": 2.42,
+     "free_fpr@2": 2.42,
+     "stream_fpr@5": 3.11,
+     "free_fpr@5": 3.11
+    },
+    "LODA": {
+     "stream_fpr@1": 3.11,
+     "free_fpr@1": 3.11,
+     "stream_fpr@2": 3.52,
+     "free_fpr@2": 3.52,
+     "stream_fpr@5": 5.0,
+     "free_fpr@5": 5.0
+    },
+    "INNE": {
+     "stream_fpr@1": 0.11,
+     "free_fpr@1": 0.11,
+     "stream_fpr@2": 1.82,
+     "free_fpr@2": 1.82,
+     "stream_fpr@5": 2.35,
+     "free_fpr@5": 2.35
+    },
+    "IForest": {
+     "stream_fpr@1": 2.16,
+     "free_fpr@1": 2.16,
+     "stream_fpr@2": 2.46,
+     "free_fpr@2": 2.46,
+     "stream_fpr@5": 4.85,
+     "free_fpr@5": 4.85
+    },
+    "DIF": {
+     "stream_fpr@1": 1.25,
+     "free_fpr@1": 1.25,
+     "stream_fpr@2": 1.59,
+     "free_fpr@2": 1.59,
+     "stream_fpr@5": 2.92,
+     "free_fpr@5": 2.92
+    }
+   }
+  },
+  {
+   "corpus": "CIC-IDS2018",
+   "file": "Fri-16-02_DoS-Hulk.json",
+   "label": "CIC-IDS2018 Fri-16-02_DoS-Hulk",
+   "verdict": "USABLE",
+   "split_mode": "within",
+   "causal": true,
+   "adjacency": 0.0017,
+   "attack_frac": 0.5849,
+   "arms": {
+    "Subspace-Q + EWMA (ours)": {
+     "stream_fpr@1": 7.68,
+     "free_fpr@1": 7.68,
+     "stream_fpr@2": 9.85,
+     "free_fpr@2": 9.85,
+     "stream_fpr@5": 13.86,
+     "free_fpr@5": 13.86
+    },
+    "POT": {
+     "stream_fpr@1": 5.68,
+     "free_fpr@1": 5.68,
+     "stream_fpr@2": 6.01,
+     "free_fpr@2": 6.01,
+     "stream_fpr@5": 6.01,
+     "free_fpr@5": 6.01
+    },
+    "DSPOT": {
+     "stream_fpr@1": 100.0,
+     "free_fpr@1": 83.81,
+     "stream_fpr@2": 100.0,
+     "free_fpr@2": 83.97,
+     "stream_fpr@5": 100.0,
+     "free_fpr@5": 84.31
+    },
+    "ECOD": {
+     "stream_fpr@1": 6.51,
+     "free_fpr@1": 6.51,
+     "stream_fpr@2": 7.01,
+     "free_fpr@2": 7.01,
+     "stream_fpr@5": 8.18,
+     "free_fpr@5": 8.18
+    },
+    "COPOD": {
+     "stream_fpr@1": 6.51,
+     "free_fpr@1": 6.51,
+     "stream_fpr@2": 7.51,
+     "free_fpr@2": 7.51,
+     "stream_fpr@5": 8.18,
+     "free_fpr@5": 8.18
+    },
+    "HBOS": {
+     "stream_fpr@1": 2.5,
+     "free_fpr@1": 2.5,
+     "stream_fpr@2": 4.34,
+     "free_fpr@2": 4.34,
+     "stream_fpr@5": 8.68,
+     "free_fpr@5": 8.68
+    },
+    "LODA": {
+     "stream_fpr@1": 2.34,
+     "free_fpr@1": 2.34,
+     "stream_fpr@2": 2.34,
+     "free_fpr@2": 2.34,
+     "stream_fpr@5": 4.67,
+     "free_fpr@5": 4.67
+    },
+    "INNE": {
+     "stream_fpr@1": 4.67,
+     "free_fpr@1": 4.67,
+     "stream_fpr@2": 5.18,
+     "free_fpr@2": 5.18,
+     "stream_fpr@5": 5.68,
+     "free_fpr@5": 5.68
+    },
+    "IForest": {
+     "stream_fpr@1": 6.01,
+     "free_fpr@1": 6.01,
+     "stream_fpr@2": 6.68,
+     "free_fpr@2": 6.68,
+     "stream_fpr@5": 7.51,
+     "free_fpr@5": 7.51
+    },
+    "DIF": {
+     "stream_fpr@1": 5.51,
+     "free_fpr@1": 5.51,
+     "stream_fpr@2": 7.01,
+     "free_fpr@2": 7.01,
+     "stream_fpr@5": 12.02,
+     "free_fpr@5": 12.02
+    }
+   }
+  },
+  {
+   "corpus": "CIC-IDS2018",
+   "file": "Fri-16-02_DoS-SlowHTTPTest.json",
+   "label": "CIC-IDS2018 Fri-16-02_DoS-SlowHTTPTest",
+   "verdict": "USABLE",
+   "split_mode": "within",
+   "causal": true,
+   "adjacency": 0.0009,
+   "attack_frac": 0.7479,
+   "arms": {
+    "Subspace-Q + EWMA (ours)": {
+     "stream_fpr@1": 3.72,
+     "free_fpr@1": 3.72,
+     "stream_fpr@2": 4.0,
+     "free_fpr@2": 4.0,
+     "stream_fpr@5": 6.33,
+     "free_fpr@5": 6.33
+    },
+    "POT": {
+     "stream_fpr@1": 1.77,
+     "free_fpr@1": 1.77,
+     "stream_fpr@2": 1.77,
+     "free_fpr@2": 1.77,
+     "stream_fpr@5": 5.12,
+     "free_fpr@5": 5.12
+    },
+    "DSPOT": {
+     "stream_fpr@1": 20.19,
+     "free_fpr@1": 20.09,
+     "stream_fpr@2": 21.12,
+     "free_fpr@2": 20.19,
+     "stream_fpr@5": 25.95,
+     "free_fpr@5": 24.56
+    },
+    "ECOD": {
+     "stream_fpr@1": 3.07,
+     "free_fpr@1": 3.07,
+     "stream_fpr@2": 4.0,
+     "free_fpr@2": 4.0,
+     "stream_fpr@5": 5.4,
+     "free_fpr@5": 5.4
+    },
+    "COPOD": {
+     "stream_fpr@1": 3.35,
+     "free_fpr@1": 3.35,
+     "stream_fpr@2": 4.19,
+     "free_fpr@2": 4.19,
+     "stream_fpr@5": 5.95,
+     "free_fpr@5": 5.95
+    },
+    "HBOS": {
+     "stream_fpr@1": 1.58,
+     "free_fpr@1": 1.58,
+     "stream_fpr@2": 1.67,
+     "free_fpr@2": 1.67,
+     "stream_fpr@5": 4.65,
+     "free_fpr@5": 4.65
+    },
+    "LODA": {
+     "stream_fpr@1": 0.84,
+     "free_fpr@1": 0.84,
+     "stream_fpr@2": 1.95,
+     "free_fpr@2": 1.95,
+     "stream_fpr@5": 4.56,
+     "free_fpr@5": 4.56
+    },
+    "INNE": {
+     "stream_fpr@1": 2.7,
+     "free_fpr@1": 2.7,
+     "stream_fpr@2": 3.81,
+     "free_fpr@2": 3.81,
+     "stream_fpr@5": 4.19,
+     "free_fpr@5": 4.19
+    },
+    "IForest": {
+     "stream_fpr@1": 2.33,
+     "free_fpr@1": 2.33,
+     "stream_fpr@2": 3.81,
+     "free_fpr@2": 3.81,
+     "stream_fpr@5": 5.3,
+     "free_fpr@5": 5.3
+    },
+    "DIF": {
+     "stream_fpr@1": 3.07,
+     "free_fpr@1": 3.07,
+     "stream_fpr@2": 4.56,
+     "free_fpr@2": 4.56,
+     "stream_fpr@5": 8.65,
+     "free_fpr@5": 8.65
+    }
+   }
+  },
+  {
+   "corpus": "CIC-IDS2018",
+   "file": "Thu-15-02_DoS-Slowloris.json",
+   "label": "CIC-IDS2018 Thu-15-02_DoS-Slowloris",
+   "verdict": "USABLE",
+   "split_mode": "within",
+   "causal": true,
+   "adjacency": 0.0011,
+   "attack_frac": 0.7262,
+   "arms": {
+    "Subspace-Q + EWMA (ours)": {
+     "stream_fpr@1": 1.66,
+     "free_fpr@1": 1.55,
+     "stream_fpr@2": 2.55,
+     "free_fpr@2": 2.44,
+     "stream_fpr@5": 7.54,
+     "free_fpr@5": 7.43
+    },
+    "POT": {
+     "stream_fpr@1": 1.33,
+     "free_fpr@1": 1.33,
+     "stream_fpr@2": 1.88,
+     "free_fpr@2": 1.88,
+     "stream_fpr@5": 4.66,
+     "free_fpr@5": 4.66
+    },
+    "DSPOT": {
+     "stream_fpr@1": 100.0,
+     "free_fpr@1": 68.51,
+     "stream_fpr@2": 100.0,
+     "free_fpr@2": 70.07,
+     "stream_fpr@5": 100.0,
+     "free_fpr@5": 80.16
+    },
+    "ECOD": {
+     "stream_fpr@1": 0.44,
+     "free_fpr@1": 0.44,
+     "stream_fpr@2": 2.55,
+     "free_fpr@2": 2.55,
+     "stream_fpr@5": 5.21,
+     "free_fpr@5": 5.21
+    },
+    "COPOD": {
+     "stream_fpr@1": 0.44,
+     "free_fpr@1": 0.44,
+     "stream_fpr@2": 2.22,
+     "free_fpr@2": 2.22,
+     "stream_fpr@5": 4.77,
+     "free_fpr@5": 4.77
+    },
+    "HBOS": {
+     "stream_fpr@1": 0.44,
+     "free_fpr@1": 0.44,
+     "stream_fpr@2": 1.22,
+     "free_fpr@2": 1.22,
+     "stream_fpr@5": 1.33,
+     "free_fpr@5": 1.33
+    },
+    "LODA": {
+     "stream_fpr@1": 2.66,
+     "free_fpr@1": 2.66,
+     "stream_fpr@2": 3.88,
+     "free_fpr@2": 3.88,
+     "stream_fpr@5": 4.55,
+     "free_fpr@5": 4.55
+    },
+    "INNE": {
+     "stream_fpr@1": 1.88,
+     "free_fpr@1": 1.88,
+     "stream_fpr@2": 2.22,
+     "free_fpr@2": 2.22,
+     "stream_fpr@5": 6.98,
+     "free_fpr@5": 6.98
+    },
+    "IForest": {
+     "stream_fpr@1": 0.55,
+     "free_fpr@1": 0.55,
+     "stream_fpr@2": 2.66,
+     "free_fpr@2": 2.66,
+     "stream_fpr@5": 4.55,
+     "free_fpr@5": 4.55
+    },
+    "DIF": {
+     "stream_fpr@1": 3.22,
+     "free_fpr@1": 3.22,
+     "stream_fpr@2": 4.1,
+     "free_fpr@2": 4.1,
+     "stream_fpr@5": 9.87,
+     "free_fpr@5": 9.87
+    }
+   }
+  },
+  {
+   "corpus": "CIC-IDS2018",
+   "file": "Tue-20-02_DDoS-LOIC-HTTP.json",
+   "label": "CIC-IDS2018 Tue-20-02_DDoS-LOIC-HTTP",
+   "verdict": "USABLE",
+   "split_mode": "within",
+   "causal": true,
+   "adjacency": 0.0033,
+   "attack_frac": 0.9255,
+   "arms": {
+    "Subspace-Q + EWMA (ours)": {
+     "stream_fpr@1": 1.64,
+     "free_fpr@1": 1.64,
+     "stream_fpr@2": 1.64,
+     "free_fpr@2": 1.64,
+     "stream_fpr@5": 3.62,
+     "free_fpr@5": 3.62
+    },
+    "POT": {
+     "stream_fpr@1": 2.63,
+     "free_fpr@1": 2.63,
+     "stream_fpr@2": 4.93,
+     "free_fpr@2": 4.93,
+     "stream_fpr@5": 8.55,
+     "free_fpr@5": 8.55
+    },
+    "DSPOT": {
+     "stream_fpr@1": 1.64,
+     "free_fpr@1": 1.64,
+     "stream_fpr@2": 1.64,
+     "free_fpr@2": 1.64,
+     "stream_fpr@5": 65.46,
+     "free_fpr@5": 32.24
+    },
+    "ECOD": {
+     "stream_fpr@1": 1.32,
+     "free_fpr@1": 1.32,
+     "stream_fpr@2": 2.3,
+     "free_fpr@2": 2.3,
+     "stream_fpr@5": 7.57,
+     "free_fpr@5": 7.57
+    },
+    "COPOD": {
+     "stream_fpr@1": 1.32,
+     "free_fpr@1": 1.32,
+     "stream_fpr@2": 2.3,
+     "free_fpr@2": 2.3,
+     "stream_fpr@5": 11.18,
+     "free_fpr@5": 11.18
+    },
+    "HBOS": {
+     "stream_fpr@1": 0.66,
+     "free_fpr@1": 0.66,
+     "stream_fpr@2": 2.63,
+     "free_fpr@2": 2.63,
+     "stream_fpr@5": 10.86,
+     "free_fpr@5": 10.86
+    },
+    "LODA": {
+     "stream_fpr@1": 1.64,
+     "free_fpr@1": 1.64,
+     "stream_fpr@2": 7.89,
+     "free_fpr@2": 7.89,
+     "stream_fpr@5": 13.16,
+     "free_fpr@5": 13.16
+    },
+    "INNE": {
+     "stream_fpr@1": 2.3,
+     "free_fpr@1": 2.3,
+     "stream_fpr@2": 2.63,
+     "free_fpr@2": 2.63,
+     "stream_fpr@5": 3.29,
+     "free_fpr@5": 3.29
+    },
+    "IForest": {
+     "stream_fpr@1": 2.96,
+     "free_fpr@1": 2.96,
+     "stream_fpr@2": 5.26,
+     "free_fpr@2": 5.26,
+     "stream_fpr@5": 9.54,
+     "free_fpr@5": 9.54
+    },
+    "DIF": {
+     "stream_fpr@1": 0.99,
+     "free_fpr@1": 0.99,
+     "stream_fpr@2": 1.64,
+     "free_fpr@2": 1.64,
+     "stream_fpr@5": 3.62,
+     "free_fpr@5": 3.62
+    }
+   }
+  },
+  {
+   "corpus": "CIC-IDS2018",
+   "file": "Wed-21-02_DDoS-HOIC.json",
+   "label": "CIC-IDS2018 Wed-21-02_DDoS-HOIC",
+   "verdict": "USABLE",
+   "split_mode": "within",
+   "causal": true,
+   "adjacency": 0.0007,
+   "attack_frac": 0.7019,
+   "arms": {
+    "Subspace-Q + EWMA (ours)": {
+     "stream_fpr@1": 3.64,
+     "free_fpr@1": 3.57,
+     "stream_fpr@2": 4.21,
+     "free_fpr@2": 4.07,
+     "stream_fpr@5": 9.71,
+     "free_fpr@5": 9.49
+    },
+    "POT": {
+     "stream_fpr@1": 5.35,
+     "free_fpr@1": 5.35,
+     "stream_fpr@2": 6.85,
+     "free_fpr@2": 6.85,
+     "stream_fpr@5": 12.13,
+     "free_fpr@5": 12.13
+    },
+    "DSPOT": {
+     "stream_fpr@1": 80.59,
+     "free_fpr@1": 63.38,
+     "stream_fpr@2": 84.3,
+     "free_fpr@2": 81.08,
+     "stream_fpr@5": 84.3,
+     "free_fpr@5": 81.16
+    },
+    "ECOD": {
+     "stream_fpr@1": 4.28,
+     "free_fpr@1": 4.28,
+     "stream_fpr@2": 7.14,
+     "free_fpr@2": 7.14,
+     "stream_fpr@5": 9.56,
+     "free_fpr@5": 9.56
+    },
+    "COPOD": {
+     "stream_fpr@1": 4.28,
+     "free_fpr@1": 4.28,
+     "stream_fpr@2": 7.0,
+     "free_fpr@2": 7.0,
+     "stream_fpr@5": 10.21,
+     "free_fpr@5": 10.21
+    },
+    "HBOS": {
+     "stream_fpr@1": 0.43,
+     "free_fpr@1": 0.43,
+     "stream_fpr@2": 2.93,
+     "free_fpr@2": 2.93,
+     "stream_fpr@5": 5.78,
+     "free_fpr@5": 5.78
+    },
+    "LODA": {
+     "stream_fpr@1": 0.93,
+     "free_fpr@1": 0.93,
+     "stream_fpr@2": 2.28,
+     "free_fpr@2": 2.28,
+     "stream_fpr@5": 2.57,
+     "free_fpr@5": 2.57
+    },
+    "INNE": {
+     "stream_fpr@1": 3.57,
+     "free_fpr@1": 3.57,
+     "stream_fpr@2": 7.28,
+     "free_fpr@2": 7.28,
+     "stream_fpr@5": 12.35,
+     "free_fpr@5": 12.35
+    },
+    "IForest": {
+     "stream_fpr@1": 4.43,
+     "free_fpr@1": 4.43,
+     "stream_fpr@2": 7.35,
+     "free_fpr@2": 7.35,
+     "stream_fpr@5": 10.14,
+     "free_fpr@5": 10.14
+    },
+    "DIF": {
+     "stream_fpr@1": 2.0,
+     "free_fpr@1": 2.0,
+     "stream_fpr@2": 6.28,
+     "free_fpr@2": 6.28,
+     "stream_fpr@5": 9.06,
+     "free_fpr@5": 9.06
+    }
+   }
+  },
+  {
+   "corpus": "CIC-IDS2018",
+   "file": "Wed-21-02_DDoS-LOIC-UDP.json",
+   "label": "CIC-IDS2018 Wed-21-02_DDoS-LOIC-UDP",
+   "verdict": "USABLE",
+   "split_mode": "within",
+   "causal": true,
+   "adjacency": 0.0007,
+   "attack_frac": 0.4274,
+   "arms": {
+    "Subspace-Q + EWMA (ours)": {
+     "stream_fpr@1": 3.93,
+     "free_fpr@1": 3.86,
+     "stream_fpr@2": 4.88,
+     "free_fpr@2": 4.81,
+     "stream_fpr@5": 10.51,
+     "free_fpr@5": 10.44
+    },
+    "POT": {
+     "stream_fpr@1": 5.83,
+     "free_fpr@1": 5.83,
+     "stream_fpr@2": 6.44,
+     "free_fpr@2": 6.44,
+     "stream_fpr@5": 12.47,
+     "free_fpr@5": 12.47
+    },
+    "DSPOT": {
+     "stream_fpr@1": 19.19,
+     "free_fpr@1": 4.68,
+     "stream_fpr@2": 83.86,
+     "free_fpr@2": 73.69,
+     "stream_fpr@5": 85.15,
+     "free_fpr@5": 76.47
+    },
+    "ECOD": {
+     "stream_fpr@1": 4.95,
+     "free_fpr@1": 4.95,
+     "stream_fpr@2": 7.66,
+     "free_fpr@2": 7.66,
+     "stream_fpr@5": 13.15,
+     "free_fpr@5": 13.15
+    },
+    "COPOD": {
+     "stream_fpr@1": 4.54,
+     "free_fpr@1": 4.54,
+     "stream_fpr@2": 7.59,
+     "free_fpr@2": 7.59,
+     "stream_fpr@5": 12.75,
+     "free_fpr@5": 12.75
+    },
+    "HBOS": {
+     "stream_fpr@1": 2.24,
+     "free_fpr@1": 2.24,
+     "stream_fpr@2": 3.93,
+     "free_fpr@2": 3.93,
+     "stream_fpr@5": 8.34,
+     "free_fpr@5": 8.34
+    },
+    "LODA": {
+     "stream_fpr@1": 0.07,
+     "free_fpr@1": 0.07,
+     "stream_fpr@2": 1.08,
+     "free_fpr@2": 1.08,
+     "stream_fpr@5": 4.68,
+     "free_fpr@5": 4.68
+    },
+    "INNE": {
+     "stream_fpr@1": 5.22,
+     "free_fpr@1": 5.22,
+     "stream_fpr@2": 7.86,
+     "free_fpr@2": 7.86,
+     "stream_fpr@5": 14.85,
+     "free_fpr@5": 14.85
+    },
+    "IForest": {
+     "stream_fpr@1": 4.81,
+     "free_fpr@1": 4.81,
+     "stream_fpr@2": 7.53,
+     "free_fpr@2": 7.53,
+     "stream_fpr@5": 11.12,
+     "free_fpr@5": 11.12
+    },
+    "DIF": {
+     "stream_fpr@1": 1.83,
+     "free_fpr@1": 1.83,
+     "stream_fpr@2": 3.12,
+     "free_fpr@2": 3.12,
+     "stream_fpr@5": 10.1,
+     "free_fpr@5": 10.1
+    }
+   }
+  },
+  {
+   "corpus": "CICDDoS2019",
+   "file": "cicddos_03-11_192-168-50-4_LDAP.json",
+   "label": "CICDDoS2019 cicddos_03-11_192-168-50-4_LDAP",
+   "verdict": "USABLE",
+   "split_mode": "within",
+   "causal": true,
+   "adjacency": 0.0042,
+   "attack_frac": 0.1735,
+   "arms": {
+    "Subspace-Q + EWMA (ours)": {
+     "stream_fpr@1": 1.2,
+     "free_fpr@1": 1.17,
+     "stream_fpr@2": 1.2,
+     "free_fpr@2": 1.17,
+     "stream_fpr@5": 1.45,
+     "free_fpr@5": 1.42
+    },
+    "POT": {
+     "stream_fpr@1": 3.96,
+     "free_fpr@1": 3.96,
+     "stream_fpr@2": 4.71,
+     "free_fpr@2": 4.71,
+     "stream_fpr@5": 4.71,
+     "free_fpr@5": 4.71
+    },
+    "DSPOT": {
+     "stream_fpr@1": 89.1,
+     "free_fpr@1": 89.1,
+     "stream_fpr@2": 89.13,
+     "free_fpr@2": 89.13,
+     "stream_fpr@5": 89.13,
+     "free_fpr@5": 89.13
+    },
+    "ECOD": {
+     "stream_fpr@1": 3.19,
+     "free_fpr@1": 3.19,
+     "stream_fpr@2": 4.67,
+     "free_fpr@2": 4.67,
+     "stream_fpr@5": 7.58,
+     "free_fpr@5": 7.58
+    },
+    "COPOD": {
+     "stream_fpr@1": 3.19,
+     "free_fpr@1": 3.19,
+     "stream_fpr@2": 4.57,
+     "free_fpr@2": 4.57,
+     "stream_fpr@5": 6.8,
+     "free_fpr@5": 6.8
+    },
+    "HBOS": {
+     "stream_fpr@1": 3.04,
+     "free_fpr@1": 3.04,
+     "stream_fpr@2": 5.1,
+     "free_fpr@2": 5.1,
+     "stream_fpr@5": 8.67,
+     "free_fpr@5": 8.67
+    },
+    "LODA": {
+     "stream_fpr@1": 1.2,
+     "free_fpr@1": 1.2,
+     "stream_fpr@2": 4.14,
+     "free_fpr@2": 4.14,
+     "stream_fpr@5": 6.19,
+     "free_fpr@5": 6.19
+    },
+    "INNE": {
+     "stream_fpr@1": 0.0,
+     "free_fpr@1": 0.0,
+     "stream_fpr@2": 0.0,
+     "free_fpr@2": 0.0,
+     "stream_fpr@5": 4.53,
+     "free_fpr@5": 4.53
+    },
+    "IForest": {
+     "stream_fpr@1": 1.31,
+     "free_fpr@1": 1.31,
+     "stream_fpr@2": 3.4,
+     "free_fpr@2": 3.4,
+     "stream_fpr@5": 5.1,
+     "free_fpr@5": 5.1
+    },
+    "DIF": {
+     "stream_fpr@1": 3.01,
+     "free_fpr@1": 3.01,
+     "stream_fpr@2": 3.61,
+     "free_fpr@2": 3.61,
+     "stream_fpr@5": 8.35,
+     "free_fpr@5": 8.35
+    }
+   }
+  },
+  {
+   "corpus": "CICDDoS2019",
+   "file": "cicddos_03-11_192-168-50-4_Syn.json",
+   "label": "CICDDoS2019 cicddos_03-11_192-168-50-4_Syn",
+   "verdict": "USABLE",
+   "split_mode": "within",
+   "causal": true,
+   "adjacency": 0.4071,
+   "attack_frac": 0.7074,
+   "arms": {
+    "Subspace-Q + EWMA (ours)": {
+     "stream_fpr@1": 2.12,
+     "free_fpr@1": 0.69,
+     "stream_fpr@2": 2.81,
+     "free_fpr@2": 1.08,
+     "stream_fpr@5": 6.01,
+     "free_fpr@5": 2.43
+    },
+    "POT": {
+     "stream_fpr@1": 0.19,
+     "free_fpr@1": 0.19,
+     "stream_fpr@2": 1.5,
+     "free_fpr@2": 1.5,
+     "stream_fpr@5": 1.54,
+     "free_fpr@5": 1.54
+    },
+    "DSPOT": {
+     "stream_fpr@1": 97.92,
+     "free_fpr@1": 0.19,
+     "stream_fpr@2": 98.34,
+     "free_fpr@2": 1.54,
+     "stream_fpr@5": 99.58,
+     "free_fpr@5": 77.56
+    },
+    "ECOD": {
+     "stream_fpr@1": 1.2,
+     "free_fpr@1": 1.2,
+     "stream_fpr@2": 1.93,
+     "free_fpr@2": 1.93,
+     "stream_fpr@5": 3.66,
+     "free_fpr@5": 3.66
+    },
+    "COPOD": {
+     "stream_fpr@1": 1.2,
+     "free_fpr@1": 1.2,
+     "stream_fpr@2": 1.89,
+     "free_fpr@2": 1.89,
+     "stream_fpr@5": 3.47,
+     "free_fpr@5": 3.47
+    },
+    "HBOS": {
+     "stream_fpr@1": 1.2,
+     "free_fpr@1": 1.2,
+     "stream_fpr@2": 1.62,
+     "free_fpr@2": 1.62,
+     "stream_fpr@5": 3.39,
+     "free_fpr@5": 3.39
+    },
+    "LODA": {
+     "stream_fpr@1": 1.16,
+     "free_fpr@1": 1.16,
+     "stream_fpr@2": 1.89,
+     "free_fpr@2": 1.89,
+     "stream_fpr@5": 3.66,
+     "free_fpr@5": 3.66
+    },
+    "INNE": {
+     "stream_fpr@1": 1.7,
+     "free_fpr@1": 1.7,
+     "stream_fpr@2": 1.7,
+     "free_fpr@2": 1.7,
+     "stream_fpr@5": 3.43,
+     "free_fpr@5": 3.43
+    },
+    "IForest": {
+     "stream_fpr@1": 1.27,
+     "free_fpr@1": 1.27,
+     "stream_fpr@2": 1.54,
+     "free_fpr@2": 1.54,
+     "stream_fpr@5": 3.55,
+     "free_fpr@5": 3.55
+    },
+    "DIF": {
+     "stream_fpr@1": 0.77,
+     "free_fpr@1": 0.77,
+     "stream_fpr@2": 2.35,
+     "free_fpr@2": 2.35,
+     "stream_fpr@5": 4.59,
+     "free_fpr@5": 4.59
+    }
+   }
+  },
+  {
+   "corpus": "CICDDoS2019",
+   "file": "cicddos_03-11_192-168-50-4_UDP.json",
+   "label": "CICDDoS2019 cicddos_03-11_192-168-50-4_UDP",
+   "verdict": "USABLE",
+   "split_mode": "within",
+   "causal": true,
+   "adjacency": 0.0115,
+   "attack_frac": 0.2359,
+   "arms": {
+    "Subspace-Q + EWMA (ours)": {
+     "stream_fpr@1": 0.82,
+     "free_fpr@1": 0.78,
+     "stream_fpr@2": 0.97,
+     "free_fpr@2": 0.93,
+     "stream_fpr@5": 2.75,
+     "free_fpr@5": 2.49
+    },
+    "POT": {
+     "stream_fpr@1": 0.33,
+     "free_fpr@1": 0.33,
+     "stream_fpr@2": 1.26,
+     "free_fpr@2": 1.26,
+     "stream_fpr@5": 2.75,
+     "free_fpr@5": 2.75
+    },
+    "DSPOT": {
+     "stream_fpr@1": 0.63,
+     "free_fpr@1": 0.33,
+     "stream_fpr@2": 99.0,
+     "free_fpr@2": 1.11,
+     "stream_fpr@5": 99.67,
+     "free_fpr@5": 20.43
+    },
+    "ECOD": {
+     "stream_fpr@1": 0.3,
+     "free_fpr@1": 0.3,
+     "stream_fpr@2": 1.37,
+     "free_fpr@2": 1.37,
+     "stream_fpr@5": 3.38,
+     "free_fpr@5": 3.38
+    },
+    "COPOD": {
+     "stream_fpr@1": 0.3,
+     "free_fpr@1": 0.3,
+     "stream_fpr@2": 1.37,
+     "free_fpr@2": 1.37,
+     "stream_fpr@5": 3.38,
+     "free_fpr@5": 3.38
+    },
+    "HBOS": {
+     "stream_fpr@1": 0.37,
+     "free_fpr@1": 0.37,
+     "stream_fpr@2": 1.19,
+     "free_fpr@2": 1.19,
+     "stream_fpr@5": 3.34,
+     "free_fpr@5": 3.34
+    },
+    "LODA": {
+     "stream_fpr@1": 0.67,
+     "free_fpr@1": 0.67,
+     "stream_fpr@2": 1.19,
+     "free_fpr@2": 1.19,
+     "stream_fpr@5": 2.75,
+     "free_fpr@5": 2.75
+    },
+    "INNE": {
+     "stream_fpr@1": 0.85,
+     "free_fpr@1": 0.85,
+     "stream_fpr@2": 1.75,
+     "free_fpr@2": 1.75,
+     "stream_fpr@5": 3.97,
+     "free_fpr@5": 3.97
+    },
+    "IForest": {
+     "stream_fpr@1": 0.78,
+     "free_fpr@1": 0.78,
+     "stream_fpr@2": 1.23,
+     "free_fpr@2": 1.23,
+     "stream_fpr@5": 3.23,
+     "free_fpr@5": 3.23
+    },
+    "DIF": {
+     "stream_fpr@1": 0.22,
+     "free_fpr@1": 0.22,
+     "stream_fpr@2": 1.34,
+     "free_fpr@2": 1.34,
+     "stream_fpr@5": 3.6,
+     "free_fpr@5": 3.6
+    }
+   }
+  },
+  {
+   "corpus": "CICDDoS2019",
+   "file": "cicddos_03-11_192-168-50-4_UDPLag.json",
+   "label": "CICDDoS2019 cicddos_03-11_192-168-50-4_UDPLag",
+   "verdict": "USABLE",
+   "split_mode": "within",
+   "causal": true,
+   "adjacency": 0.0159,
+   "attack_frac": 0.1512,
+   "arms": {
+    "Subspace-Q + EWMA (ours)": {
+     "stream_fpr@1": 0.98,
+     "free_fpr@1": 0.87,
+     "stream_fpr@2": 1.17,
+     "free_fpr@2": 1.09,
+     "stream_fpr@5": 3.4,
+     "free_fpr@5": 3.1
+    },
+    "POT": {
+     "stream_fpr@1": 0.64,
+     "free_fpr@1": 0.64,
+     "stream_fpr@2": 1.28,
+     "free_fpr@2": 1.28,
+     "stream_fpr@5": 3.66,
+     "free_fpr@5": 3.66
+    },
+    "DSPOT": {
+     "stream_fpr@1": 0.91,
+     "free_fpr@1": 0.91,
+     "stream_fpr@2": 98.75,
+     "free_fpr@2": 1.25,
+     "stream_fpr@5": 99.47,
+     "free_fpr@5": 21.74
+    },
+    "ECOD": {
+     "stream_fpr@1": 0.72,
+     "free_fpr@1": 0.72,
+     "stream_fpr@2": 1.66,
+     "free_fpr@2": 1.66,
+     "stream_fpr@5": 3.89,
+     "free_fpr@5": 3.89
+    },
+    "COPOD": {
+     "stream_fpr@1": 0.72,
+     "free_fpr@1": 0.72,
+     "stream_fpr@2": 1.55,
+     "free_fpr@2": 1.55,
+     "stream_fpr@5": 3.93,
+     "free_fpr@5": 3.93
+    },
+    "HBOS": {
+     "stream_fpr@1": 0.83,
+     "free_fpr@1": 0.83,
+     "stream_fpr@2": 1.59,
+     "free_fpr@2": 1.59,
+     "stream_fpr@5": 3.96,
+     "free_fpr@5": 3.96
+    },
+    "LODA": {
+     "stream_fpr@1": 0.72,
+     "free_fpr@1": 0.72,
+     "stream_fpr@2": 1.32,
+     "free_fpr@2": 1.32,
+     "stream_fpr@5": 3.55,
+     "free_fpr@5": 3.55
+    },
+    "INNE": {
+     "stream_fpr@1": 0.83,
+     "free_fpr@1": 0.83,
+     "stream_fpr@2": 1.85,
+     "free_fpr@2": 1.85,
+     "stream_fpr@5": 4.08,
+     "free_fpr@5": 4.08
+    },
+    "IForest": {
+     "stream_fpr@1": 0.83,
+     "free_fpr@1": 0.83,
+     "stream_fpr@2": 1.28,
+     "free_fpr@2": 1.28,
+     "stream_fpr@5": 3.62,
+     "free_fpr@5": 3.62
+    },
+    "DIF": {
+     "stream_fpr@1": 0.3,
+     "free_fpr@1": 0.3,
+     "stream_fpr@2": 2.11,
+     "free_fpr@2": 2.11,
+     "stream_fpr@5": 4.27,
+     "free_fpr@5": 4.27
+    }
+   }
+  },
+  {
+   "corpus": "CIC_IOT_Dataset2023",
+   "file": "DDoS-ACK_Fragmentation.json",
+   "label": "CIC_IOT_Dataset2023 DDoS-ACK_Fragmentation",
+   "verdict": "ROLE-UNVERIFIED",
+   "split_mode": "crossfile",
+   "causal": false,
+   "adjacency": 0.0004,
+   "attack_frac": 0.8472,
+   "arms": {
+    "Subspace-Q + EWMA (ours)": {
+     "stream_fpr@1": 0.66,
+     "free_fpr@1": 0.62,
+     "stream_fpr@2": 1.11,
+     "free_fpr@2": 1.06,
+     "stream_fpr@5": 3.9,
+     "free_fpr@5": 3.81
+    },
+    "POT": {
+     "stream_fpr@1": 0.49,
+     "free_fpr@1": 0.49,
+     "stream_fpr@2": 1.24,
+     "free_fpr@2": 1.24,
+     "stream_fpr@5": 4.43,
+     "free_fpr@5": 4.43
+    },
+    "DSPOT": {
+     "stream_fpr@1": 0.09,
+     "free_fpr@1": 0.09,
+     "stream_fpr@2": 0.09,
+     "free_fpr@2": 0.09,
+     "stream_fpr@5": 2.35,
+     "free_fpr@5": 2.35
+    },
+    "ECOD": {
+     "stream_fpr@1": 1.2,
+     "free_fpr@1": 1.2,
+     "stream_fpr@2": 2.3,
+     "free_fpr@2": 2.3,
+     "stream_fpr@5": 5.05,
+     "free_fpr@5": 5.05
+    },
+    "COPOD": {
+     "stream_fpr@1": 1.2,
+     "free_fpr@1": 1.2,
+     "stream_fpr@2": 2.44,
+     "free_fpr@2": 2.44,
+     "stream_fpr@5": 5.41,
+     "free_fpr@5": 5.41
+    },
+    "HBOS": {
+     "stream_fpr@1": 1.11,
+     "free_fpr@1": 1.11,
+     "stream_fpr@2": 2.08,
+     "free_fpr@2": 2.08,
+     "stream_fpr@5": 4.79,
+     "free_fpr@5": 4.79
+    },
+    "LODA": {
+     "stream_fpr@1": 0.58,
+     "free_fpr@1": 0.58,
+     "stream_fpr@2": 0.58,
+     "free_fpr@2": 0.58,
+     "stream_fpr@5": 0.58,
+     "free_fpr@5": 0.58
+    },
+    "INNE": {
+     "stream_fpr@1": 1.15,
+     "free_fpr@1": 1.15,
+     "stream_fpr@2": 1.99,
+     "free_fpr@2": 1.99,
+     "stream_fpr@5": 2.08,
+     "free_fpr@5": 2.08
+    },
+    "IForest": {
+     "stream_fpr@1": 0.98,
+     "free_fpr@1": 0.98,
+     "stream_fpr@2": 2.35,
+     "free_fpr@2": 2.35,
+     "stream_fpr@5": 5.27,
+     "free_fpr@5": 5.27
+    },
+    "DIF": {
+     "stream_fpr@1": 1.42,
+     "free_fpr@1": 1.42,
+     "stream_fpr@2": 2.48,
+     "free_fpr@2": 2.48,
+     "stream_fpr@5": 5.63,
+     "free_fpr@5": 5.63
+    }
+   }
+  },
+  {
+   "corpus": "CIC_IOT_Dataset2023",
+   "file": "DDoS-HTTP_Flood.json",
+   "label": "CIC_IOT_Dataset2023 DDoS-HTTP_Flood",
+   "verdict": "ROLE-UNVERIFIED",
+   "split_mode": "crossfile",
+   "causal": false,
+   "adjacency": 0.0,
+   "attack_frac": 0.9111,
+   "arms": {
+    "Subspace-Q + EWMA (ours)": {
+     "stream_fpr@1": 0.0,
+     "free_fpr@1": 0.0,
+     "stream_fpr@2": 0.0,
+     "free_fpr@2": 0.0,
+     "stream_fpr@5": 4.28,
+     "free_fpr@5": 4.28
+    },
+    "POT": {
+     "stream_fpr@1": 0.53,
+     "free_fpr@1": 0.53,
+     "stream_fpr@2": 0.53,
+     "free_fpr@2": 0.53,
+     "stream_fpr@5": 3.74,
+     "free_fpr@5": 3.74
+    },
+    "DSPOT": {
+     "stream_fpr@1": 89.04,
+     "free_fpr@1": 89.04,
+     "stream_fpr@2": 89.04,
+     "free_fpr@2": 89.04,
+     "stream_fpr@5": 91.44,
+     "free_fpr@5": 91.44
+    },
+    "ECOD": {
+     "stream_fpr@1": 0.27,
+     "free_fpr@1": 0.27,
+     "stream_fpr@2": 1.07,
+     "free_fpr@2": 1.07,
+     "stream_fpr@5": 4.01,
+     "free_fpr@5": 4.01
+    },
+    "COPOD": {
+     "stream_fpr@1": 0.27,
+     "free_fpr@1": 0.27,
+     "stream_fpr@2": 1.07,
+     "free_fpr@2": 1.07,
+     "stream_fpr@5": 4.01,
+     "free_fpr@5": 4.01
+    },
+    "HBOS": {
+     "stream_fpr@1": 0.53,
+     "free_fpr@1": 0.53,
+     "stream_fpr@2": 1.07,
+     "free_fpr@2": 1.07,
+     "stream_fpr@5": 3.74,
+     "free_fpr@5": 3.74
+    },
+    "LODA": {
+     "stream_fpr@1": 1.34,
+     "free_fpr@1": 1.34,
+     "stream_fpr@2": 1.34,
+     "free_fpr@2": 1.34,
+     "stream_fpr@5": 1.34,
+     "free_fpr@5": 1.34
+    },
+    "INNE": {
+     "stream_fpr@1": 0.27,
+     "free_fpr@1": 0.27,
+     "stream_fpr@2": 0.53,
+     "free_fpr@2": 0.53,
+     "stream_fpr@5": 3.21,
+     "free_fpr@5": 3.21
+    },
+    "IForest": {
+     "stream_fpr@1": 0.27,
+     "free_fpr@1": 0.27,
+     "stream_fpr@2": 1.07,
+     "free_fpr@2": 1.07,
+     "stream_fpr@5": 4.55,
+     "free_fpr@5": 4.55
+    },
+    "DIF": {
+     "stream_fpr@1": 0.27,
+     "free_fpr@1": 0.27,
+     "stream_fpr@2": 0.27,
+     "free_fpr@2": 0.27,
+     "stream_fpr@5": 2.67,
+     "free_fpr@5": 2.67
+    }
+   }
+  },
+  {
+   "corpus": "CIC_IOT_Dataset2023",
+   "file": "DDoS-ICMP_Flood.json",
+   "label": "CIC_IOT_Dataset2023 DDoS-ICMP_Flood",
+   "verdict": "USABLE",
+   "split_mode": "crossfile",
+   "causal": false,
+   "adjacency": 0.41,
+   "attack_frac": 0.9722,
+   "arms": {
+    "Subspace-Q + EWMA (ours)": {
+     "stream_fpr@1": 43.07,
+     "free_fpr@1": 0.59,
+     "stream_fpr@2": 51.33,
+     "free_fpr@2": 1.77,
+     "stream_fpr@5": 51.33,
+     "free_fpr@5": 4.72
+    },
+    "POT": {
+     "stream_fpr@1": 0.59,
+     "free_fpr@1": 0.59,
+     "stream_fpr@2": 0.59,
+     "free_fpr@2": 0.59,
+     "stream_fpr@5": 0.59,
+     "free_fpr@5": 0.59
+    },
+    "DSPOT": {
+     "stream_fpr@1": 100.0,
+     "free_fpr@1": 0.59,
+     "stream_fpr@2": 100.0,
+     "free_fpr@2": 0.59,
+     "stream_fpr@5": 100.0,
+     "free_fpr@5": 0.59
+    },
+    "ECOD": {
+     "stream_fpr@1": 0.59,
+     "free_fpr@1": 0.59,
+     "stream_fpr@2": 0.59,
+     "free_fpr@2": 0.59,
+     "stream_fpr@5": 0.59,
+     "free_fpr@5": 0.59
+    },
+    "COPOD": {
+     "stream_fpr@1": 0.59,
+     "free_fpr@1": 0.59,
+     "stream_fpr@2": 0.59,
+     "free_fpr@2": 0.59,
+     "stream_fpr@5": 0.59,
+     "free_fpr@5": 0.59
+    },
+    "HBOS": {
+     "stream_fpr@1": 0.59,
+     "free_fpr@1": 0.59,
+     "stream_fpr@2": 0.59,
+     "free_fpr@2": 0.59,
+     "stream_fpr@5": 0.59,
+     "free_fpr@5": 0.59
+    },
+    "LODA": {
+     "stream_fpr@1": 0.0,
+     "free_fpr@1": 0.0,
+     "stream_fpr@2": 0.0,
+     "free_fpr@2": 0.0,
+     "stream_fpr@5": 0.0,
+     "free_fpr@5": 0.0
+    },
+    "INNE": {
+     "stream_fpr@1": 0.59,
+     "free_fpr@1": 0.59,
+     "stream_fpr@2": 0.59,
+     "free_fpr@2": 0.59,
+     "stream_fpr@5": 0.59,
+     "free_fpr@5": 0.59
+    },
+    "IForest": {
+     "stream_fpr@1": 0.59,
+     "free_fpr@1": 0.59,
+     "stream_fpr@2": 0.59,
+     "free_fpr@2": 0.59,
+     "stream_fpr@5": 0.59,
+     "free_fpr@5": 0.59
+    },
+    "DIF": {
+     "stream_fpr@1": 0.59,
+     "free_fpr@1": 0.59,
+     "stream_fpr@2": 0.59,
+     "free_fpr@2": 0.59,
+     "stream_fpr@5": 0.59,
+     "free_fpr@5": 0.59
+    }
+   }
+  },
+  {
+   "corpus": "CIC_IOT_Dataset2023",
+   "file": "DDoS-ICMP_Fragmentation.json",
+   "label": "CIC_IOT_Dataset2023 DDoS-ICMP_Fragmentation",
+   "verdict": "ROLE-UNVERIFIED",
+   "split_mode": "crossfile",
+   "causal": false,
+   "adjacency": 0.3257,
+   "attack_frac": 0.8237,
+   "arms": {
+    "Subspace-Q + EWMA (ours)": {
+     "stream_fpr@1": 0.32,
+     "free_fpr@1": 0.5,
+     "stream_fpr@2": 0.78,
+     "free_fpr@2": 1.14,
+     "stream_fpr@5": 2.8,
+     "free_fpr@5": 3.93
+    },
+    "POT": {
+     "stream_fpr@1": 2.38,
+     "free_fpr@1": 2.38,
+     "stream_fpr@2": 3.24,
+     "free_fpr@2": 3.24,
+     "stream_fpr@5": 8.32,
+     "free_fpr@5": 8.32
+    },
+    "DSPOT": {
+     "stream_fpr@1": 0.01,
+     "free_fpr@1": 0.01,
+     "stream_fpr@2": 0.01,
+     "free_fpr@2": 0.01,
+     "stream_fpr@5": 0.01,
+     "free_fpr@5": 0.01
+    },
+    "ECOD": {
+     "stream_fpr@1": 0.22,
+     "free_fpr@1": 0.22,
+     "stream_fpr@2": 0.22,
+     "free_fpr@2": 0.22,
+     "stream_fpr@5": 4.5,
+     "free_fpr@5": 4.5
+    },
+    "COPOD": {
+     "stream_fpr@1": 0.18,
+     "free_fpr@1": 0.18,
+     "stream_fpr@2": 0.18,
+     "free_fpr@2": 0.18,
+     "stream_fpr@5": 4.55,
+     "free_fpr@5": 4.55
+    },
+    "HBOS": {
+     "stream_fpr@1": 0.4,
+     "free_fpr@1": 0.4,
+     "stream_fpr@2": 1.49,
+     "free_fpr@2": 1.49,
+     "stream_fpr@5": 2.27,
+     "free_fpr@5": 2.27
+    },
+    "LODA": {
+     "stream_fpr@1": 0.93,
+     "free_fpr@1": 0.93,
+     "stream_fpr@2": 1.09,
+     "free_fpr@2": 1.13,
+     "stream_fpr@5": 2.05,
+     "free_fpr@5": 2.09
+    },
+    "INNE": {
+     "stream_fpr@1": 0.0,
+     "free_fpr@1": 0.0,
+     "stream_fpr@2": 2.55,
+     "free_fpr@2": 2.55,
+     "stream_fpr@5": 3.07,
+     "free_fpr@5": 3.07
+    },
+    "IForest": {
+     "stream_fpr@1": 1.09,
+     "free_fpr@1": 1.09,
+     "stream_fpr@2": 2.17,
+     "free_fpr@2": 2.17,
+     "stream_fpr@5": 3.14,
+     "free_fpr@5": 3.14
+    },
+    "DIF": {
+     "stream_fpr@1": 0.22,
+     "free_fpr@1": 0.22,
+     "stream_fpr@2": 0.22,
+     "free_fpr@2": 0.22,
+     "stream_fpr@5": 4.51,
+     "free_fpr@5": 4.51
+    }
+   }
+  },
+  {
+   "corpus": "CIC_IOT_Dataset2023",
+   "file": "DDoS-PSHACK_Flood.json",
+   "label": "CIC_IOT_Dataset2023 DDoS-PSHACK_Flood",
+   "verdict": "ROLE-UNVERIFIED",
+   "split_mode": "crossfile",
+   "causal": false,
+   "adjacency": 0.0003,
+   "attack_frac": 0.3475,
+   "arms": {
+    "Subspace-Q + EWMA (ours)": {
+     "stream_fpr@1": 0.76,
+     "free_fpr@1": 0.73,
+     "stream_fpr@2": 2.25,
+     "free_fpr@2": 2.18,
+     "stream_fpr@5": 4.8,
+     "free_fpr@5": 4.73
+    },
+    "POT": {
+     "stream_fpr@1": 0.66,
+     "free_fpr@1": 0.66,
+     "stream_fpr@2": 1.09,
+     "free_fpr@2": 1.09,
+     "stream_fpr@5": 4.5,
+     "free_fpr@5": 4.5
+    },
+    "DSPOT": {
+     "stream_fpr@1": 99.97,
+     "free_fpr@1": 92.62,
+     "stream_fpr@2": 99.97,
+     "free_fpr@2": 92.62,
+     "stream_fpr@5": 99.97,
+     "free_fpr@5": 92.65
+    },
+    "ECOD": {
+     "stream_fpr@1": 1.29,
+     "free_fpr@1": 1.29,
+     "stream_fpr@2": 1.99,
+     "free_fpr@2": 1.99,
+     "stream_fpr@5": 6.22,
+     "free_fpr@5": 6.22
+    },
+    "COPOD": {
+     "stream_fpr@1": 1.29,
+     "free_fpr@1": 1.29,
+     "stream_fpr@2": 1.99,
+     "free_fpr@2": 1.99,
+     "stream_fpr@5": 6.22,
+     "free_fpr@5": 6.22
+    },
+    "HBOS": {
+     "stream_fpr@1": 1.19,
+     "free_fpr@1": 1.19,
+     "stream_fpr@2": 1.85,
+     "free_fpr@2": 1.85,
+     "stream_fpr@5": 4.57,
+     "free_fpr@5": 4.57
+    },
+    "LODA": {
+     "stream_fpr@1": 0.07,
+     "free_fpr@1": 0.07,
+     "stream_fpr@2": 0.07,
+     "free_fpr@2": 0.07,
+     "stream_fpr@5": 4.63,
+     "free_fpr@5": 4.63
+    },
+    "INNE": {
+     "stream_fpr@1": 0.66,
+     "free_fpr@1": 0.66,
+     "stream_fpr@2": 1.56,
+     "free_fpr@2": 1.56,
+     "stream_fpr@5": 4.37,
+     "free_fpr@5": 4.37
+    },
+    "IForest": {
+     "stream_fpr@1": 0.76,
+     "free_fpr@1": 0.76,
+     "stream_fpr@2": 2.42,
+     "free_fpr@2": 2.42,
+     "stream_fpr@5": 4.7,
+     "free_fpr@5": 4.7
+    },
+    "DIF": {
+     "stream_fpr@1": 1.06,
+     "free_fpr@1": 1.06,
+     "stream_fpr@2": 1.69,
+     "free_fpr@2": 1.69,
+     "stream_fpr@5": 4.1,
+     "free_fpr@5": 4.1
+    }
+   }
+  },
+  {
+   "corpus": "CIC_IOT_Dataset2023",
+   "file": "DDoS-RSTFINFlood.json",
+   "label": "CIC_IOT_Dataset2023 DDoS-RSTFINFlood",
+   "verdict": "ROLE-UNVERIFIED",
+   "split_mode": "crossfile",
+   "causal": false,
+   "adjacency": 0.0581,
+   "attack_frac": 0.5991,
+   "arms": {
+    "Subspace-Q + EWMA (ours)": {
+     "stream_fpr@1": 5.41,
+     "free_fpr@1": 0.62,
+     "stream_fpr@2": 6.21,
+     "free_fpr@2": 1.06,
+     "stream_fpr@5": 9.35,
+     "free_fpr@5": 3.81
+    },
+    "POT": {
+     "stream_fpr@1": 0.49,
+     "free_fpr@1": 0.49,
+     "stream_fpr@2": 1.24,
+     "free_fpr@2": 1.24,
+     "stream_fpr@5": 4.43,
+     "free_fpr@5": 4.43
+    },
+    "DSPOT": {
+     "stream_fpr@1": 2.57,
+     "free_fpr@1": 0.09,
+     "stream_fpr@2": 2.62,
+     "free_fpr@2": 0.09,
+     "stream_fpr@5": 5.14,
+     "free_fpr@5": 2.35
+    },
+    "ECOD": {
+     "stream_fpr@1": 1.2,
+     "free_fpr@1": 1.2,
+     "stream_fpr@2": 2.3,
+     "free_fpr@2": 2.3,
+     "stream_fpr@5": 5.05,
+     "free_fpr@5": 5.05
+    },
+    "COPOD": {
+     "stream_fpr@1": 1.2,
+     "free_fpr@1": 1.2,
+     "stream_fpr@2": 2.44,
+     "free_fpr@2": 2.44,
+     "stream_fpr@5": 5.41,
+     "free_fpr@5": 5.41
+    },
+    "HBOS": {
+     "stream_fpr@1": 1.11,
+     "free_fpr@1": 1.11,
+     "stream_fpr@2": 2.08,
+     "free_fpr@2": 2.08,
+     "stream_fpr@5": 4.79,
+     "free_fpr@5": 4.79
+    },
+    "LODA": {
+     "stream_fpr@1": 0.58,
+     "free_fpr@1": 0.58,
+     "stream_fpr@2": 0.58,
+     "free_fpr@2": 0.58,
+     "stream_fpr@5": 0.58,
+     "free_fpr@5": 0.58
+    },
+    "INNE": {
+     "stream_fpr@1": 1.15,
+     "free_fpr@1": 1.15,
+     "stream_fpr@2": 1.99,
+     "free_fpr@2": 1.99,
+     "stream_fpr@5": 2.08,
+     "free_fpr@5": 2.08
+    },
+    "IForest": {
+     "stream_fpr@1": 0.98,
+     "free_fpr@1": 0.98,
+     "stream_fpr@2": 2.35,
+     "free_fpr@2": 2.35,
+     "stream_fpr@5": 5.27,
+     "free_fpr@5": 5.27
+    },
+    "DIF": {
+     "stream_fpr@1": 1.42,
+     "free_fpr@1": 1.42,
+     "stream_fpr@2": 2.48,
+     "free_fpr@2": 2.48,
+     "stream_fpr@5": 5.63,
+     "free_fpr@5": 5.63
+    }
+   }
+  },
+  {
+   "corpus": "CIC_IOT_Dataset2023",
+   "file": "DDoS-SYN_Flood.json",
+   "label": "CIC_IOT_Dataset2023 DDoS-SYN_Flood",
+   "verdict": "USABLE",
+   "split_mode": "crossfile",
+   "causal": false,
+   "adjacency": 0.0027,
+   "attack_frac": 0.9108,
+   "arms": {
+    "Subspace-Q + EWMA (ours)": {
+     "stream_fpr@1": 0.27,
+     "free_fpr@1": 0.27,
+     "stream_fpr@2": 1.6,
+     "free_fpr@2": 1.6,
+     "stream_fpr@5": 4.55,
+     "free_fpr@5": 4.55
+    },
+    "POT": {
+     "stream_fpr@1": 0.8,
+     "free_fpr@1": 0.8,
+     "stream_fpr@2": 1.87,
+     "free_fpr@2": 1.87,
+     "stream_fpr@5": 4.81,
+     "free_fpr@5": 4.81
+    },
+    "DSPOT": {
+     "stream_fpr@1": 100.0,
+     "free_fpr@1": 94.92,
+     "stream_fpr@2": 100.0,
+     "free_fpr@2": 94.92,
+     "stream_fpr@5": 100.0,
+     "free_fpr@5": 94.92
+    },
+    "ECOD": {
+     "stream_fpr@1": 0.8,
+     "free_fpr@1": 0.8,
+     "stream_fpr@2": 1.07,
+     "free_fpr@2": 1.07,
+     "stream_fpr@5": 4.81,
+     "free_fpr@5": 4.81
+    },
+    "COPOD": {
+     "stream_fpr@1": 0.8,
+     "free_fpr@1": 0.8,
+     "stream_fpr@2": 1.07,
+     "free_fpr@2": 1.07,
+     "stream_fpr@5": 4.81,
+     "free_fpr@5": 4.81
+    },
+    "HBOS": {
+     "stream_fpr@1": 0.27,
+     "free_fpr@1": 0.27,
+     "stream_fpr@2": 0.8,
+     "free_fpr@2": 0.8,
+     "stream_fpr@5": 5.08,
+     "free_fpr@5": 5.08
+    },
+    "LODA": {
+     "stream_fpr@1": 0.27,
+     "free_fpr@1": 1.07,
+     "stream_fpr@2": 0.27,
+     "free_fpr@2": 1.07,
+     "stream_fpr@5": 0.27,
+     "free_fpr@5": 1.07
+    },
+    "INNE": {
+     "stream_fpr@1": 0.27,
+     "free_fpr@1": 0.27,
+     "stream_fpr@2": 3.21,
+     "free_fpr@2": 3.21,
+     "stream_fpr@5": 5.35,
+     "free_fpr@5": 5.35
+    },
+    "IForest": {
+     "stream_fpr@1": 1.87,
+     "free_fpr@1": 1.87,
+     "stream_fpr@2": 2.67,
+     "free_fpr@2": 2.67,
+     "stream_fpr@5": 5.35,
+     "free_fpr@5": 5.35
+    },
+    "DIF": {
+     "stream_fpr@1": 1.07,
+     "free_fpr@1": 1.07,
+     "stream_fpr@2": 2.41,
+     "free_fpr@2": 2.41,
+     "stream_fpr@5": 5.88,
+     "free_fpr@5": 5.88
+    }
+   }
+  },
+  {
+   "corpus": "CIC_IOT_Dataset2023",
+   "file": "DDoS-SlowLoris.json",
+   "label": "CIC_IOT_Dataset2023 DDoS-SlowLoris",
+   "verdict": "ROLE-UNVERIFIED",
+   "split_mode": "crossfile",
+   "causal": false,
+   "adjacency": 0.0027,
+   "attack_frac": 0.9308,
+   "arms": {
+    "Subspace-Q + EWMA (ours)": {
+     "stream_fpr@1": 0.0,
+     "free_fpr@1": 0.0,
+     "stream_fpr@2": 0.0,
+     "free_fpr@2": 0.0,
+     "stream_fpr@5": 4.55,
+     "free_fpr@5": 4.28
+    },
+    "POT": {
+     "stream_fpr@1": 0.53,
+     "free_fpr@1": 0.53,
+     "stream_fpr@2": 0.53,
+     "free_fpr@2": 0.53,
+     "stream_fpr@5": 3.74,
+     "free_fpr@5": 3.74
+    },
+    "DSPOT": {
+     "stream_fpr@1": 91.44,
+     "free_fpr@1": 89.04,
+     "stream_fpr@2": 91.44,
+     "free_fpr@2": 89.04,
+     "stream_fpr@5": 91.44,
+     "free_fpr@5": 91.44
+    },
+    "ECOD": {
+     "stream_fpr@1": 0.27,
+     "free_fpr@1": 0.27,
+     "stream_fpr@2": 1.07,
+     "free_fpr@2": 1.07,
+     "stream_fpr@5": 4.01,
+     "free_fpr@5": 4.01
+    },
+    "COPOD": {
+     "stream_fpr@1": 0.27,
+     "free_fpr@1": 0.27,
+     "stream_fpr@2": 1.07,
+     "free_fpr@2": 1.07,
+     "stream_fpr@5": 4.01,
+     "free_fpr@5": 4.01
+    },
+    "HBOS": {
+     "stream_fpr@1": 0.53,
+     "free_fpr@1": 0.53,
+     "stream_fpr@2": 1.07,
+     "free_fpr@2": 1.07,
+     "stream_fpr@5": 3.74,
+     "free_fpr@5": 3.74
+    },
+    "LODA": {
+     "stream_fpr@1": 1.34,
+     "free_fpr@1": 1.34,
+     "stream_fpr@2": 1.34,
+     "free_fpr@2": 1.34,
+     "stream_fpr@5": 1.34,
+     "free_fpr@5": 1.34
+    },
+    "INNE": {
+     "stream_fpr@1": 0.27,
+     "free_fpr@1": 0.27,
+     "stream_fpr@2": 0.53,
+     "free_fpr@2": 0.53,
+     "stream_fpr@5": 3.21,
+     "free_fpr@5": 3.21
+    },
+    "IForest": {
+     "stream_fpr@1": 0.27,
+     "free_fpr@1": 0.27,
+     "stream_fpr@2": 1.07,
+     "free_fpr@2": 1.07,
+     "stream_fpr@5": 4.55,
+     "free_fpr@5": 4.55
+    },
+    "DIF": {
+     "stream_fpr@1": 0.27,
+     "free_fpr@1": 0.27,
+     "stream_fpr@2": 0.27,
+     "free_fpr@2": 0.27,
+     "stream_fpr@5": 2.67,
+     "free_fpr@5": 2.67
+    }
+   }
+  },
+  {
+   "corpus": "CIC_IOT_Dataset2023",
+   "file": "DDoS-SynonymousIP_Flood.json",
+   "label": "CIC_IOT_Dataset2023 DDoS-SynonymousIP_Flood",
+   "verdict": "USABLE",
+   "split_mode": "crossfile",
+   "causal": false,
+   "adjacency": 0.1221,
+   "attack_frac": 0.6558,
+   "arms": {
+    "Subspace-Q + EWMA (ours)": {
+     "stream_fpr@1": 14.15,
+     "free_fpr@1": 1.03,
+     "stream_fpr@2": 15.47,
+     "free_fpr@2": 2.23,
+     "stream_fpr@5": 19.43,
+     "free_fpr@5": 5.85
+    },
+    "POT": {
+     "stream_fpr@1": 0.29,
+     "free_fpr@1": 0.29,
+     "stream_fpr@2": 0.29,
+     "free_fpr@2": 0.29,
+     "stream_fpr@5": 0.29,
+     "free_fpr@5": 0.29
+    },
+    "DSPOT": {
+     "stream_fpr@1": 100.0,
+     "free_fpr@1": 1.83,
+     "stream_fpr@2": 100.0,
+     "free_fpr@2": 3.27,
+     "stream_fpr@5": 100.0,
+     "free_fpr@5": 6.53
+    },
+    "ECOD": {
+     "stream_fpr@1": 0.52,
+     "free_fpr@1": 0.52,
+     "stream_fpr@2": 0.52,
+     "free_fpr@2": 0.52,
+     "stream_fpr@5": 0.52,
+     "free_fpr@5": 0.52
+    },
+    "COPOD": {
+     "stream_fpr@1": 0.46,
+     "free_fpr@1": 0.46,
+     "stream_fpr@2": 0.46,
+     "free_fpr@2": 0.46,
+     "stream_fpr@5": 0.46,
+     "free_fpr@5": 0.46
+    },
+    "HBOS": {
+     "stream_fpr@1": 0.52,
+     "free_fpr@1": 0.52,
+     "stream_fpr@2": 0.52,
+     "free_fpr@2": 0.52,
+     "stream_fpr@5": 0.52,
+     "free_fpr@5": 0.52
+    },
+    "LODA": {
+     "stream_fpr@1": 0.0,
+     "free_fpr@1": 0.0,
+     "stream_fpr@2": 0.0,
+     "free_fpr@2": 0.0,
+     "stream_fpr@5": 0.0,
+     "free_fpr@5": 0.0
+    },
+    "INNE": {
+     "stream_fpr@1": 1.09,
+     "free_fpr@1": 1.09,
+     "stream_fpr@2": 1.49,
+     "free_fpr@2": 1.49,
+     "stream_fpr@5": 2.69,
+     "free_fpr@5": 2.69
+    },
+    "IForest": {
+     "stream_fpr@1": 0.69,
+     "free_fpr@1": 0.69,
+     "stream_fpr@2": 1.66,
+     "free_fpr@2": 1.66,
+     "stream_fpr@5": 2.69,
+     "free_fpr@5": 2.69
+    },
+    "DIF": {
+     "stream_fpr@1": 0.92,
+     "free_fpr@1": 0.92,
+     "stream_fpr@2": 1.72,
+     "free_fpr@2": 1.72,
+     "stream_fpr@5": 2.35,
+     "free_fpr@5": 2.35
+    }
+   }
+  },
+  {
+   "corpus": "CIC_IOT_Dataset2023",
+   "file": "DDoS-TCP_Flood.json",
+   "label": "CIC_IOT_Dataset2023 DDoS-TCP_Flood",
+   "verdict": "USABLE",
+   "split_mode": "crossfile",
+   "causal": false,
+   "adjacency": 0.0027,
+   "attack_frac": 0.9078,
+   "arms": {
+    "Subspace-Q + EWMA (ours)": {
+     "stream_fpr@1": 0.27,
+     "free_fpr@1": 0.27,
+     "stream_fpr@2": 1.87,
+     "free_fpr@2": 1.6,
+     "stream_fpr@5": 4.81,
+     "free_fpr@5": 4.55
+    },
+    "POT": {
+     "stream_fpr@1": 0.8,
+     "free_fpr@1": 0.8,
+     "stream_fpr@2": 1.87,
+     "free_fpr@2": 1.87,
+     "stream_fpr@5": 4.81,
+     "free_fpr@5": 4.81
+    },
+    "DSPOT": {
+     "stream_fpr@1": 100.0,
+     "free_fpr@1": 94.92,
+     "stream_fpr@2": 100.0,
+     "free_fpr@2": 94.92,
+     "stream_fpr@5": 100.0,
+     "free_fpr@5": 94.92
+    },
+    "ECOD": {
+     "stream_fpr@1": 0.8,
+     "free_fpr@1": 0.8,
+     "stream_fpr@2": 1.07,
+     "free_fpr@2": 1.07,
+     "stream_fpr@5": 4.81,
+     "free_fpr@5": 4.81
+    },
+    "COPOD": {
+     "stream_fpr@1": 0.8,
+     "free_fpr@1": 0.8,
+     "stream_fpr@2": 1.07,
+     "free_fpr@2": 1.07,
+     "stream_fpr@5": 4.81,
+     "free_fpr@5": 4.81
+    },
+    "HBOS": {
+     "stream_fpr@1": 0.27,
+     "free_fpr@1": 0.27,
+     "stream_fpr@2": 0.8,
+     "free_fpr@2": 0.8,
+     "stream_fpr@5": 5.08,
+     "free_fpr@5": 5.08
+    },
+    "LODA": {
+     "stream_fpr@1": 0.27,
+     "free_fpr@1": 1.07,
+     "stream_fpr@2": 0.27,
+     "free_fpr@2": 1.07,
+     "stream_fpr@5": 0.27,
+     "free_fpr@5": 1.07
+    },
+    "INNE": {
+     "stream_fpr@1": 0.27,
+     "free_fpr@1": 0.27,
+     "stream_fpr@2": 3.21,
+     "free_fpr@2": 3.21,
+     "stream_fpr@5": 5.35,
+     "free_fpr@5": 5.35
+    },
+    "IForest": {
+     "stream_fpr@1": 1.87,
+     "free_fpr@1": 1.87,
+     "stream_fpr@2": 2.67,
+     "free_fpr@2": 2.67,
+     "stream_fpr@5": 5.35,
+     "free_fpr@5": 5.35
+    },
+    "DIF": {
+     "stream_fpr@1": 1.07,
+     "free_fpr@1": 1.07,
+     "stream_fpr@2": 2.41,
+     "free_fpr@2": 2.41,
+     "stream_fpr@5": 5.88,
+     "free_fpr@5": 5.88
+    }
+   }
+  },
+  {
+   "corpus": "CIC_IOT_Dataset2023",
+   "file": "DDoS-UDP_Flood.json",
+   "label": "CIC_IOT_Dataset2023 DDoS-UDP_Flood",
+   "verdict": "USABLE",
+   "split_mode": "crossfile",
+   "causal": false,
+   "adjacency": 0.3449,
+   "attack_frac": 0.9659,
+   "arms": {
+    "Subspace-Q + EWMA (ours)": {
+     "stream_fpr@1": 5.61,
+     "free_fpr@1": 0.27,
+     "stream_fpr@2": 29.41,
+     "free_fpr@2": 1.6,
+     "stream_fpr@5": 37.17,
+     "free_fpr@5": 4.55
+    },
+    "POT": {
+     "stream_fpr@1": 0.8,
+     "free_fpr@1": 0.8,
+     "stream_fpr@2": 1.87,
+     "free_fpr@2": 1.87,
+     "stream_fpr@5": 4.81,
+     "free_fpr@5": 4.81
+    },
+    "DSPOT": {
+     "stream_fpr@1": 100.0,
+     "free_fpr@1": 94.92,
+     "stream_fpr@2": 100.0,
+     "free_fpr@2": 94.92,
+     "stream_fpr@5": 100.0,
+     "free_fpr@5": 94.92
+    },
+    "ECOD": {
+     "stream_fpr@1": 0.8,
+     "free_fpr@1": 0.8,
+     "stream_fpr@2": 1.07,
+     "free_fpr@2": 1.07,
+     "stream_fpr@5": 4.81,
+     "free_fpr@5": 4.81
+    },
+    "COPOD": {
+     "stream_fpr@1": 0.8,
+     "free_fpr@1": 0.8,
+     "stream_fpr@2": 1.07,
+     "free_fpr@2": 1.07,
+     "stream_fpr@5": 4.81,
+     "free_fpr@5": 4.81
+    },
+    "HBOS": {
+     "stream_fpr@1": 0.27,
+     "free_fpr@1": 0.27,
+     "stream_fpr@2": 0.8,
+     "free_fpr@2": 0.8,
+     "stream_fpr@5": 5.08,
+     "free_fpr@5": 5.08
+    },
+    "LODA": {
+     "stream_fpr@1": 0.27,
+     "free_fpr@1": 1.07,
+     "stream_fpr@2": 0.27,
+     "free_fpr@2": 1.07,
+     "stream_fpr@5": 0.27,
+     "free_fpr@5": 1.07
+    },
+    "INNE": {
+     "stream_fpr@1": 0.27,
+     "free_fpr@1": 0.27,
+     "stream_fpr@2": 3.21,
+     "free_fpr@2": 3.21,
+     "stream_fpr@5": 5.35,
+     "free_fpr@5": 5.35
+    },
+    "IForest": {
+     "stream_fpr@1": 1.87,
+     "free_fpr@1": 1.87,
+     "stream_fpr@2": 2.67,
+     "free_fpr@2": 2.67,
+     "stream_fpr@5": 5.35,
+     "free_fpr@5": 5.35
+    },
+    "DIF": {
+     "stream_fpr@1": 1.07,
+     "free_fpr@1": 1.07,
+     "stream_fpr@2": 2.41,
+     "free_fpr@2": 2.41,
+     "stream_fpr@5": 5.88,
+     "free_fpr@5": 5.88
+    }
+   }
+  },
+  {
+   "corpus": "CIC_IOT_Dataset2023",
+   "file": "DDoS-UDP_Fragmentation.json",
+   "label": "CIC_IOT_Dataset2023 DDoS-UDP_Fragmentation",
+   "verdict": "ROLE-UNVERIFIED",
+   "split_mode": "crossfile",
+   "causal": false,
+   "adjacency": 0.3272,
+   "attack_frac": 0.9026,
+   "arms": {
+    "Subspace-Q + EWMA (ours)": {
+     "stream_fpr@1": 14.06,
+     "free_fpr@1": 0.64,
+     "stream_fpr@2": 16.54,
+     "free_fpr@2": 1.29,
+     "stream_fpr@5": 27.11,
+     "free_fpr@5": 5.24
+    },
+    "POT": {
+     "stream_fpr@1": 0.92,
+     "free_fpr@1": 0.92,
+     "stream_fpr@2": 1.29,
+     "free_fpr@2": 1.29,
+     "stream_fpr@5": 3.77,
+     "free_fpr@5": 3.77
+    },
+    "DSPOT": {
+     "stream_fpr@1": 86.86,
+     "free_fpr@1": 2.21,
+     "stream_fpr@2": 86.86,
+     "free_fpr@2": 2.21,
+     "stream_fpr@5": 86.86,
+     "free_fpr@5": 11.67
+    },
+    "ECOD": {
+     "stream_fpr@1": 1.01,
+     "free_fpr@1": 1.01,
+     "stream_fpr@2": 1.47,
+     "free_fpr@2": 1.47,
+     "stream_fpr@5": 4.23,
+     "free_fpr@5": 4.23
+    },
+    "COPOD": {
+     "stream_fpr@1": 0.92,
+     "free_fpr@1": 0.92,
+     "stream_fpr@2": 1.65,
+     "free_fpr@2": 1.65,
+     "stream_fpr@5": 4.23,
+     "free_fpr@5": 4.23
+    },
+    "HBOS": {
+     "stream_fpr@1": 0.64,
+     "free_fpr@1": 0.64,
+     "stream_fpr@2": 1.38,
+     "free_fpr@2": 1.38,
+     "stream_fpr@5": 5.15,
+     "free_fpr@5": 5.15
+    },
+    "LODA": {
+     "stream_fpr@1": 0.28,
+     "free_fpr@1": 0.28,
+     "stream_fpr@2": 1.47,
+     "free_fpr@2": 1.47,
+     "stream_fpr@5": 1.56,
+     "free_fpr@5": 1.56
+    },
+    "INNE": {
+     "stream_fpr@1": 0.28,
+     "free_fpr@1": 0.28,
+     "stream_fpr@2": 1.29,
+     "free_fpr@2": 1.29,
+     "stream_fpr@5": 4.04,
+     "free_fpr@5": 4.04
+    },
+    "IForest": {
+     "stream_fpr@1": 0.74,
+     "free_fpr@1": 0.74,
+     "stream_fpr@2": 1.47,
+     "free_fpr@2": 1.47,
+     "stream_fpr@5": 4.41,
+     "free_fpr@5": 4.41
+    },
+    "DIF": {
+     "stream_fpr@1": 1.01,
+     "free_fpr@1": 1.01,
+     "stream_fpr@2": 2.67,
+     "free_fpr@2": 2.67,
+     "stream_fpr@5": 5.15,
+     "free_fpr@5": 5.15
+    }
+   }
+  },
+  {
+   "corpus": "CIC_IOT_Dataset2023",
+   "file": "Mirai-udpplain.json",
+   "label": "CIC_IOT_Dataset2023 Mirai-udpplain",
+   "verdict": "USABLE",
+   "split_mode": "crossfile",
+   "causal": false,
+   "adjacency": 0.1084,
+   "attack_frac": 0.9671,
+   "arms": {
+    "Subspace-Q + EWMA (ours)": {
+     "stream_fpr@1": 0.0,
+     "free_fpr@1": 0.0,
+     "stream_fpr@2": 0.0,
+     "free_fpr@2": 0.0,
+     "stream_fpr@5": 12.95,
+     "free_fpr@5": 1.81
+    },
+    "POT": {
+     "stream_fpr@1": 0.0,
+     "free_fpr@1": 0.0,
+     "stream_fpr@2": 0.0,
+     "free_fpr@2": 0.0,
+     "stream_fpr@5": 2.41,
+     "free_fpr@5": 2.41
+    },
+    "DSPOT": {
+     "stream_fpr@1": 100.0,
+     "free_fpr@1": 0.0,
+     "stream_fpr@2": 100.0,
+     "free_fpr@2": 0.3,
+     "stream_fpr@5": 100.0,
+     "free_fpr@5": 92.47
+    },
+    "ECOD": {
+     "stream_fpr@1": 0.3,
+     "free_fpr@1": 0.3,
+     "stream_fpr@2": 0.9,
+     "free_fpr@2": 0.9,
+     "stream_fpr@5": 3.31,
+     "free_fpr@5": 3.31
+    },
+    "COPOD": {
+     "stream_fpr@1": 0.3,
+     "free_fpr@1": 0.3,
+     "stream_fpr@2": 0.9,
+     "free_fpr@2": 0.9,
+     "stream_fpr@5": 3.31,
+     "free_fpr@5": 3.31
+    },
+    "HBOS": {
+     "stream_fpr@1": 0.3,
+     "free_fpr@1": 0.3,
+     "stream_fpr@2": 0.9,
+     "free_fpr@2": 0.9,
+     "stream_fpr@5": 3.61,
+     "free_fpr@5": 3.61
+    },
+    "LODA": {
+     "stream_fpr@1": 0.3,
+     "free_fpr@1": 0.3,
+     "stream_fpr@2": 0.9,
+     "free_fpr@2": 0.9,
+     "stream_fpr@5": 0.9,
+     "free_fpr@5": 0.9
+    },
+    "INNE": {
+     "stream_fpr@1": 0.0,
+     "free_fpr@1": 0.0,
+     "stream_fpr@2": 0.0,
+     "free_fpr@2": 0.0,
+     "stream_fpr@5": 2.41,
+     "free_fpr@5": 2.41
+    },
+    "IForest": {
+     "stream_fpr@1": 0.3,
+     "free_fpr@1": 0.3,
+     "stream_fpr@2": 0.9,
+     "free_fpr@2": 0.9,
+     "stream_fpr@5": 3.61,
+     "free_fpr@5": 3.61
+    },
+    "DIF": {
+     "stream_fpr@1": 0.0,
+     "free_fpr@1": 0.0,
+     "stream_fpr@2": 0.0,
+     "free_fpr@2": 0.0,
+     "stream_fpr@5": 1.2,
+     "free_fpr@5": 1.2
+    }
+   }
+  },
+  {
+   "corpus": "LITNET-2020",
+   "file": "code_red_worm.json",
+   "label": "LITNET-2020 code_red_worm",
+   "verdict": "USABLE",
+   "split_mode": "within",
+   "causal": true,
+   "adjacency": 0.0383,
+   "attack_frac": 0.5243,
+   "arms": {
+    "Subspace-Q + EWMA (ours)": {
+     "stream_fpr@1": 0.64,
+     "free_fpr@1": 0.32,
+     "stream_fpr@2": 5.43,
+     "free_fpr@2": 4.79,
+     "stream_fpr@5": 23.96,
+     "free_fpr@5": 23.0
+    },
+    "POT": {
+     "stream_fpr@1": 51.12,
+     "free_fpr@1": 51.12,
+     "stream_fpr@2": 62.62,
+     "free_fpr@2": 62.62,
+     "stream_fpr@5": 74.12,
+     "free_fpr@5": 74.12
+    },
+    "DSPOT": {
+     "stream_fpr@1": 100.0,
+     "free_fpr@1": 100.0,
+     "stream_fpr@2": 100.0,
+     "free_fpr@2": 100.0,
+     "stream_fpr@5": 100.0,
+     "free_fpr@5": 100.0
+    },
+    "ECOD": {
+     "stream_fpr@1": 4.47,
+     "free_fpr@1": 4.47,
+     "stream_fpr@2": 9.58,
+     "free_fpr@2": 9.58,
+     "stream_fpr@5": 38.98,
+     "free_fpr@5": 38.98
+    },
+    "COPOD": {
+     "stream_fpr@1": 3.19,
+     "free_fpr@1": 3.19,
+     "stream_fpr@2": 9.9,
+     "free_fpr@2": 9.9,
+     "stream_fpr@5": 39.3,
+     "free_fpr@5": 39.3
+    },
+    "HBOS": {
+     "stream_fpr@1": 3.83,
+     "free_fpr@1": 3.83,
+     "stream_fpr@2": 3.83,
+     "free_fpr@2": 3.83,
+     "stream_fpr@5": 5.43,
+     "free_fpr@5": 5.43
+    },
+    "LODA": {
+     "stream_fpr@1": 5.11,
+     "free_fpr@1": 5.11,
+     "stream_fpr@2": 10.86,
+     "free_fpr@2": 10.86,
+     "stream_fpr@5": 21.73,
+     "free_fpr@5": 21.73
+    },
+    "INNE": {
+     "stream_fpr@1": 40.58,
+     "free_fpr@1": 40.58,
+     "stream_fpr@2": 42.81,
+     "free_fpr@2": 42.81,
+     "stream_fpr@5": 57.83,
+     "free_fpr@5": 57.83
+    },
+    "IForest": {
+     "stream_fpr@1": 4.47,
+     "free_fpr@1": 4.47,
+     "stream_fpr@2": 6.07,
+     "free_fpr@2": 6.07,
+     "stream_fpr@5": 41.85,
+     "free_fpr@5": 41.85
+    },
+    "DIF": {
+     "stream_fpr@1": 67.41,
+     "free_fpr@1": 67.41,
+     "stream_fpr@2": 75.72,
+     "free_fpr@2": 75.72,
+     "stream_fpr@5": 84.66,
+     "free_fpr@5": 84.66
+    }
+   }
+  }
+ ]
+}

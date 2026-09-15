@@ -36,7 +36,8 @@ import run_crosscorpus_auc as R
 import post2023_competitors as C
 from run_post2023_benchmark import load_case, tkey, dr_at
 
-EXTRACTED = '/home/detector/Projects/antiddos/datasets/extracted'
+EXTRACTED = os.path.join(os.environ.get('ANTIDDOS_BASE', '/home/detector/Projects/antiddos'),
+            'datasets', 'extracted')
 OUT = os.path.join(RESULTS_DIR, 'final_evaluation.json')
 ALPHA, K = 0.5, 8
 TARGETS = (0.01, 0.02, 0.05)
