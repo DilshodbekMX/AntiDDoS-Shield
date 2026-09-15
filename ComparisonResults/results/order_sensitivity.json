@@ -1,0 +1,5817 @@
+{
+ "note": "How much of CIC-IoT-2023 depends on an ordering that did not happen?\n\ntkey() sorts on `_id_time`, a per-file window index. On CIC-IoT-2023 the benign traffic\nis a separate capture, so the two index origins are independent and their ranges overlap:\nthe interleaving of the classes is an index collision, not co-occurrence in time.\n\nROC AUC is order-invariant for a memoryless scorer, so this can only move the two arms\nthat carry state. We re-derive every scenario under two orders:\n\n  interleaved : as published -- both classes merged on the shared index\n  appended    : each class sorted on its own index, benign block then attack block.\n                Not a chronology either, but it invents no cross-class co-occurrence,\n                which is the only thing we actually know about two separate captures.\n\nReports AUC and realized FPR for every arm under both. Corpora whose two classes come\nfrom ONE capture are included as controls: there the index IS monotone in time, so the\npublished order is defensible and any movement there is a pure order effect to calibrate\nthe CIC-IoT movement against.\n\nWrites results/order_sensitivity.json.",
+ "summary": {
+  "CIC-IoT-2023 (separate capture)": {
+   "Subspace-Q + EWMA (ours)": {
+    "interleaved_mean_auc": 0.920108,
+    "appended_mean_auc": 0.923031,
+    "delta": 0.002923,
+    "rows_moved": 11
+   },
+   "POT": {
+    "interleaved_mean_auc": 0.914186,
+    "appended_mean_auc": 0.914186,
+    "delta": 0.0,
+    "rows_moved": 0
+   },
+   "DSPOT": {
+    "interleaved_mean_auc": 0.523903,
+    "appended_mean_auc": 0.852771,
+    "delta": 0.328868,
+    "rows_moved": 12
+   },
+   "ECOD": {
+    "interleaved_mean_auc": 0.887358,
+    "appended_mean_auc": 0.887358,
+    "delta": 0.0,
+    "rows_moved": 0
+   },
+   "COPOD": {
+    "interleaved_mean_auc": 0.878223,
+    "appended_mean_auc": 0.878223,
+    "delta": 0.0,
+    "rows_moved": 0
+   },
+   "HBOS": {
+    "interleaved_mean_auc": 0.846401,
+    "appended_mean_auc": 0.846401,
+    "delta": 0.0,
+    "rows_moved": 0
+   },
+   "LODA": {
+    "interleaved_mean_auc": 0.395989,
+    "appended_mean_auc": 0.395989,
+    "delta": 0.0,
+    "rows_moved": 1
+   },
+   "INNE": {
+    "interleaved_mean_auc": 0.916577,
+    "appended_mean_auc": 0.916577,
+    "delta": 0.0,
+    "rows_moved": 0
+   },
+   "IForest": {
+    "interleaved_mean_auc": 0.88035,
+    "appended_mean_auc": 0.88035,
+    "delta": 0.0,
+    "rows_moved": 0
+   },
+   "DIF": {
+    "interleaved_mean_auc": 0.918651,
+    "appended_mean_auc": 0.918651,
+    "delta": 0.0,
+    "rows_moved": 0
+   },
+   "n": 13
+  },
+  "other corpora (single capture)": {
+   "Subspace-Q + EWMA (ours)": {
+    "interleaved_mean_auc": 0.991541,
+    "appended_mean_auc": 0.994047,
+    "delta": 0.002506,
+    "rows_moved": 16
+   },
+   "POT": {
+    "interleaved_mean_auc": 0.966691,
+    "appended_mean_auc": 0.966691,
+    "delta": 0.0,
+    "rows_moved": 0
+   },
+   "DSPOT": {
+    "interleaved_mean_auc": 0.693965,
+    "appended_mean_auc": 0.906234,
+    "delta": 0.212269,
+    "rows_moved": 15
+   },
+   "ECOD": {
+    "interleaved_mean_auc": 0.963282,
+    "appended_mean_auc": 0.963282,
+    "delta": 0.0,
+    "rows_moved": 0
+   },
+   "COPOD": {
+    "interleaved_mean_auc": 0.955843,
+    "appended_mean_auc": 0.955843,
+    "delta": 0.0,
+    "rows_moved": 0
+   },
+   "HBOS": {
+    "interleaved_mean_auc": 0.93562,
+    "appended_mean_auc": 0.93562,
+    "delta": 0.0,
+    "rows_moved": 0
+   },
+   "LODA": {
+    "interleaved_mean_auc": 0.641682,
+    "appended_mean_auc": 0.641656,
+    "delta": -2.6e-05,
+    "rows_moved": 6
+   },
+   "INNE": {
+    "interleaved_mean_auc": 0.974981,
+    "appended_mean_auc": 0.974981,
+    "delta": 0.0,
+    "rows_moved": 0
+   },
+   "IForest": {
+    "interleaved_mean_auc": 0.968776,
+    "appended_mean_auc": 0.968776,
+    "delta": 0.0,
+    "rows_moved": 0
+   },
+   "DIF": {
+    "interleaved_mean_auc": 0.982774,
+    "appended_mean_auc": 0.982774,
+    "delta": 0.0,
+    "rows_moved": 0
+   },
+   "n": 16
+  }
+ },
+ "per_scenario": [
+  {
+   "corpus": "CIC-IDS-2017",
+   "file": "Fri-07-07_DDoS-LOIT.json",
+   "label": "CIC-IDS-2017 Fri-07-07_DDoS-LOIT",
+   "verdict": "USABLE",
+   "split_mode": "within",
+   "separate_capture": false,
+   "median_step_attack": 1.0,
+   "median_step_benign": 3.0,
+   "step_ratio": 3.0,
+   "key_is_numeric": true,
+   "interleaved": {
+    "Subspace-Q + EWMA (ours)": {
+     "auc": 0.99956,
+     "fpr@1": 1.42,
+     "dr@1": 99.12,
+     "fpr@2": 2.36,
+     "dr@2": 99.3,
+     "fpr@5": 7.08,
+     "dr@5": 99.82
+    },
+    "POT": {
+     "auc": 0.991772,
+     "fpr@1": 1.42,
+     "dr@1": 97.71,
+     "fpr@2": 2.83,
+     "dr@2": 97.89,
+     "fpr@5": 7.55,
+     "dr@5": 98.68
+    },
+    "DSPOT": {
+     "auc": 0.847155,
+     "fpr@1": 91.04,
+     "dr@1": 92.17,
+     "fpr@2": 91.04,
+     "dr@2": 93.05,
+     "fpr@5": 98.11,
+     "dr@5": 93.13
+    },
+    "ECOD": {
+     "auc": 0.967185,
+     "fpr@1": 1.89,
+     "dr@1": 89.26,
+     "fpr@2": 2.36,
+     "dr@2": 91.99,
+     "fpr@5": 2.83,
+     "dr@5": 93.05
+    },
+    "COPOD": {
+     "auc": 0.961878,
+     "fpr@1": 1.89,
+     "dr@1": 89.17,
+     "fpr@2": 2.36,
+     "dr@2": 90.32,
+     "fpr@5": 10.38,
+     "dr@5": 93.05
+    },
+    "HBOS": {
+     "auc": 0.860259,
+     "fpr@1": 1.89,
+     "dr@1": 0.35,
+     "fpr@2": 2.83,
+     "dr@2": 12.32,
+     "fpr@5": 13.68,
+     "dr@5": 30.19
+    },
+    "LODA": {
+     "auc": 0.964668,
+     "fpr@1": 0.47,
+     "dr@1": 49.03,
+     "fpr@2": 1.89,
+     "dr@2": 91.11,
+     "fpr@5": 4.25,
+     "dr@5": 93.4
+    },
+    "INNE": {
+     "auc": 0.994884,
+     "fpr@1": 2.36,
+     "dr@1": 97.36,
+     "fpr@2": 2.83,
+     "dr@2": 97.45,
+     "fpr@5": 2.83,
+     "dr@5": 97.45
+    },
+    "IForest": {
+     "auc": 0.964743,
+     "fpr@1": 1.89,
+     "dr@1": 1.23,
+     "fpr@2": 2.83,
+     "dr@2": 91.02,
+     "fpr@5": 4.25,
+     "dr@5": 94.45
+    },
+    "DIF": {
+     "auc": 0.995383,
+     "fpr@1": 1.89,
+     "dr@1": 91.55,
+     "fpr@2": 1.89,
+     "dr@2": 91.64,
+     "fpr@5": 2.36,
+     "dr@5": 93.49
+    }
+   },
+   "appended": {
+    "Subspace-Q + EWMA (ours)": {
+     "auc": 0.999792,
+     "fpr@1": 0.94,
+     "dr@1": 99.12,
+     "fpr@2": 1.42,
+     "dr@2": 99.3,
+     "fpr@5": 4.25,
+     "dr@5": 99.91
+    },
+    "POT": {
+     "auc": 0.991772,
+     "fpr@1": 1.42,
+     "dr@1": 97.71,
+     "fpr@2": 2.83,
+     "dr@2": 97.89,
+     "fpr@5": 7.55,
+     "dr@5": 98.68
+    },
+    "DSPOT": {
+     "auc": 0.969724,
+     "fpr@1": 0.0,
+     "dr@1": 91.9,
+     "fpr@2": 0.0,
+     "dr@2": 92.34,
+     "fpr@5": 0.0,
+     "dr@5": 93.05
+    },
+    "ECOD": {
+     "auc": 0.967185,
+     "fpr@1": 1.89,
+     "dr@1": 89.26,
+     "fpr@2": 2.36,
+     "dr@2": 91.99,
+     "fpr@5": 2.83,
+     "dr@5": 93.05
+    },
+    "COPOD": {
+     "auc": 0.961878,
+     "fpr@1": 1.89,
+     "dr@1": 89.17,
+     "fpr@2": 2.36,
+     "dr@2": 90.32,
+     "fpr@5": 10.38,
+     "dr@5": 93.05
+    },
+    "HBOS": {
+     "auc": 0.860259,
+     "fpr@1": 1.89,
+     "dr@1": 0.35,
+     "fpr@2": 2.83,
+     "dr@2": 12.32,
+     "fpr@5": 13.68,
+     "dr@5": 30.19
+    },
+    "LODA": {
+     "auc": 0.964668,
+     "fpr@1": 0.47,
+     "dr@1": 49.03,
+     "fpr@2": 1.89,
+     "dr@2": 91.11,
+     "fpr@5": 4.25,
+     "dr@5": 93.4
+    },
+    "INNE": {
+     "auc": 0.994884,
+     "fpr@1": 2.36,
+     "dr@1": 97.36,
+     "fpr@2": 2.83,
+     "dr@2": 97.45,
+     "fpr@5": 2.83,
+     "dr@5": 97.45
+    },
+    "IForest": {
+     "auc": 0.964743,
+     "fpr@1": 1.89,
+     "dr@1": 1.23,
+     "fpr@2": 2.83,
+     "dr@2": 91.02,
+     "fpr@5": 4.25,
+     "dr@5": 94.45
+    },
+    "DIF": {
+     "auc": 0.995383,
+     "fpr@1": 1.89,
+     "dr@1": 91.55,
+     "fpr@2": 1.89,
+     "dr@2": 91.64,
+     "fpr@5": 2.36,
+     "dr@5": 93.49
+    }
+   }
+  },
+  {
+   "corpus": "CIC-IDS-2017",
+   "file": "Wed-05-07_DoS-GoldenEye.json",
+   "label": "CIC-IDS-2017 Wed-05-07_DoS-GoldenEye",
+   "verdict": "USABLE",
+   "split_mode": "within",
+   "separate_capture": false,
+   "median_step_attack": 1.0,
+   "median_step_benign": 1.0,
+   "step_ratio": 1.0,
+   "key_is_numeric": true,
+   "interleaved": {
+    "Subspace-Q + EWMA (ours)": {
+     "auc": 0.997802,
+     "fpr@1": 0.66,
+     "dr@1": 95.02,
+     "fpr@2": 0.78,
+     "dr@2": 95.26,
+     "fpr@5": 2.51,
+     "dr@5": 97.63
+    },
+    "POT": {
+     "auc": 0.964491,
+     "fpr@1": 1.44,
+     "dr@1": 91.23,
+     "fpr@2": 3.05,
+     "dr@2": 91.23,
+     "fpr@5": 6.38,
+     "dr@5": 92.89
+    },
+    "DSPOT": {
+     "auc": 0.299763,
+     "fpr@1": 98.64,
+     "dr@1": 87.68,
+     "fpr@2": 98.64,
+     "dr@2": 87.68,
+     "fpr@5": 99.09,
+     "dr@5": 91.23
+    },
+    "ECOD": {
+     "auc": 0.926845,
+     "fpr@1": 1.6,
+     "dr@1": 1.9,
+     "fpr@2": 1.81,
+     "dr@2": 8.77,
+     "fpr@5": 8.68,
+     "dr@5": 81.28
+    },
+    "COPOD": {
+     "auc": 0.910744,
+     "fpr@1": 1.6,
+     "dr@1": 1.9,
+     "fpr@2": 1.81,
+     "dr@2": 2.84,
+     "fpr@5": 8.81,
+     "dr@5": 81.04
+    },
+    "HBOS": {
+     "auc": 0.858893,
+     "fpr@1": 1.73,
+     "dr@1": 0.24,
+     "fpr@2": 1.98,
+     "dr@2": 0.24,
+     "fpr@5": 7.65,
+     "dr@5": 58.06
+    },
+    "LODA": {
+     "auc": 0.932236,
+     "fpr@1": 0.74,
+     "dr@1": 0.0,
+     "fpr@2": 1.07,
+     "dr@2": 16.59,
+     "fpr@5": 4.32,
+     "dr@5": 80.57
+    },
+    "INNE": {
+     "auc": 0.979933,
+     "fpr@1": 0.04,
+     "dr@1": 71.8,
+     "fpr@2": 2.47,
+     "dr@2": 91.23,
+     "fpr@5": 5.14,
+     "dr@5": 93.13
+    },
+    "IForest": {
+     "auc": 0.941124,
+     "fpr@1": 0.82,
+     "dr@1": 2.37,
+     "fpr@2": 1.56,
+     "dr@2": 12.8,
+     "fpr@5": 6.09,
+     "dr@5": 85.78
+    },
+    "DIF": {
+     "auc": 0.984984,
+     "fpr@1": 0.25,
+     "dr@1": 77.96,
+     "fpr@2": 1.48,
+     "dr@2": 83.65,
+     "fpr@5": 4.36,
+     "dr@5": 89.81
+    }
+   },
+   "appended": {
+    "Subspace-Q + EWMA (ours)": {
+     "auc": 0.998178,
+     "fpr@1": 0.53,
+     "dr@1": 95.02,
+     "fpr@2": 0.7,
+     "dr@2": 95.26,
+     "fpr@5": 2.47,
+     "dr@5": 97.87
+    },
+    "POT": {
+     "auc": 0.964491,
+     "fpr@1": 1.44,
+     "dr@1": 91.23,
+     "fpr@2": 3.05,
+     "dr@2": 91.23,
+     "fpr@5": 6.38,
+     "dr@5": 92.89
+    },
+    "DSPOT": {
+     "auc": 0.602773,
+     "fpr@1": 89.26,
+     "dr@1": 89.1,
+     "fpr@2": 89.26,
+     "dr@2": 89.1,
+     "fpr@5": 89.75,
+     "dr@5": 92.65
+    },
+    "ECOD": {
+     "auc": 0.926845,
+     "fpr@1": 1.6,
+     "dr@1": 1.9,
+     "fpr@2": 1.81,
+     "dr@2": 8.77,
+     "fpr@5": 8.68,
+     "dr@5": 81.28
+    },
+    "COPOD": {
+     "auc": 0.910744,
+     "fpr@1": 1.6,
+     "dr@1": 1.9,
+     "fpr@2": 1.81,
+     "dr@2": 2.84,
+     "fpr@5": 8.81,
+     "dr@5": 81.04
+    },
+    "HBOS": {
+     "auc": 0.858893,
+     "fpr@1": 1.73,
+     "dr@1": 0.24,
+     "fpr@2": 1.98,
+     "dr@2": 0.24,
+     "fpr@5": 7.65,
+     "dr@5": 58.06
+    },
+    "LODA": {
+     "auc": 0.931585,
+     "fpr@1": 0.74,
+     "dr@1": 0.0,
+     "fpr@2": 1.07,
+     "dr@2": 16.59,
+     "fpr@5": 4.32,
+     "dr@5": 80.57
+    },
+    "INNE": {
+     "auc": 0.979933,
+     "fpr@1": 0.04,
+     "dr@1": 71.8,
+     "fpr@2": 2.47,
+     "dr@2": 91.23,
+     "fpr@5": 5.14,
+     "dr@5": 93.13
+    },
+    "IForest": {
+     "auc": 0.941124,
+     "fpr@1": 0.82,
+     "dr@1": 2.37,
+     "fpr@2": 1.56,
+     "dr@2": 12.8,
+     "fpr@5": 6.09,
+     "dr@5": 85.78
+    },
+    "DIF": {
+     "auc": 0.984984,
+     "fpr@1": 0.25,
+     "dr@1": 77.96,
+     "fpr@2": 1.48,
+     "dr@2": 83.65,
+     "fpr@5": 4.36,
+     "dr@5": 89.81
+    }
+   }
+  },
+  {
+   "corpus": "CIC-IDS-2017",
+   "file": "Wed-05-07_DoS-Hulk.json",
+   "label": "CIC-IDS-2017 Wed-05-07_DoS-Hulk",
+   "verdict": "USABLE",
+   "split_mode": "within",
+   "separate_capture": false,
+   "median_step_attack": 1.0,
+   "median_step_benign": 2.0,
+   "step_ratio": 2.0,
+   "key_is_numeric": true,
+   "interleaved": {
+    "Subspace-Q + EWMA (ours)": {
+     "auc": 0.994995,
+     "fpr@1": 2.05,
+     "dr@1": 94.82,
+     "fpr@2": 5.16,
+     "dr@2": 96.76,
+     "fpr@5": 6.1,
+     "dr@5": 97.19
+    },
+    "POT": {
+     "auc": 0.930945,
+     "fpr@1": 1.42,
+     "dr@1": 74.73,
+     "fpr@2": 3.31,
+     "dr@2": 83.8,
+     "fpr@5": 7.09,
+     "dr@5": 85.96
+    },
+    "DSPOT": {
+     "auc": 0.697963,
+     "fpr@1": 99.92,
+     "dr@1": 99.78,
+     "fpr@2": 99.92,
+     "dr@2": 99.78,
+     "fpr@5": 99.92,
+     "dr@5": 100.0
+    },
+    "ECOD": {
+     "auc": 0.935718,
+     "fpr@1": 1.89,
+     "dr@1": 58.96,
+     "fpr@2": 2.91,
+     "dr@2": 65.01,
+     "fpr@5": 7.52,
+     "dr@5": 76.89
+    },
+    "COPOD": {
+     "auc": 0.903979,
+     "fpr@1": 1.89,
+     "dr@1": 58.53,
+     "fpr@2": 2.88,
+     "dr@2": 64.58,
+     "fpr@5": 7.52,
+     "dr@5": 67.82
+    },
+    "HBOS": {
+     "auc": 0.856181,
+     "fpr@1": 2.01,
+     "dr@1": 0.0,
+     "fpr@2": 2.88,
+     "dr@2": 63.93,
+     "fpr@5": 7.25,
+     "dr@5": 65.66
+    },
+    "LODA": {
+     "auc": 0.926819,
+     "fpr@1": 1.22,
+     "dr@1": 2.16,
+     "fpr@2": 3.31,
+     "dr@2": 63.71,
+     "fpr@5": 6.22,
+     "dr@5": 85.96
+    },
+    "INNE": {
+     "auc": 0.975991,
+     "fpr@1": 2.09,
+     "dr@1": 86.18,
+     "fpr@2": 2.4,
+     "dr@2": 86.18,
+     "fpr@5": 6.34,
+     "dr@5": 90.5
+    },
+    "IForest": {
+     "auc": 0.953038,
+     "fpr@1": 1.61,
+     "dr@1": 57.88,
+     "fpr@2": 2.56,
+     "dr@2": 67.6,
+     "fpr@5": 6.26,
+     "dr@5": 82.07
+    },
+    "DIF": {
+     "auc": 0.976101,
+     "fpr@1": 0.75,
+     "dr@1": 80.56,
+     "fpr@2": 1.38,
+     "dr@2": 81.21,
+     "fpr@5": 5.75,
+     "dr@5": 87.47
+    }
+   },
+   "appended": {
+    "Subspace-Q + EWMA (ours)": {
+     "auc": 0.998882,
+     "fpr@1": 0.87,
+     "dr@1": 96.33,
+     "fpr@2": 3.39,
+     "dr@2": 99.14,
+     "fpr@5": 4.33,
+     "dr@5": 99.78
+    },
+    "POT": {
+     "auc": 0.930945,
+     "fpr@1": 1.42,
+     "dr@1": 74.73,
+     "fpr@2": 3.31,
+     "dr@2": 83.8,
+     "fpr@5": 7.09,
+     "dr@5": 85.96
+    },
+    "DSPOT": {
+     "auc": 0.968912,
+     "fpr@1": 89.37,
+     "dr@1": 100.0,
+     "fpr@2": 89.37,
+     "dr@2": 100.0,
+     "fpr@5": 91.53,
+     "dr@5": 100.0
+    },
+    "ECOD": {
+     "auc": 0.935718,
+     "fpr@1": 1.89,
+     "dr@1": 58.96,
+     "fpr@2": 2.91,
+     "dr@2": 65.01,
+     "fpr@5": 7.52,
+     "dr@5": 76.89
+    },
+    "COPOD": {
+     "auc": 0.903979,
+     "fpr@1": 1.89,
+     "dr@1": 58.53,
+     "fpr@2": 2.88,
+     "dr@2": 64.58,
+     "fpr@5": 7.52,
+     "dr@5": 67.82
+    },
+    "HBOS": {
+     "auc": 0.856181,
+     "fpr@1": 2.01,
+     "dr@1": 0.0,
+     "fpr@2": 2.88,
+     "dr@2": 63.93,
+     "fpr@5": 7.25,
+     "dr@5": 65.66
+    },
+    "LODA": {
+     "auc": 0.926819,
+     "fpr@1": 1.22,
+     "dr@1": 2.16,
+     "fpr@2": 3.31,
+     "dr@2": 63.71,
+     "fpr@5": 6.18,
+     "dr@5": 85.96
+    },
+    "INNE": {
+     "auc": 0.975991,
+     "fpr@1": 2.09,
+     "dr@1": 86.18,
+     "fpr@2": 2.4,
+     "dr@2": 86.18,
+     "fpr@5": 6.34,
+     "dr@5": 90.5
+    },
+    "IForest": {
+     "auc": 0.953038,
+     "fpr@1": 1.61,
+     "dr@1": 57.88,
+     "fpr@2": 2.56,
+     "dr@2": 67.6,
+     "fpr@5": 6.26,
+     "dr@5": 82.07
+    },
+    "DIF": {
+     "auc": 0.976101,
+     "fpr@1": 0.75,
+     "dr@1": 80.56,
+     "fpr@2": 1.38,
+     "dr@2": 81.21,
+     "fpr@5": 5.75,
+     "dr@5": 87.47
+    }
+   }
+  },
+  {
+   "corpus": "CIC-IDS-2017",
+   "file": "Wed-05-07_DoS-Slowhttptest.json",
+   "label": "CIC-IDS-2017 Wed-05-07_DoS-Slowhttptest",
+   "verdict": "USABLE",
+   "split_mode": "within",
+   "separate_capture": false,
+   "median_step_attack": 1.0,
+   "median_step_benign": 2.0,
+   "step_ratio": 2.0,
+   "key_is_numeric": true,
+   "interleaved": {
+    "Subspace-Q + EWMA (ours)": {
+     "auc": 0.988405,
+     "fpr@1": 0.73,
+     "dr@1": 65.99,
+     "fpr@2": 1.3,
+     "dr@2": 76.14,
+     "fpr@5": 2.02,
+     "dr@5": 86.29
+    },
+    "POT": {
+     "auc": 0.775458,
+     "fpr@1": 0.23,
+     "dr@1": 32.74,
+     "fpr@2": 0.23,
+     "dr@2": 32.74,
+     "fpr@5": 0.73,
+     "dr@5": 36.29
+    },
+    "DSPOT": {
+     "auc": 0.191104,
+     "fpr@1": 99.92,
+     "dr@1": 99.75,
+     "fpr@2": 99.92,
+     "dr@2": 99.75,
+     "fpr@5": 100.0,
+     "dr@5": 99.75
+    },
+    "ECOD": {
+     "auc": 0.806599,
+     "fpr@1": 2.14,
+     "dr@1": 14.47,
+     "fpr@2": 2.56,
+     "dr@2": 16.62,
+     "fpr@5": 4.16,
+     "dr@5": 17.51
+    },
+    "COPOD": {
+     "auc": 0.749821,
+     "fpr@1": 2.14,
+     "dr@1": 8.76,
+     "fpr@2": 2.56,
+     "dr@2": 15.48,
+     "fpr@5": 4.08,
+     "dr@5": 17.39
+    },
+    "HBOS": {
+     "auc": 0.764373,
+     "fpr@1": 1.83,
+     "dr@1": 0.13,
+     "fpr@2": 2.44,
+     "dr@2": 1.02,
+     "fpr@5": 2.94,
+     "dr@5": 4.44
+    },
+    "LODA": {
+     "auc": 0.59264,
+     "fpr@1": 3.02,
+     "dr@1": 11.29,
+     "fpr@2": 4.96,
+     "dr@2": 20.05,
+     "fpr@5": 7.6,
+     "dr@5": 20.94
+    },
+    "INNE": {
+     "auc": 0.942028,
+     "fpr@1": 1.95,
+     "dr@1": 59.01,
+     "fpr@2": 2.56,
+     "dr@2": 63.2,
+     "fpr@5": 4.96,
+     "dr@5": 76.14
+    },
+    "IForest": {
+     "auc": 0.855267,
+     "fpr@1": 2.14,
+     "dr@1": 14.97,
+     "fpr@2": 2.44,
+     "dr@2": 16.12,
+     "fpr@5": 5.11,
+     "dr@5": 18.4
+    },
+    "DIF": {
+     "auc": 0.919076,
+     "fpr@1": 1.45,
+     "dr@1": 17.77,
+     "fpr@2": 2.94,
+     "dr@2": 22.08,
+     "fpr@5": 3.85,
+     "dr@5": 41.88
+    }
+   },
+   "appended": {
+    "Subspace-Q + EWMA (ours)": {
+     "auc": 0.990993,
+     "fpr@1": 0.65,
+     "dr@1": 66.12,
+     "fpr@2": 1.15,
+     "dr@2": 76.52,
+     "fpr@5": 1.83,
+     "dr@5": 86.8
+    },
+    "POT": {
+     "auc": 0.775458,
+     "fpr@1": 0.23,
+     "dr@1": 32.74,
+     "fpr@2": 0.23,
+     "dr@2": 32.74,
+     "fpr@5": 0.73,
+     "dr@5": 36.29
+    },
+    "DSPOT": {
+     "auc": 0.974778,
+     "fpr@1": 90.53,
+     "dr@1": 100.0,
+     "fpr@2": 91.3,
+     "dr@2": 100.0,
+     "fpr@5": 92.37,
+     "dr@5": 100.0
+    },
+    "ECOD": {
+     "auc": 0.806599,
+     "fpr@1": 2.14,
+     "dr@1": 14.47,
+     "fpr@2": 2.56,
+     "dr@2": 16.62,
+     "fpr@5": 4.16,
+     "dr@5": 17.51
+    },
+    "COPOD": {
+     "auc": 0.749821,
+     "fpr@1": 2.14,
+     "dr@1": 8.76,
+     "fpr@2": 2.56,
+     "dr@2": 15.48,
+     "fpr@5": 4.08,
+     "dr@5": 17.39
+    },
+    "HBOS": {
+     "auc": 0.764373,
+     "fpr@1": 1.83,
+     "dr@1": 0.13,
+     "fpr@2": 2.44,
+     "dr@2": 1.02,
+     "fpr@5": 2.94,
+     "dr@5": 4.44
+    },
+    "LODA": {
+     "auc": 0.59264,
+     "fpr@1": 3.02,
+     "dr@1": 11.29,
+     "fpr@2": 4.96,
+     "dr@2": 20.05,
+     "fpr@5": 7.6,
+     "dr@5": 20.94
+    },
+    "INNE": {
+     "auc": 0.942028,
+     "fpr@1": 1.95,
+     "dr@1": 59.01,
+     "fpr@2": 2.56,
+     "dr@2": 63.2,
+     "fpr@5": 4.96,
+     "dr@5": 76.14
+    },
+    "IForest": {
+     "auc": 0.855267,
+     "fpr@1": 2.14,
+     "dr@1": 14.97,
+     "fpr@2": 2.44,
+     "dr@2": 16.12,
+     "fpr@5": 5.11,
+     "dr@5": 18.4
+    },
+    "DIF": {
+     "auc": 0.919076,
+     "fpr@1": 1.45,
+     "dr@1": 17.77,
+     "fpr@2": 2.94,
+     "dr@2": 22.08,
+     "fpr@5": 3.85,
+     "dr@5": 41.88
+    }
+   }
+  },
+  {
+   "corpus": "CIC-IDS-2017",
+   "file": "Wed-05-07_DoS-Slowloris.json",
+   "label": "CIC-IDS-2017 Wed-05-07_DoS-Slowloris",
+   "verdict": "USABLE",
+   "split_mode": "within",
+   "separate_capture": false,
+   "median_step_attack": 1.0,
+   "median_step_benign": 2.0,
+   "step_ratio": 2.0,
+   "key_is_numeric": true,
+   "interleaved": {
+    "Subspace-Q + EWMA (ours)": {
+     "auc": 0.999981,
+     "fpr@1": 0.0,
+     "dr@1": 98.11,
+     "fpr@2": 0.0,
+     "dr@2": 98.11,
+     "fpr@5": 0.0,
+     "dr@5": 98.5
+    },
+    "POT": {
+     "auc": 0.999251,
+     "fpr@1": 0.72,
+     "dr@1": 99.21,
+     "fpr@2": 1.17,
+     "dr@2": 99.29,
+     "fpr@5": 4.81,
+     "dr@5": 99.45
+    },
+    "DSPOT": {
+     "auc": 0.029756,
+     "fpr@1": 98.98,
+     "dr@1": 99.92,
+     "fpr@2": 98.98,
+     "dr@2": 99.92,
+     "fpr@5": 99.51,
+     "dr@5": 100.0
+    },
+    "ECOD": {
+     "auc": 0.950113,
+     "fpr@1": 2.08,
+     "dr@1": 2.05,
+     "fpr@2": 2.54,
+     "dr@2": 7.97,
+     "fpr@5": 4.13,
+     "dr@5": 75.93
+    },
+    "COPOD": {
+     "auc": 0.943031,
+     "fpr@1": 2.12,
+     "dr@1": 1.66,
+     "fpr@2": 2.54,
+     "dr@2": 4.5,
+     "fpr@5": 4.05,
+     "dr@5": 61.88
+    },
+    "HBOS": {
+     "auc": 0.912453,
+     "fpr@1": 1.82,
+     "dr@1": 0.47,
+     "fpr@2": 2.42,
+     "dr@2": 1.03,
+     "fpr@5": 3.11,
+     "dr@5": 3.79
+    },
+    "LODA": {
+     "auc": 0.951325,
+     "fpr@1": 3.11,
+     "dr@1": 54.78,
+     "fpr@2": 3.52,
+     "dr@2": 72.06,
+     "fpr@5": 5.0,
+     "dr@5": 88.63
+    },
+    "INNE": {
+     "auc": 0.998566,
+     "fpr@1": 0.11,
+     "dr@1": 96.37,
+     "fpr@2": 1.82,
+     "dr@2": 96.69,
+     "fpr@5": 2.35,
+     "dr@5": 97.55
+    },
+    "IForest": {
+     "auc": 0.964065,
+     "fpr@1": 2.16,
+     "dr@1": 1.74,
+     "fpr@2": 2.46,
+     "dr@2": 9.87,
+     "fpr@5": 4.85,
+     "dr@5": 84.21
+    },
+    "DIF": {
+     "auc": 0.991633,
+     "fpr@1": 1.25,
+     "dr@1": 81.53,
+     "fpr@2": 1.59,
+     "dr@2": 94.4,
+     "fpr@5": 2.92,
+     "dr@5": 95.5
+    }
+   },
+   "appended": {
+    "Subspace-Q + EWMA (ours)": {
+     "auc": 0.999986,
+     "fpr@1": 0.0,
+     "dr@1": 98.34,
+     "fpr@2": 0.0,
+     "dr@2": 98.34,
+     "fpr@5": 0.0,
+     "dr@5": 98.82
+    },
+    "POT": {
+     "auc": 0.999251,
+     "fpr@1": 0.72,
+     "dr@1": 99.21,
+     "fpr@2": 1.17,
+     "dr@2": 99.29,
+     "fpr@5": 4.81,
+     "dr@5": 99.45
+    },
+    "DSPOT": {
+     "auc": 0.378044,
+     "fpr@1": 90.45,
+     "dr@1": 100.0,
+     "fpr@2": 90.83,
+     "dr@2": 100.0,
+     "fpr@5": 92.31,
+     "dr@5": 100.0
+    },
+    "ECOD": {
+     "auc": 0.950113,
+     "fpr@1": 2.08,
+     "dr@1": 2.05,
+     "fpr@2": 2.54,
+     "dr@2": 7.97,
+     "fpr@5": 4.13,
+     "dr@5": 75.93
+    },
+    "COPOD": {
+     "auc": 0.943031,
+     "fpr@1": 2.12,
+     "dr@1": 1.66,
+     "fpr@2": 2.54,
+     "dr@2": 4.5,
+     "fpr@5": 4.05,
+     "dr@5": 61.88
+    },
+    "HBOS": {
+     "auc": 0.912453,
+     "fpr@1": 1.82,
+     "dr@1": 0.47,
+     "fpr@2": 2.42,
+     "dr@2": 1.03,
+     "fpr@5": 3.11,
+     "dr@5": 3.79
+    },
+    "LODA": {
+     "auc": 0.951326,
+     "fpr@1": 3.11,
+     "dr@1": 54.78,
+     "fpr@2": 3.52,
+     "dr@2": 72.06,
+     "fpr@5": 4.96,
+     "dr@5": 88.63
+    },
+    "INNE": {
+     "auc": 0.998566,
+     "fpr@1": 0.11,
+     "dr@1": 96.37,
+     "fpr@2": 1.82,
+     "dr@2": 96.69,
+     "fpr@5": 2.35,
+     "dr@5": 97.55
+    },
+    "IForest": {
+     "auc": 0.964065,
+     "fpr@1": 2.16,
+     "dr@1": 1.74,
+     "fpr@2": 2.46,
+     "dr@2": 9.87,
+     "fpr@5": 4.85,
+     "dr@5": 84.21
+    },
+    "DIF": {
+     "auc": 0.991633,
+     "fpr@1": 1.25,
+     "dr@1": 81.53,
+     "fpr@2": 1.59,
+     "dr@2": 94.4,
+     "fpr@5": 2.92,
+     "dr@5": 95.5
+    }
+   }
+  },
+  {
+   "corpus": "CIC-IDS2018",
+   "file": "Fri-16-02_DoS-Hulk.json",
+   "label": "CIC-IDS2018 Fri-16-02_DoS-Hulk",
+   "verdict": "USABLE",
+   "split_mode": "within",
+   "separate_capture": false,
+   "median_step_attack": 1.0,
+   "median_step_benign": 8.0,
+   "step_ratio": 8.0,
+   "key_is_numeric": true,
+   "interleaved": {
+    "Subspace-Q + EWMA (ours)": {
+     "auc": 0.974921,
+     "fpr@1": 7.68,
+     "dr@1": 94.43,
+     "fpr@2": 9.85,
+     "dr@2": 94.55,
+     "fpr@5": 13.86,
+     "dr@5": 95.02
+    },
+    "POT": {
+     "auc": 0.967986,
+     "fpr@1": 5.68,
+     "dr@1": 92.65,
+     "fpr@2": 6.01,
+     "dr@2": 93.01,
+     "fpr@5": 6.01,
+     "dr@5": 93.01
+    },
+    "DSPOT": {
+     "auc": 0.957798,
+     "fpr@1": 100.0,
+     "dr@1": 99.64,
+     "fpr@2": 100.0,
+     "dr@2": 99.64,
+     "fpr@5": 100.0,
+     "dr@5": 99.64
+    },
+    "ECOD": {
+     "auc": 0.969536,
+     "fpr@1": 6.51,
+     "dr@1": 93.96,
+     "fpr@2": 7.01,
+     "dr@2": 94.43,
+     "fpr@5": 8.18,
+     "dr@5": 94.55
+    },
+    "COPOD": {
+     "auc": 0.969832,
+     "fpr@1": 6.51,
+     "dr@1": 93.96,
+     "fpr@2": 7.51,
+     "dr@2": 94.55,
+     "fpr@5": 8.18,
+     "dr@5": 94.67
+    },
+    "HBOS": {
+     "auc": 0.971709,
+     "fpr@1": 2.5,
+     "dr@1": 92.89,
+     "fpr@2": 4.34,
+     "dr@2": 93.6,
+     "fpr@5": 8.68,
+     "dr@5": 94.55
+    },
+    "LODA": {
+     "auc": 0.903716,
+     "fpr@1": 2.34,
+     "dr@1": 1.07,
+     "fpr@2": 2.34,
+     "dr@2": 1.07,
+     "fpr@5": 4.67,
+     "dr@5": 15.28
+    },
+    "INNE": {
+     "auc": 0.954962,
+     "fpr@1": 4.67,
+     "dr@1": 92.42,
+     "fpr@2": 5.18,
+     "dr@2": 92.65,
+     "fpr@5": 5.68,
+     "dr@5": 92.65
+    },
+    "IForest": {
+     "auc": 0.968768,
+     "fpr@1": 6.01,
+     "dr@1": 93.48,
+     "fpr@2": 6.68,
+     "dr@2": 93.48,
+     "fpr@5": 7.51,
+     "dr@5": 93.84
+    },
+    "DIF": {
+     "auc": 0.969141,
+     "fpr@1": 5.51,
+     "dr@1": 92.65,
+     "fpr@2": 7.01,
+     "dr@2": 93.72,
+     "fpr@5": 12.02,
+     "dr@5": 94.55
+    }
+   },
+   "appended": {
+    "Subspace-Q + EWMA (ours)": {
+     "auc": 0.974814,
+     "fpr@1": 7.68,
+     "dr@1": 94.43,
+     "fpr@2": 9.85,
+     "dr@2": 94.55,
+     "fpr@5": 13.86,
+     "dr@5": 95.02
+    },
+    "POT": {
+     "auc": 0.967986,
+     "fpr@1": 5.68,
+     "dr@1": 92.65,
+     "fpr@2": 6.01,
+     "dr@2": 93.01,
+     "fpr@5": 6.01,
+     "dr@5": 93.01
+    },
+    "DSPOT": {
+     "auc": 0.9886,
+     "fpr@1": 83.81,
+     "dr@1": 100.0,
+     "fpr@2": 83.97,
+     "dr@2": 100.0,
+     "fpr@5": 84.31,
+     "dr@5": 100.0
+    },
+    "ECOD": {
+     "auc": 0.969536,
+     "fpr@1": 6.51,
+     "dr@1": 93.96,
+     "fpr@2": 7.01,
+     "dr@2": 94.43,
+     "fpr@5": 8.18,
+     "dr@5": 94.55
+    },
+    "COPOD": {
+     "auc": 0.969832,
+     "fpr@1": 6.51,
+     "dr@1": 93.96,
+     "fpr@2": 7.51,
+     "dr@2": 94.55,
+     "fpr@5": 8.18,
+     "dr@5": 94.67
+    },
+    "HBOS": {
+     "auc": 0.971709,
+     "fpr@1": 2.5,
+     "dr@1": 92.89,
+     "fpr@2": 4.34,
+     "dr@2": 93.6,
+     "fpr@5": 8.68,
+     "dr@5": 94.55
+    },
+    "LODA": {
+     "auc": 0.903734,
+     "fpr@1": 2.34,
+     "dr@1": 1.07,
+     "fpr@2": 2.34,
+     "dr@2": 1.07,
+     "fpr@5": 4.67,
+     "dr@5": 15.28
+    },
+    "INNE": {
+     "auc": 0.954962,
+     "fpr@1": 4.67,
+     "dr@1": 92.42,
+     "fpr@2": 5.18,
+     "dr@2": 92.65,
+     "fpr@5": 5.68,
+     "dr@5": 92.65
+    },
+    "IForest": {
+     "auc": 0.968768,
+     "fpr@1": 6.01,
+     "dr@1": 93.48,
+     "fpr@2": 6.68,
+     "dr@2": 93.48,
+     "fpr@5": 7.51,
+     "dr@5": 93.84
+    },
+    "DIF": {
+     "auc": 0.969141,
+     "fpr@1": 5.51,
+     "dr@1": 92.65,
+     "fpr@2": 7.01,
+     "dr@2": 93.72,
+     "fpr@5": 12.02,
+     "dr@5": 94.55
+    }
+   }
+  },
+  {
+   "corpus": "CIC-IDS2018",
+   "file": "Fri-16-02_DoS-SlowHTTPTest.json",
+   "label": "CIC-IDS2018 Fri-16-02_DoS-SlowHTTPTest",
+   "verdict": "USABLE",
+   "split_mode": "within",
+   "separate_capture": false,
+   "median_step_attack": 1.0,
+   "median_step_benign": 8.0,
+   "step_ratio": 8.0,
+   "key_is_numeric": true,
+   "interleaved": {
+    "Subspace-Q + EWMA (ours)": {
+     "auc": 0.998703,
+     "fpr@1": 3.72,
+     "dr@1": 99.72,
+     "fpr@2": 4.0,
+     "dr@2": 99.75,
+     "fpr@5": 6.33,
+     "dr@5": 99.78
+    },
+    "POT": {
+     "auc": 0.996726,
+     "fpr@1": 1.77,
+     "dr@1": 99.75,
+     "fpr@2": 1.77,
+     "dr@2": 99.75,
+     "fpr@5": 5.12,
+     "dr@5": 99.75
+    },
+    "DSPOT": {
+     "auc": 0.993378,
+     "fpr@1": 20.19,
+     "dr@1": 99.87,
+     "fpr@2": 21.12,
+     "dr@2": 99.87,
+     "fpr@5": 25.95,
+     "dr@5": 99.87
+    },
+    "ECOD": {
+     "auc": 0.977759,
+     "fpr@1": 3.07,
+     "dr@1": 99.75,
+     "fpr@2": 4.0,
+     "dr@2": 99.75,
+     "fpr@5": 5.4,
+     "dr@5": 99.75
+    },
+    "COPOD": {
+     "auc": 0.977252,
+     "fpr@1": 3.35,
+     "dr@1": 99.75,
+     "fpr@2": 4.19,
+     "dr@2": 99.75,
+     "fpr@5": 5.95,
+     "dr@5": 99.75
+    },
+    "HBOS": {
+     "auc": 0.934059,
+     "fpr@1": 1.58,
+     "dr@1": 0.75,
+     "fpr@2": 1.67,
+     "dr@2": 1.0,
+     "fpr@5": 4.65,
+     "dr@5": 5.11
+    },
+    "LODA": {
+     "auc": 0.916955,
+     "fpr@1": 0.84,
+     "dr@1": 0.06,
+     "fpr@2": 1.95,
+     "dr@2": 0.09,
+     "fpr@5": 4.56,
+     "dr@5": 0.34
+    },
+    "INNE": {
+     "auc": 0.992981,
+     "fpr@1": 2.7,
+     "dr@1": 99.75,
+     "fpr@2": 3.81,
+     "dr@2": 99.75,
+     "fpr@5": 4.19,
+     "dr@5": 99.75
+    },
+    "IForest": {
+     "auc": 0.985969,
+     "fpr@1": 2.33,
+     "dr@1": 99.75,
+     "fpr@2": 3.81,
+     "dr@2": 99.75,
+     "fpr@5": 5.3,
+     "dr@5": 99.75
+    },
+    "DIF": {
+     "auc": 0.997896,
+     "fpr@1": 3.07,
+     "dr@1": 99.75,
+     "fpr@2": 4.56,
+     "dr@2": 99.75,
+     "fpr@5": 8.65,
+     "dr@5": 99.75
+    }
+   },
+   "appended": {
+    "Subspace-Q + EWMA (ours)": {
+     "auc": 0.998658,
+     "fpr@1": 3.72,
+     "dr@1": 99.72,
+     "fpr@2": 4.0,
+     "dr@2": 99.75,
+     "fpr@5": 6.33,
+     "dr@5": 99.78
+    },
+    "POT": {
+     "auc": 0.996726,
+     "fpr@1": 1.77,
+     "dr@1": 99.75,
+     "fpr@2": 1.77,
+     "dr@2": 99.75,
+     "fpr@5": 5.12,
+     "dr@5": 99.75
+    },
+    "DSPOT": {
+     "auc": 0.994207,
+     "fpr@1": 20.09,
+     "dr@1": 100.0,
+     "fpr@2": 20.19,
+     "dr@2": 100.0,
+     "fpr@5": 24.56,
+     "dr@5": 100.0
+    },
+    "ECOD": {
+     "auc": 0.977759,
+     "fpr@1": 3.07,
+     "dr@1": 99.75,
+     "fpr@2": 4.0,
+     "dr@2": 99.75,
+     "fpr@5": 5.4,
+     "dr@5": 99.75
+    },
+    "COPOD": {
+     "auc": 0.977252,
+     "fpr@1": 3.35,
+     "dr@1": 99.75,
+     "fpr@2": 4.19,
+     "dr@2": 99.75,
+     "fpr@5": 5.95,
+     "dr@5": 99.75
+    },
+    "HBOS": {
+     "auc": 0.934059,
+     "fpr@1": 1.58,
+     "dr@1": 0.75,
+     "fpr@2": 1.67,
+     "dr@2": 1.0,
+     "fpr@5": 4.65,
+     "dr@5": 5.11
+    },
+    "LODA": {
+     "auc": 0.916955,
+     "fpr@1": 0.84,
+     "dr@1": 0.06,
+     "fpr@2": 1.95,
+     "dr@2": 0.09,
+     "fpr@5": 4.56,
+     "dr@5": 0.34
+    },
+    "INNE": {
+     "auc": 0.992981,
+     "fpr@1": 2.7,
+     "dr@1": 99.75,
+     "fpr@2": 3.81,
+     "dr@2": 99.75,
+     "fpr@5": 4.19,
+     "dr@5": 99.75
+    },
+    "IForest": {
+     "auc": 0.985969,
+     "fpr@1": 2.33,
+     "dr@1": 99.75,
+     "fpr@2": 3.81,
+     "dr@2": 99.75,
+     "fpr@5": 5.3,
+     "dr@5": 99.75
+    },
+    "DIF": {
+     "auc": 0.997896,
+     "fpr@1": 3.07,
+     "dr@1": 99.75,
+     "fpr@2": 4.56,
+     "dr@2": 99.75,
+     "fpr@5": 8.65,
+     "dr@5": 99.75
+    }
+   }
+  },
+  {
+   "corpus": "CIC-IDS2018",
+   "file": "Thu-15-02_DoS-Slowloris.json",
+   "label": "CIC-IDS2018 Thu-15-02_DoS-Slowloris",
+   "verdict": "USABLE",
+   "split_mode": "within",
+   "separate_capture": false,
+   "median_step_attack": 1.0,
+   "median_step_benign": 12.0,
+   "step_ratio": 12.0,
+   "key_is_numeric": true,
+   "interleaved": {
+    "Subspace-Q + EWMA (ours)": {
+     "auc": 0.99915,
+     "fpr@1": 1.66,
+     "dr@1": 99.83,
+     "fpr@2": 2.55,
+     "dr@2": 99.83,
+     "fpr@5": 7.54,
+     "dr@5": 99.83
+    },
+    "POT": {
+     "auc": 0.999038,
+     "fpr@1": 1.33,
+     "dr@1": 99.83,
+     "fpr@2": 1.88,
+     "dr@2": 99.83,
+     "fpr@5": 4.66,
+     "dr@5": 99.83
+    },
+    "DSPOT": {
+     "auc": 0.854534,
+     "fpr@1": 100.0,
+     "dr@1": 99.83,
+     "fpr@2": 100.0,
+     "dr@2": 99.83,
+     "fpr@5": 100.0,
+     "dr@5": 99.83
+    },
+    "ECOD": {
+     "auc": 0.998864,
+     "fpr@1": 0.44,
+     "dr@1": 99.67,
+     "fpr@2": 2.55,
+     "dr@2": 99.83,
+     "fpr@5": 5.21,
+     "dr@5": 99.83
+    },
+    "COPOD": {
+     "auc": 0.998908,
+     "fpr@1": 0.44,
+     "dr@1": 99.67,
+     "fpr@2": 2.22,
+     "dr@2": 99.83,
+     "fpr@5": 4.77,
+     "dr@5": 99.83
+    },
+    "HBOS": {
+     "auc": 0.993216,
+     "fpr@1": 0.44,
+     "dr@1": 5.89,
+     "fpr@2": 1.22,
+     "dr@2": 99.67,
+     "fpr@5": 1.33,
+     "dr@5": 99.71
+    },
+    "LODA": {
+     "auc": 0.101765,
+     "fpr@1": 2.66,
+     "dr@1": 0.13,
+     "fpr@2": 3.88,
+     "dr@2": 0.13,
+     "fpr@5": 4.55,
+     "dr@5": 0.13
+    },
+    "INNE": {
+     "auc": 0.997649,
+     "fpr@1": 1.88,
+     "dr@1": 99.83,
+     "fpr@2": 2.22,
+     "dr@2": 99.83,
+     "fpr@5": 6.98,
+     "dr@5": 99.87
+    },
+    "IForest": {
+     "auc": 0.999027,
+     "fpr@1": 0.55,
+     "dr@1": 99.54,
+     "fpr@2": 2.66,
+     "dr@2": 99.83,
+     "fpr@5": 4.55,
+     "dr@5": 99.83
+    },
+    "DIF": {
+     "auc": 0.997545,
+     "fpr@1": 3.22,
+     "dr@1": 99.83,
+     "fpr@2": 4.1,
+     "dr@2": 99.83,
+     "fpr@5": 9.87,
+     "dr@5": 99.83
+    }
+   },
+   "appended": {
+    "Subspace-Q + EWMA (ours)": {
+     "auc": 0.99959,
+     "fpr@1": 1.55,
+     "dr@1": 99.83,
+     "fpr@2": 2.44,
+     "dr@2": 99.83,
+     "fpr@5": 7.43,
+     "dr@5": 99.83
+    },
+    "POT": {
+     "auc": 0.999038,
+     "fpr@1": 1.33,
+     "dr@1": 99.83,
+     "fpr@2": 1.88,
+     "dr@2": 99.83,
+     "fpr@5": 4.66,
+     "dr@5": 99.83
+    },
+    "DSPOT": {
+     "auc": 0.997765,
+     "fpr@1": 68.51,
+     "dr@1": 100.0,
+     "fpr@2": 70.07,
+     "dr@2": 100.0,
+     "fpr@5": 80.16,
+     "dr@5": 100.0
+    },
+    "ECOD": {
+     "auc": 0.998864,
+     "fpr@1": 0.44,
+     "dr@1": 99.67,
+     "fpr@2": 2.55,
+     "dr@2": 99.83,
+     "fpr@5": 5.21,
+     "dr@5": 99.83
+    },
+    "COPOD": {
+     "auc": 0.998908,
+     "fpr@1": 0.44,
+     "dr@1": 99.67,
+     "fpr@2": 2.22,
+     "dr@2": 99.83,
+     "fpr@5": 4.77,
+     "dr@5": 99.83
+    },
+    "HBOS": {
+     "auc": 0.993216,
+     "fpr@1": 0.44,
+     "dr@1": 5.89,
+     "fpr@2": 1.22,
+     "dr@2": 99.67,
+     "fpr@5": 1.33,
+     "dr@5": 99.71
+    },
+    "LODA": {
+     "auc": 0.101765,
+     "fpr@1": 2.66,
+     "dr@1": 0.13,
+     "fpr@2": 3.88,
+     "dr@2": 0.13,
+     "fpr@5": 4.55,
+     "dr@5": 0.13
+    },
+    "INNE": {
+     "auc": 0.997649,
+     "fpr@1": 1.88,
+     "dr@1": 99.83,
+     "fpr@2": 2.22,
+     "dr@2": 99.83,
+     "fpr@5": 6.98,
+     "dr@5": 99.87
+    },
+    "IForest": {
+     "auc": 0.999027,
+     "fpr@1": 0.55,
+     "dr@1": 99.54,
+     "fpr@2": 2.66,
+     "dr@2": 99.83,
+     "fpr@5": 4.55,
+     "dr@5": 99.83
+    },
+    "DIF": {
+     "auc": 0.997545,
+     "fpr@1": 3.22,
+     "dr@1": 99.83,
+     "fpr@2": 4.1,
+     "dr@2": 99.83,
+     "fpr@5": 9.87,
+     "dr@5": 99.83
+    }
+   }
+  },
+  {
+   "corpus": "CIC-IDS2018",
+   "file": "Tue-20-02_DDoS-LOIC-HTTP.json",
+   "label": "CIC-IDS2018 Tue-20-02_DDoS-LOIC-HTTP",
+   "verdict": "USABLE",
+   "split_mode": "within",
+   "separate_capture": false,
+   "median_step_attack": 1.0,
+   "median_step_benign": 10.0,
+   "step_ratio": 10.0,
+   "key_is_numeric": true,
+   "interleaved": {
+    "Subspace-Q + EWMA (ours)": {
+     "auc": 0.999897,
+     "fpr@1": 1.64,
+     "dr@1": 99.92,
+     "fpr@2": 1.64,
+     "dr@2": 99.92,
+     "fpr@5": 3.62,
+     "dr@5": 99.92
+    },
+    "POT": {
+     "auc": 0.999427,
+     "fpr@1": 2.63,
+     "dr@1": 99.89,
+     "fpr@2": 4.93,
+     "dr@2": 99.92,
+     "fpr@5": 8.55,
+     "dr@5": 99.92
+    },
+    "DSPOT": {
+     "auc": 0.996684,
+     "fpr@1": 1.64,
+     "dr@1": 99.87,
+     "fpr@2": 1.64,
+     "dr@2": 99.87,
+     "fpr@5": 65.46,
+     "dr@5": 99.95
+    },
+    "ECOD": {
+     "auc": 0.997113,
+     "fpr@1": 1.32,
+     "dr@1": 99.89,
+     "fpr@2": 2.3,
+     "dr@2": 99.89,
+     "fpr@5": 7.57,
+     "dr@5": 99.92
+    },
+    "COPOD": {
+     "auc": 0.997057,
+     "fpr@1": 1.32,
+     "dr@1": 99.89,
+     "fpr@2": 2.3,
+     "dr@2": 99.89,
+     "fpr@5": 11.18,
+     "dr@5": 99.89
+    },
+    "HBOS": {
+     "auc": 0.997009,
+     "fpr@1": 0.66,
+     "dr@1": 99.74,
+     "fpr@2": 2.63,
+     "dr@2": 99.87,
+     "fpr@5": 10.86,
+     "dr@5": 99.89
+    },
+    "LODA": {
+     "auc": 0.000862,
+     "fpr@1": 1.64,
+     "dr@1": 0.0,
+     "fpr@2": 7.89,
+     "dr@2": 0.0,
+     "fpr@5": 13.16,
+     "dr@5": 0.03
+    },
+    "INNE": {
+     "auc": 0.994705,
+     "fpr@1": 2.3,
+     "dr@1": 99.89,
+     "fpr@2": 2.63,
+     "dr@2": 99.89,
+     "fpr@5": 3.29,
+     "dr@5": 99.89
+    },
+    "IForest": {
+     "auc": 0.997132,
+     "fpr@1": 2.96,
+     "dr@1": 99.89,
+     "fpr@2": 5.26,
+     "dr@2": 99.92,
+     "fpr@5": 9.54,
+     "dr@5": 99.92
+    },
+    "DIF": {
+     "auc": 0.996235,
+     "fpr@1": 0.99,
+     "dr@1": 98.28,
+     "fpr@2": 1.64,
+     "dr@2": 99.89,
+     "fpr@5": 3.62,
+     "dr@5": 99.89
+    }
+   },
+   "appended": {
+    "Subspace-Q + EWMA (ours)": {
+     "auc": 0.999905,
+     "fpr@1": 1.64,
+     "dr@1": 99.92,
+     "fpr@2": 1.64,
+     "dr@2": 99.92,
+     "fpr@5": 3.62,
+     "dr@5": 99.92
+    },
+    "POT": {
+     "auc": 0.999427,
+     "fpr@1": 2.63,
+     "dr@1": 99.89,
+     "fpr@2": 4.93,
+     "dr@2": 99.92,
+     "fpr@5": 8.55,
+     "dr@5": 99.92
+    },
+    "DSPOT": {
+     "auc": 0.997268,
+     "fpr@1": 1.64,
+     "dr@1": 99.87,
+     "fpr@2": 1.64,
+     "dr@2": 99.87,
+     "fpr@5": 32.24,
+     "dr@5": 100.0
+    },
+    "ECOD": {
+     "auc": 0.997113,
+     "fpr@1": 1.32,
+     "dr@1": 99.89,
+     "fpr@2": 2.3,
+     "dr@2": 99.89,
+     "fpr@5": 7.57,
+     "dr@5": 99.92
+    },
+    "COPOD": {
+     "auc": 0.997057,
+     "fpr@1": 1.32,
+     "dr@1": 99.89,
+     "fpr@2": 2.3,
+     "dr@2": 99.89,
+     "fpr@5": 11.18,
+     "dr@5": 99.89
+    },
+    "HBOS": {
+     "auc": 0.997009,
+     "fpr@1": 0.66,
+     "dr@1": 99.74,
+     "fpr@2": 2.63,
+     "dr@2": 99.87,
+     "fpr@5": 10.86,
+     "dr@5": 99.89
+    },
+    "LODA": {
+     "auc": 0.000862,
+     "fpr@1": 1.64,
+     "dr@1": 0.0,
+     "fpr@2": 7.89,
+     "dr@2": 0.0,
+     "fpr@5": 13.16,
+     "dr@5": 0.03
+    },
+    "INNE": {
+     "auc": 0.994705,
+     "fpr@1": 2.3,
+     "dr@1": 99.89,
+     "fpr@2": 2.63,
+     "dr@2": 99.89,
+     "fpr@5": 3.29,
+     "dr@5": 99.89
+    },
+    "IForest": {
+     "auc": 0.997132,
+     "fpr@1": 2.96,
+     "dr@1": 99.89,
+     "fpr@2": 5.26,
+     "dr@2": 99.92,
+     "fpr@5": 9.54,
+     "dr@5": 99.92
+    },
+    "DIF": {
+     "auc": 0.996235,
+     "fpr@1": 0.99,
+     "dr@1": 98.28,
+     "fpr@2": 1.64,
+     "dr@2": 99.89,
+     "fpr@5": 3.62,
+     "dr@5": 99.89
+    }
+   }
+  },
+  {
+   "corpus": "CIC-IDS2018",
+   "file": "Wed-21-02_DDoS-HOIC.json",
+   "label": "CIC-IDS2018 Wed-21-02_DDoS-HOIC",
+   "verdict": "USABLE",
+   "split_mode": "within",
+   "separate_capture": false,
+   "median_step_attack": 1.0,
+   "median_step_benign": 4.0,
+   "step_ratio": 4.0,
+   "key_is_numeric": true,
+   "interleaved": {
+    "Subspace-Q + EWMA (ours)": {
+     "auc": 0.988762,
+     "fpr@1": 3.64,
+     "dr@1": 98.03,
+     "fpr@2": 4.21,
+     "dr@2": 98.09,
+     "fpr@5": 9.71,
+     "dr@5": 98.09
+    },
+    "POT": {
+     "auc": 0.990341,
+     "fpr@1": 5.35,
+     "dr@1": 98.06,
+     "fpr@2": 6.85,
+     "dr@2": 98.09,
+     "fpr@5": 12.13,
+     "dr@5": 98.27
+    },
+    "DSPOT": {
+     "auc": 0.981114,
+     "fpr@1": 80.59,
+     "dr@1": 98.06,
+     "fpr@2": 84.3,
+     "dr@2": 98.09,
+     "fpr@5": 84.3,
+     "dr@5": 98.09
+    },
+    "ECOD": {
+     "auc": 0.989934,
+     "fpr@1": 4.28,
+     "dr@1": 98.0,
+     "fpr@2": 7.14,
+     "dr@2": 98.09,
+     "fpr@5": 9.56,
+     "dr@5": 98.15
+    },
+    "COPOD": {
+     "auc": 0.989932,
+     "fpr@1": 4.28,
+     "dr@1": 98.0,
+     "fpr@2": 7.0,
+     "dr@2": 98.09,
+     "fpr@5": 10.21,
+     "dr@5": 98.21
+    },
+    "HBOS": {
+     "auc": 0.986756,
+     "fpr@1": 0.43,
+     "dr@1": 97.97,
+     "fpr@2": 2.93,
+     "dr@2": 98.03,
+     "fpr@5": 5.78,
+     "dr@5": 98.12
+    },
+    "LODA": {
+     "auc": 0.194522,
+     "fpr@1": 0.93,
+     "dr@1": 0.03,
+     "fpr@2": 2.28,
+     "dr@2": 0.03,
+     "fpr@5": 2.57,
+     "dr@5": 0.06
+    },
+    "INNE": {
+     "auc": 0.988764,
+     "fpr@1": 3.57,
+     "dr@1": 98.06,
+     "fpr@2": 7.28,
+     "dr@2": 98.09,
+     "fpr@5": 12.35,
+     "dr@5": 98.18
+    },
+    "IForest": {
+     "auc": 0.989769,
+     "fpr@1": 4.43,
+     "dr@1": 98.0,
+     "fpr@2": 7.35,
+     "dr@2": 98.09,
+     "fpr@5": 10.14,
+     "dr@5": 98.18
+    },
+    "DIF": {
+     "auc": 0.989562,
+     "fpr@1": 2.0,
+     "dr@1": 98.06,
+     "fpr@2": 6.28,
+     "dr@2": 98.06,
+     "fpr@5": 9.06,
+     "dr@5": 98.09
+    }
+   },
+   "appended": {
+    "Subspace-Q + EWMA (ours)": {
+     "auc": 0.988736,
+     "fpr@1": 3.57,
+     "dr@1": 98.03,
+     "fpr@2": 4.07,
+     "dr@2": 98.09,
+     "fpr@5": 9.49,
+     "dr@5": 98.09
+    },
+    "POT": {
+     "auc": 0.990341,
+     "fpr@1": 5.35,
+     "dr@1": 98.06,
+     "fpr@2": 6.85,
+     "dr@2": 98.09,
+     "fpr@5": 12.13,
+     "dr@5": 98.27
+    },
+    "DSPOT": {
+     "auc": 0.988809,
+     "fpr@1": 63.38,
+     "dr@1": 99.24,
+     "fpr@2": 81.08,
+     "dr@2": 99.39,
+     "fpr@5": 81.16,
+     "dr@5": 99.39
+    },
+    "ECOD": {
+     "auc": 0.989934,
+     "fpr@1": 4.28,
+     "dr@1": 98.0,
+     "fpr@2": 7.14,
+     "dr@2": 98.09,
+     "fpr@5": 9.56,
+     "dr@5": 98.15
+    },
+    "COPOD": {
+     "auc": 0.989932,
+     "fpr@1": 4.28,
+     "dr@1": 98.0,
+     "fpr@2": 7.0,
+     "dr@2": 98.09,
+     "fpr@5": 10.21,
+     "dr@5": 98.21
+    },
+    "HBOS": {
+     "auc": 0.986756,
+     "fpr@1": 0.43,
+     "dr@1": 97.97,
+     "fpr@2": 2.93,
+     "dr@2": 98.03,
+     "fpr@5": 5.78,
+     "dr@5": 98.12
+    },
+    "LODA": {
+     "auc": 0.194522,
+     "fpr@1": 0.93,
+     "dr@1": 0.03,
+     "fpr@2": 2.28,
+     "dr@2": 0.03,
+     "fpr@5": 2.57,
+     "dr@5": 0.06
+    },
+    "INNE": {
+     "auc": 0.988764,
+     "fpr@1": 3.57,
+     "dr@1": 98.06,
+     "fpr@2": 7.28,
+     "dr@2": 98.09,
+     "fpr@5": 12.35,
+     "dr@5": 98.18
+    },
+    "IForest": {
+     "auc": 0.989769,
+     "fpr@1": 4.43,
+     "dr@1": 98.0,
+     "fpr@2": 7.35,
+     "dr@2": 98.09,
+     "fpr@5": 10.14,
+     "dr@5": 98.18
+    },
+    "DIF": {
+     "auc": 0.989562,
+     "fpr@1": 2.0,
+     "dr@1": 98.06,
+     "fpr@2": 6.28,
+     "dr@2": 98.06,
+     "fpr@5": 9.06,
+     "dr@5": 98.09
+    }
+   }
+  },
+  {
+   "corpus": "CIC-IDS2018",
+   "file": "Wed-21-02_DDoS-LOIC-UDP.json",
+   "label": "CIC-IDS2018 Wed-21-02_DDoS-LOIC-UDP",
+   "verdict": "USABLE",
+   "split_mode": "within",
+   "separate_capture": false,
+   "median_step_attack": 1.0,
+   "median_step_benign": 4.0,
+   "step_ratio": 4.0,
+   "key_is_numeric": true,
+   "interleaved": {
+    "Subspace-Q + EWMA (ours)": {
+     "auc": 0.999969,
+     "fpr@1": 3.93,
+     "dr@1": 100.0,
+     "fpr@2": 4.88,
+     "dr@2": 100.0,
+     "fpr@5": 10.51,
+     "dr@5": 100.0
+    },
+    "POT": {
+     "auc": 1.0,
+     "fpr@1": 5.83,
+     "dr@1": 100.0,
+     "fpr@2": 6.44,
+     "dr@2": 100.0,
+     "fpr@5": 12.47,
+     "dr@5": 100.0
+    },
+    "DSPOT": {
+     "auc": 1.0,
+     "fpr@1": 19.19,
+     "dr@1": 100.0,
+     "fpr@2": 83.86,
+     "dr@2": 100.0,
+     "fpr@5": 85.15,
+     "dr@5": 100.0
+    },
+    "ECOD": {
+     "auc": 0.997421,
+     "fpr@1": 4.95,
+     "dr@1": 100.0,
+     "fpr@2": 7.66,
+     "dr@2": 100.0,
+     "fpr@5": 13.15,
+     "dr@5": 100.0
+    },
+    "COPOD": {
+     "auc": 0.996716,
+     "fpr@1": 4.54,
+     "dr@1": 100.0,
+     "fpr@2": 7.59,
+     "dr@2": 100.0,
+     "fpr@5": 12.75,
+     "dr@5": 100.0
+    },
+    "HBOS": {
+     "auc": 0.94575,
+     "fpr@1": 2.24,
+     "dr@1": 0.09,
+     "fpr@2": 3.93,
+     "dr@2": 1.27,
+     "fpr@5": 8.34,
+     "dr@5": 100.0
+    },
+    "LODA": {
+     "auc": 0.787331,
+     "fpr@1": 0.07,
+     "dr@1": 0.0,
+     "fpr@2": 1.08,
+     "dr@2": 0.0,
+     "fpr@5": 4.68,
+     "dr@5": 0.0
+    },
+    "INNE": {
+     "auc": 0.998644,
+     "fpr@1": 5.22,
+     "dr@1": 100.0,
+     "fpr@2": 7.86,
+     "dr@2": 100.0,
+     "fpr@5": 14.85,
+     "dr@5": 100.0
+    },
+    "IForest": {
+     "auc": 0.977686,
+     "fpr@1": 4.81,
+     "dr@1": 100.0,
+     "fpr@2": 7.53,
+     "dr@2": 100.0,
+     "fpr@5": 11.12,
+     "dr@5": 100.0
+    },
+    "DIF": {
+     "auc": 0.999962,
+     "fpr@1": 1.83,
+     "dr@1": 100.0,
+     "fpr@2": 3.12,
+     "dr@2": 100.0,
+     "fpr@5": 10.1,
+     "dr@5": 100.0
+    }
+   },
+   "appended": {
+    "Subspace-Q + EWMA (ours)": {
+     "auc": 0.999918,
+     "fpr@1": 3.86,
+     "dr@1": 99.91,
+     "fpr@2": 4.81,
+     "dr@2": 99.91,
+     "fpr@5": 10.44,
+     "dr@5": 100.0
+    },
+    "POT": {
+     "auc": 1.0,
+     "fpr@1": 5.83,
+     "dr@1": 100.0,
+     "fpr@2": 6.44,
+     "dr@2": 100.0,
+     "fpr@5": 12.47,
+     "dr@5": 100.0
+    },
+    "DSPOT": {
+     "auc": 1.0,
+     "fpr@1": 4.68,
+     "dr@1": 100.0,
+     "fpr@2": 73.69,
+     "dr@2": 100.0,
+     "fpr@5": 76.47,
+     "dr@5": 100.0
+    },
+    "ECOD": {
+     "auc": 0.997421,
+     "fpr@1": 4.95,
+     "dr@1": 100.0,
+     "fpr@2": 7.66,
+     "dr@2": 100.0,
+     "fpr@5": 13.15,
+     "dr@5": 100.0
+    },
+    "COPOD": {
+     "auc": 0.996716,
+     "fpr@1": 4.54,
+     "dr@1": 100.0,
+     "fpr@2": 7.59,
+     "dr@2": 100.0,
+     "fpr@5": 12.75,
+     "dr@5": 100.0
+    },
+    "HBOS": {
+     "auc": 0.94575,
+     "fpr@1": 2.24,
+     "dr@1": 0.09,
+     "fpr@2": 3.93,
+     "dr@2": 1.27,
+     "fpr@5": 8.34,
+     "dr@5": 100.0
+    },
+    "LODA": {
+     "auc": 0.787331,
+     "fpr@1": 0.07,
+     "dr@1": 0.0,
+     "fpr@2": 1.08,
+     "dr@2": 0.0,
+     "fpr@5": 4.68,
+     "dr@5": 0.0
+    },
+    "INNE": {
+     "auc": 0.998644,
+     "fpr@1": 5.22,
+     "dr@1": 100.0,
+     "fpr@2": 7.86,
+     "dr@2": 100.0,
+     "fpr@5": 14.85,
+     "dr@5": 100.0
+    },
+    "IForest": {
+     "auc": 0.977686,
+     "fpr@1": 4.81,
+     "dr@1": 100.0,
+     "fpr@2": 7.53,
+     "dr@2": 100.0,
+     "fpr@5": 11.12,
+     "dr@5": 100.0
+    },
+    "DIF": {
+     "auc": 0.999962,
+     "fpr@1": 1.83,
+     "dr@1": 100.0,
+     "fpr@2": 3.12,
+     "dr@2": 100.0,
+     "fpr@5": 10.1,
+     "dr@5": 100.0
+    }
+   }
+  },
+  {
+   "corpus": "CICDDoS2019",
+   "file": "cicddos_03-11_192-168-50-4_LDAP.json",
+   "label": "CICDDoS2019 cicddos_03-11_192-168-50-4_LDAP",
+   "verdict": "USABLE",
+   "split_mode": "within",
+   "separate_capture": false,
+   "median_step_attack": 1.0,
+   "median_step_benign": 6.0,
+   "step_ratio": 6.0,
+   "key_is_numeric": true,
+   "interleaved": {
+    "Subspace-Q + EWMA (ours)": {
+     "auc": 0.99927,
+     "fpr@1": 1.2,
+     "dr@1": 97.98,
+     "fpr@2": 1.2,
+     "dr@2": 98.15,
+     "fpr@5": 1.45,
+     "dr@5": 98.48
+    },
+    "POT": {
+     "auc": 0.994133,
+     "fpr@1": 3.96,
+     "dr@1": 95.62,
+     "fpr@2": 4.71,
+     "dr@2": 96.63,
+     "fpr@5": 4.71,
+     "dr@5": 96.8
+    },
+    "DSPOT": {
+     "auc": 0.871461,
+     "fpr@1": 89.1,
+     "dr@1": 96.12,
+     "fpr@2": 89.13,
+     "dr@2": 96.29,
+     "fpr@5": 89.13,
+     "dr@5": 96.29
+    },
+    "ECOD": {
+     "auc": 0.983327,
+     "fpr@1": 3.19,
+     "dr@1": 95.45,
+     "fpr@2": 4.67,
+     "dr@2": 97.3,
+     "fpr@5": 7.58,
+     "dr@5": 98.99
+    },
+    "COPOD": {
+     "auc": 0.983511,
+     "fpr@1": 3.19,
+     "dr@1": 95.28,
+     "fpr@2": 4.57,
+     "dr@2": 96.63,
+     "fpr@5": 6.8,
+     "dr@5": 98.31
+    },
+    "HBOS": {
+     "auc": 0.984718,
+     "fpr@1": 3.04,
+     "dr@1": 95.28,
+     "fpr@2": 5.1,
+     "dr@2": 96.8,
+     "fpr@5": 8.67,
+     "dr@5": 100.0
+    },
+    "LODA": {
+     "auc": 0.092011,
+     "fpr@1": 1.2,
+     "dr@1": 0.0,
+     "fpr@2": 4.14,
+     "dr@2": 2.53,
+     "fpr@5": 6.19,
+     "dr@5": 5.56
+    },
+    "INNE": {
+     "auc": 0.989534,
+     "fpr@1": 0.0,
+     "dr@1": 0.0,
+     "fpr@2": 0.0,
+     "dr@2": 0.0,
+     "fpr@5": 4.53,
+     "dr@5": 96.29
+    },
+    "IForest": {
+     "auc": 0.985465,
+     "fpr@1": 1.31,
+     "dr@1": 87.35,
+     "fpr@2": 3.4,
+     "dr@2": 95.28,
+     "fpr@5": 5.1,
+     "dr@5": 97.3
+    },
+    "DIF": {
+     "auc": 0.997388,
+     "fpr@1": 3.01,
+     "dr@1": 96.29,
+     "fpr@2": 3.61,
+     "dr@2": 97.64,
+     "fpr@5": 8.35,
+     "dr@5": 100.0
+    }
+   },
+   "appended": {
+    "Subspace-Q + EWMA (ours)": {
+     "auc": 0.999837,
+     "fpr@1": 1.17,
+     "dr@1": 99.66,
+     "fpr@2": 1.17,
+     "dr@2": 99.66,
+     "fpr@5": 1.42,
+     "dr@5": 99.83
+    },
+    "POT": {
+     "auc": 0.994133,
+     "fpr@1": 3.96,
+     "dr@1": 95.62,
+     "fpr@2": 4.71,
+     "dr@2": 96.63,
+     "fpr@5": 4.71,
+     "dr@5": 96.8
+    },
+    "DSPOT": {
+     "auc": 0.914068,
+     "fpr@1": 89.1,
+     "dr@1": 96.29,
+     "fpr@2": 89.13,
+     "dr@2": 96.29,
+     "fpr@5": 89.13,
+     "dr@5": 96.29
+    },
+    "ECOD": {
+     "auc": 0.983327,
+     "fpr@1": 3.19,
+     "dr@1": 95.45,
+     "fpr@2": 4.67,
+     "dr@2": 97.3,
+     "fpr@5": 7.58,
+     "dr@5": 98.99
+    },
+    "COPOD": {
+     "auc": 0.983511,
+     "fpr@1": 3.19,
+     "dr@1": 95.28,
+     "fpr@2": 4.57,
+     "dr@2": 96.63,
+     "fpr@5": 6.8,
+     "dr@5": 98.31
+    },
+    "HBOS": {
+     "auc": 0.984718,
+     "fpr@1": 3.04,
+     "dr@1": 95.28,
+     "fpr@2": 5.1,
+     "dr@2": 96.8,
+     "fpr@5": 8.67,
+     "dr@5": 100.0
+    },
+    "LODA": {
+     "auc": 0.09208,
+     "fpr@1": 1.2,
+     "dr@1": 0.0,
+     "fpr@2": 4.14,
+     "dr@2": 2.7,
+     "fpr@5": 6.19,
+     "dr@5": 5.56
+    },
+    "INNE": {
+     "auc": 0.989534,
+     "fpr@1": 0.0,
+     "dr@1": 0.0,
+     "fpr@2": 0.0,
+     "dr@2": 0.0,
+     "fpr@5": 4.53,
+     "dr@5": 96.29
+    },
+    "IForest": {
+     "auc": 0.985465,
+     "fpr@1": 1.31,
+     "dr@1": 87.35,
+     "fpr@2": 3.4,
+     "dr@2": 95.28,
+     "fpr@5": 5.1,
+     "dr@5": 97.3
+    },
+    "DIF": {
+     "auc": 0.997388,
+     "fpr@1": 3.01,
+     "dr@1": 96.29,
+     "fpr@2": 3.61,
+     "dr@2": 97.64,
+     "fpr@5": 8.35,
+     "dr@5": 100.0
+    }
+   }
+  },
+  {
+   "corpus": "CICDDoS2019",
+   "file": "cicddos_03-11_192-168-50-4_Syn.json",
+   "label": "CICDDoS2019 cicddos_03-11_192-168-50-4_Syn",
+   "verdict": "USABLE",
+   "split_mode": "within",
+   "separate_capture": false,
+   "median_step_attack": 1.0,
+   "median_step_benign": 6.0,
+   "step_ratio": 6.0,
+   "key_is_numeric": true,
+   "interleaved": {
+    "Subspace-Q + EWMA (ours)": {
+     "auc": 0.967242,
+     "fpr@1": 2.12,
+     "dr@1": 56.14,
+     "fpr@2": 2.81,
+     "dr@2": 63.62,
+     "fpr@5": 6.01,
+     "dr@5": 87.61
+    },
+    "POT": {
+     "auc": 0.921345,
+     "fpr@1": 0.19,
+     "dr@1": 7.81,
+     "fpr@2": 1.5,
+     "dr@2": 19.64,
+     "fpr@5": 1.54,
+     "dr@5": 19.67
+    },
+    "DSPOT": {
+     "auc": 0.314724,
+     "fpr@1": 97.92,
+     "dr@1": 73.33,
+     "fpr@2": 98.34,
+     "dr@2": 82.17,
+     "fpr@5": 99.58,
+     "dr@5": 99.92
+    },
+    "ECOD": {
+     "auc": 0.961731,
+     "fpr@1": 1.2,
+     "dr@1": 3.56,
+     "fpr@2": 1.93,
+     "dr@2": 19.44,
+     "fpr@5": 3.66,
+     "dr@5": 49.47
+    },
+    "COPOD": {
+     "auc": 0.959859,
+     "fpr@1": 1.2,
+     "dr@1": 3.06,
+     "fpr@2": 1.89,
+     "dr@2": 16.04,
+     "fpr@5": 3.47,
+     "dr@5": 43.8
+    },
+    "HBOS": {
+     "auc": 0.958406,
+     "fpr@1": 1.2,
+     "dr@1": 0.51,
+     "fpr@2": 1.62,
+     "dr@2": 7.64,
+     "fpr@5": 3.39,
+     "dr@5": 45.26
+    },
+    "LODA": {
+     "auc": 0.867953,
+     "fpr@1": 1.16,
+     "dr@1": 8.77,
+     "fpr@2": 1.89,
+     "dr@2": 14.13,
+     "fpr@5": 3.66,
+     "dr@5": 27.93
+    },
+    "INNE": {
+     "auc": 0.952871,
+     "fpr@1": 1.7,
+     "dr@1": 12.39,
+     "fpr@2": 1.7,
+     "dr@2": 12.39,
+     "fpr@5": 3.43,
+     "dr@5": 40.08
+    },
+    "IForest": {
+     "auc": 0.960888,
+     "fpr@1": 1.27,
+     "dr@1": 0.96,
+     "fpr@2": 1.54,
+     "dr@2": 15.56,
+     "fpr@5": 3.55,
+     "dr@5": 45.73
+    },
+    "DIF": {
+     "auc": 0.972692,
+     "fpr@1": 0.77,
+     "dr@1": 18.59,
+     "fpr@2": 2.35,
+     "dr@2": 38.39,
+     "fpr@5": 4.59,
+     "dr@5": 88.58
+    }
+   },
+   "appended": {
+    "Subspace-Q + EWMA (ours)": {
+     "auc": 0.994406,
+     "fpr@1": 0.69,
+     "dr@1": 79.78,
+     "fpr@2": 1.08,
+     "dr@2": 85.09,
+     "fpr@5": 2.43,
+     "dr@5": 99.04
+    },
+    "POT": {
+     "auc": 0.921345,
+     "fpr@1": 0.19,
+     "dr@1": 7.81,
+     "fpr@2": 1.5,
+     "dr@2": 19.64,
+     "fpr@5": 1.54,
+     "dr@5": 19.67
+    },
+    "DSPOT": {
+     "auc": 0.953466,
+     "fpr@1": 0.19,
+     "dr@1": 73.95,
+     "fpr@2": 1.54,
+     "dr@2": 82.81,
+     "fpr@5": 77.56,
+     "dr@5": 99.98
+    },
+    "ECOD": {
+     "auc": 0.961731,
+     "fpr@1": 1.2,
+     "dr@1": 3.56,
+     "fpr@2": 1.93,
+     "dr@2": 19.44,
+     "fpr@5": 3.66,
+     "dr@5": 49.47
+    },
+    "COPOD": {
+     "auc": 0.959859,
+     "fpr@1": 1.2,
+     "dr@1": 3.06,
+     "fpr@2": 1.89,
+     "dr@2": 16.04,
+     "fpr@5": 3.47,
+     "dr@5": 43.8
+    },
+    "HBOS": {
+     "auc": 0.958406,
+     "fpr@1": 1.2,
+     "dr@1": 0.51,
+     "fpr@2": 1.62,
+     "dr@2": 7.64,
+     "fpr@5": 3.39,
+     "dr@5": 45.26
+    },
+    "LODA": {
+     "auc": 0.867954,
+     "fpr@1": 1.16,
+     "dr@1": 8.77,
+     "fpr@2": 1.89,
+     "dr@2": 14.13,
+     "fpr@5": 3.66,
+     "dr@5": 27.93
+    },
+    "INNE": {
+     "auc": 0.952871,
+     "fpr@1": 1.7,
+     "dr@1": 12.39,
+     "fpr@2": 1.7,
+     "dr@2": 12.39,
+     "fpr@5": 3.43,
+     "dr@5": 40.08
+    },
+    "IForest": {
+     "auc": 0.960888,
+     "fpr@1": 1.27,
+     "dr@1": 0.96,
+     "fpr@2": 1.54,
+     "dr@2": 15.56,
+     "fpr@5": 3.55,
+     "dr@5": 45.73
+    },
+    "DIF": {
+     "auc": 0.972692,
+     "fpr@1": 0.77,
+     "dr@1": 18.59,
+     "fpr@2": 2.35,
+     "dr@2": 38.39,
+     "fpr@5": 4.59,
+     "dr@5": 88.58
+    }
+   }
+  },
+  {
+   "corpus": "CICDDoS2019",
+   "file": "cicddos_03-11_192-168-50-4_UDP.json",
+   "label": "CICDDoS2019 cicddos_03-11_192-168-50-4_UDP",
+   "verdict": "USABLE",
+   "split_mode": "within",
+   "separate_capture": false,
+   "median_step_attack": 1.0,
+   "median_step_benign": 6.0,
+   "step_ratio": 6.0,
+   "key_is_numeric": true,
+   "interleaved": {
+    "Subspace-Q + EWMA (ours)": {
+     "auc": 0.998734,
+     "fpr@1": 0.82,
+     "dr@1": 94.95,
+     "fpr@2": 0.97,
+     "dr@2": 95.31,
+     "fpr@5": 2.75,
+     "dr@5": 99.16
+    },
+    "POT": {
+     "auc": 0.991043,
+     "fpr@1": 0.33,
+     "dr@1": 79.9,
+     "fpr@2": 1.26,
+     "dr@2": 87.0,
+     "fpr@5": 2.75,
+     "dr@5": 87.97
+    },
+    "DSPOT": {
+     "auc": 0.896359,
+     "fpr@1": 0.63,
+     "dr@1": 81.59,
+     "fpr@2": 99.0,
+     "dr@2": 95.31,
+     "fpr@5": 99.67,
+     "dr@5": 96.03
+    },
+    "ECOD": {
+     "auc": 0.98324,
+     "fpr@1": 0.3,
+     "dr@1": 0.0,
+     "fpr@2": 1.37,
+     "dr@2": 71.0,
+     "fpr@5": 3.38,
+     "dr@5": 93.5
+    },
+    "COPOD": {
+     "auc": 0.982848,
+     "fpr@1": 0.3,
+     "dr@1": 0.0,
+     "fpr@2": 1.37,
+     "dr@2": 64.98,
+     "fpr@5": 3.38,
+     "dr@5": 93.5
+    },
+    "HBOS": {
+     "auc": 0.980711,
+     "fpr@1": 0.37,
+     "dr@1": 0.0,
+     "fpr@2": 1.19,
+     "dr@2": 4.57,
+     "fpr@5": 3.34,
+     "dr@5": 93.62
+    },
+    "LODA": {
+     "auc": 0.189742,
+     "fpr@1": 0.67,
+     "dr@1": 1.81,
+     "fpr@2": 1.19,
+     "dr@2": 3.85,
+     "fpr@5": 2.75,
+     "dr@5": 7.22
+    },
+    "INNE": {
+     "auc": 0.99149,
+     "fpr@1": 0.85,
+     "dr@1": 82.07,
+     "fpr@2": 1.75,
+     "dr@2": 88.33,
+     "fpr@5": 3.97,
+     "dr@5": 94.22
+    },
+    "IForest": {
+     "auc": 0.984779,
+     "fpr@1": 0.78,
+     "dr@1": 0.24,
+     "fpr@2": 1.23,
+     "dr@2": 70.28,
+     "fpr@5": 3.23,
+     "dr@5": 93.26
+    },
+    "DIF": {
+     "auc": 0.996384,
+     "fpr@1": 0.22,
+     "dr@1": 79.66,
+     "fpr@2": 1.34,
+     "dr@2": 90.73,
+     "fpr@5": 3.6,
+     "dr@5": 98.32
+    }
+   },
+   "appended": {
+    "Subspace-Q + EWMA (ours)": {
+     "auc": 0.999519,
+     "fpr@1": 0.78,
+     "dr@1": 98.44,
+     "fpr@2": 0.93,
+     "dr@2": 98.68,
+     "fpr@5": 2.49,
+     "dr@5": 99.64
+    },
+    "POT": {
+     "auc": 0.991043,
+     "fpr@1": 0.33,
+     "dr@1": 79.9,
+     "fpr@2": 1.26,
+     "dr@2": 87.0,
+     "fpr@5": 2.75,
+     "dr@5": 87.97
+    },
+    "DSPOT": {
+     "auc": 0.990715,
+     "fpr@1": 0.33,
+     "dr@1": 81.59,
+     "fpr@2": 1.11,
+     "dr@2": 95.31,
+     "fpr@5": 20.43,
+     "dr@5": 96.39
+    },
+    "ECOD": {
+     "auc": 0.98324,
+     "fpr@1": 0.3,
+     "dr@1": 0.0,
+     "fpr@2": 1.37,
+     "dr@2": 71.0,
+     "fpr@5": 3.38,
+     "dr@5": 93.5
+    },
+    "COPOD": {
+     "auc": 0.982848,
+     "fpr@1": 0.3,
+     "dr@1": 0.0,
+     "fpr@2": 1.37,
+     "dr@2": 64.98,
+     "fpr@5": 3.38,
+     "dr@5": 93.5
+    },
+    "HBOS": {
+     "auc": 0.980711,
+     "fpr@1": 0.37,
+     "dr@1": 0.0,
+     "fpr@2": 1.19,
+     "dr@2": 4.57,
+     "fpr@5": 3.34,
+     "dr@5": 93.62
+    },
+    "LODA": {
+     "auc": 0.189742,
+     "fpr@1": 0.67,
+     "dr@1": 1.81,
+     "fpr@2": 1.19,
+     "dr@2": 3.85,
+     "fpr@5": 2.75,
+     "dr@5": 7.22
+    },
+    "INNE": {
+     "auc": 0.99149,
+     "fpr@1": 0.85,
+     "dr@1": 82.07,
+     "fpr@2": 1.75,
+     "dr@2": 88.33,
+     "fpr@5": 3.97,
+     "dr@5": 94.22
+    },
+    "IForest": {
+     "auc": 0.984779,
+     "fpr@1": 0.78,
+     "dr@1": 0.24,
+     "fpr@2": 1.23,
+     "dr@2": 70.28,
+     "fpr@5": 3.23,
+     "dr@5": 93.26
+    },
+    "DIF": {
+     "auc": 0.996384,
+     "fpr@1": 0.22,
+     "dr@1": 79.66,
+     "fpr@2": 1.34,
+     "dr@2": 90.73,
+     "fpr@5": 3.6,
+     "dr@5": 98.32
+    }
+   }
+  },
+  {
+   "corpus": "CICDDoS2019",
+   "file": "cicddos_03-11_192-168-50-4_UDPLag.json",
+   "label": "CICDDoS2019 cicddos_03-11_192-168-50-4_UDPLag",
+   "verdict": "USABLE",
+   "split_mode": "within",
+   "separate_capture": false,
+   "median_step_attack": 1.0,
+   "median_step_benign": 6.0,
+   "step_ratio": 6.0,
+   "key_is_numeric": true,
+   "interleaved": {
+    "Subspace-Q + EWMA (ours)": {
+     "auc": 0.995511,
+     "fpr@1": 0.98,
+     "dr@1": 85.38,
+     "fpr@2": 1.17,
+     "dr@2": 87.71,
+     "fpr@5": 3.4,
+     "dr@5": 98.73
+    },
+    "POT": {
+     "auc": 0.957941,
+     "fpr@1": 0.64,
+     "dr@1": 8.69,
+     "fpr@2": 1.28,
+     "dr@2": 46.61,
+     "fpr@5": 3.66,
+     "dr@5": 66.31
+    },
+    "DSPOT": {
+     "auc": 0.39568,
+     "fpr@1": 0.91,
+     "dr@1": 8.69,
+     "fpr@2": 98.75,
+     "dr@2": 65.68,
+     "fpr@5": 99.47,
+     "dr@5": 87.08
+    },
+    "ECOD": {
+     "auc": 0.969882,
+     "fpr@1": 0.72,
+     "dr@1": 0.0,
+     "fpr@2": 1.66,
+     "dr@2": 18.64,
+     "fpr@5": 3.89,
+     "dr@5": 77.54
+    },
+    "COPOD": {
+     "auc": 0.969192,
+     "fpr@1": 0.72,
+     "dr@1": 0.0,
+     "fpr@2": 1.55,
+     "dr@2": 16.31,
+     "fpr@5": 3.93,
+     "dr@5": 75.85
+    },
+    "HBOS": {
+     "auc": 0.966634,
+     "fpr@1": 0.83,
+     "dr@1": 0.0,
+     "fpr@2": 1.59,
+     "dr@2": 9.75,
+     "fpr@5": 3.96,
+     "dr@5": 76.27
+    },
+    "LODA": {
+     "auc": 0.924729,
+     "fpr@1": 0.72,
+     "dr@1": 5.3,
+     "fpr@2": 1.32,
+     "dr@2": 18.86,
+     "fpr@5": 3.55,
+     "dr@5": 31.57
+    },
+    "INNE": {
+     "auc": 0.971294,
+     "fpr@1": 0.83,
+     "dr@1": 9.11,
+     "fpr@2": 1.85,
+     "dr@2": 50.42,
+     "fpr@5": 4.08,
+     "dr@5": 79.24
+    },
+    "IForest": {
+     "auc": 0.973829,
+     "fpr@1": 0.83,
+     "dr@1": 0.0,
+     "fpr@2": 1.28,
+     "dr@2": 15.89,
+     "fpr@5": 3.62,
+     "dr@5": 77.75
+    },
+    "DIF": {
+     "auc": 0.984958,
+     "fpr@1": 0.3,
+     "dr@1": 13.56,
+     "fpr@2": 2.11,
+     "dr@2": 72.03,
+     "fpr@5": 4.27,
+     "dr@5": 97.46
+    }
+   },
+   "appended": {
+    "Subspace-Q + EWMA (ours)": {
+     "auc": 0.998001,
+     "fpr@1": 0.87,
+     "dr@1": 94.28,
+     "fpr@2": 1.09,
+     "dr@2": 94.92,
+     "fpr@5": 3.1,
+     "dr@5": 99.15
+    },
+    "POT": {
+     "auc": 0.957941,
+     "fpr@1": 0.64,
+     "dr@1": 8.69,
+     "fpr@2": 1.28,
+     "dr@2": 46.61,
+     "fpr@5": 3.66,
+     "dr@5": 66.31
+    },
+    "DSPOT": {
+     "auc": 0.95482,
+     "fpr@1": 0.91,
+     "dr@1": 8.69,
+     "fpr@2": 1.25,
+     "dr@2": 67.58,
+     "fpr@5": 21.74,
+     "dr@5": 94.07
+    },
+    "ECOD": {
+     "auc": 0.969882,
+     "fpr@1": 0.72,
+     "dr@1": 0.0,
+     "fpr@2": 1.66,
+     "dr@2": 18.64,
+     "fpr@5": 3.89,
+     "dr@5": 77.54
+    },
+    "COPOD": {
+     "auc": 0.969192,
+     "fpr@1": 0.72,
+     "dr@1": 0.0,
+     "fpr@2": 1.55,
+     "dr@2": 16.31,
+     "fpr@5": 3.93,
+     "dr@5": 75.85
+    },
+    "HBOS": {
+     "auc": 0.966634,
+     "fpr@1": 0.83,
+     "dr@1": 0.0,
+     "fpr@2": 1.59,
+     "dr@2": 9.75,
+     "fpr@5": 3.96,
+     "dr@5": 76.27
+    },
+    "LODA": {
+     "auc": 0.92487,
+     "fpr@1": 0.72,
+     "dr@1": 5.3,
+     "fpr@2": 1.32,
+     "dr@2": 18.86,
+     "fpr@5": 3.55,
+     "dr@5": 31.99
+    },
+    "INNE": {
+     "auc": 0.971294,
+     "fpr@1": 0.83,
+     "dr@1": 9.11,
+     "fpr@2": 1.85,
+     "dr@2": 50.42,
+     "fpr@5": 4.08,
+     "dr@5": 79.24
+    },
+    "IForest": {
+     "auc": 0.973829,
+     "fpr@1": 0.83,
+     "dr@1": 0.0,
+     "fpr@2": 1.28,
+     "dr@2": 15.89,
+     "fpr@5": 3.62,
+     "dr@5": 77.75
+    },
+    "DIF": {
+     "auc": 0.984958,
+     "fpr@1": 0.3,
+     "dr@1": 13.56,
+     "fpr@2": 2.11,
+     "dr@2": 72.03,
+     "fpr@5": 4.27,
+     "dr@5": 97.46
+    }
+   }
+  },
+  {
+   "corpus": "CIC_IOT_Dataset2023",
+   "file": "DDoS-ACK_Fragmentation.json",
+   "label": "CIC_IOT_Dataset2023 DDoS-ACK_Fragmentation",
+   "verdict": "ROLE-UNVERIFIED",
+   "split_mode": "crossfile",
+   "separate_capture": true,
+   "median_step_attack": 1.0,
+   "median_step_benign": 2.0,
+   "step_ratio": 2.0,
+   "key_is_numeric": true,
+   "interleaved": {
+    "Subspace-Q + EWMA (ours)": {
+     "auc": 0.998075,
+     "fpr@1": 0.66,
+     "dr@1": 97.24,
+     "fpr@2": 1.11,
+     "dr@2": 97.81,
+     "fpr@5": 3.9,
+     "dr@5": 98.63
+    },
+    "POT": {
+     "auc": 0.862364,
+     "fpr@1": 0.49,
+     "dr@1": 67.15,
+     "fpr@2": 1.24,
+     "dr@2": 69.11,
+     "fpr@5": 4.43,
+     "dr@5": 71.64
+    },
+    "DSPOT": {
+     "auc": 0.520484,
+     "fpr@1": 0.09,
+     "dr@1": 8.04,
+     "fpr@2": 0.09,
+     "dr@2": 8.12,
+     "fpr@5": 2.35,
+     "dr@5": 8.83
+    },
+    "ECOD": {
+     "auc": 0.885531,
+     "fpr@1": 1.2,
+     "dr@1": 7.41,
+     "fpr@2": 2.3,
+     "dr@2": 9.9,
+     "fpr@5": 5.05,
+     "dr@5": 27.86
+    },
+    "COPOD": {
+     "auc": 0.869623,
+     "fpr@1": 1.2,
+     "dr@1": 6.73,
+     "fpr@2": 2.44,
+     "dr@2": 8.92,
+     "fpr@5": 5.41,
+     "dr@5": 26.54
+    },
+    "HBOS": {
+     "auc": 0.792602,
+     "fpr@1": 1.11,
+     "dr@1": 2.54,
+     "fpr@2": 2.08,
+     "dr@2": 4.33,
+     "fpr@5": 4.79,
+     "dr@5": 18.04
+    },
+    "LODA": {
+     "auc": 0.520495,
+     "fpr@1": 0.58,
+     "dr@1": 22.55,
+     "fpr@2": 0.58,
+     "dr@2": 22.55,
+     "fpr@5": 0.58,
+     "dr@5": 22.55
+    },
+    "INNE": {
+     "auc": 0.987396,
+     "fpr@1": 1.15,
+     "dr@1": 72.78,
+     "fpr@2": 1.99,
+     "dr@2": 84.07,
+     "fpr@5": 2.08,
+     "dr@5": 88.63
+    },
+    "IForest": {
+     "auc": 0.916892,
+     "fpr@1": 0.98,
+     "dr@1": 7.62,
+     "fpr@2": 2.35,
+     "dr@2": 13.38,
+     "fpr@5": 5.27,
+     "dr@5": 30.32
+    },
+    "DIF": {
+     "auc": 0.989444,
+     "fpr@1": 1.42,
+     "dr@1": 87.57,
+     "fpr@2": 2.48,
+     "dr@2": 95.6,
+     "fpr@5": 5.63,
+     "dr@5": 96.75
+    }
+   },
+   "appended": {
+    "Subspace-Q + EWMA (ours)": {
+     "auc": 0.998181,
+     "fpr@1": 0.62,
+     "dr@1": 97.25,
+     "fpr@2": 1.06,
+     "dr@2": 97.82,
+     "fpr@5": 3.81,
+     "dr@5": 98.63
+    },
+    "POT": {
+     "auc": 0.862364,
+     "fpr@1": 0.49,
+     "dr@1": 67.15,
+     "fpr@2": 1.24,
+     "dr@2": 69.11,
+     "fpr@5": 4.43,
+     "dr@5": 71.64
+    },
+    "DSPOT": {
+     "auc": 0.632908,
+     "fpr@1": 0.09,
+     "dr@1": 8.04,
+     "fpr@2": 0.09,
+     "dr@2": 8.12,
+     "fpr@5": 2.35,
+     "dr@5": 8.65
+    },
+    "ECOD": {
+     "auc": 0.885531,
+     "fpr@1": 1.2,
+     "dr@1": 7.41,
+     "fpr@2": 2.3,
+     "dr@2": 9.9,
+     "fpr@5": 5.05,
+     "dr@5": 27.86
+    },
+    "COPOD": {
+     "auc": 0.869623,
+     "fpr@1": 1.2,
+     "dr@1": 6.73,
+     "fpr@2": 2.44,
+     "dr@2": 8.92,
+     "fpr@5": 5.41,
+     "dr@5": 26.54
+    },
+    "HBOS": {
+     "auc": 0.792602,
+     "fpr@1": 1.11,
+     "dr@1": 2.54,
+     "fpr@2": 2.08,
+     "dr@2": 4.33,
+     "fpr@5": 4.79,
+     "dr@5": 18.04
+    },
+    "LODA": {
+     "auc": 0.520495,
+     "fpr@1": 0.58,
+     "dr@1": 22.55,
+     "fpr@2": 0.58,
+     "dr@2": 22.55,
+     "fpr@5": 0.58,
+     "dr@5": 22.55
+    },
+    "INNE": {
+     "auc": 0.987396,
+     "fpr@1": 1.15,
+     "dr@1": 72.78,
+     "fpr@2": 1.99,
+     "dr@2": 84.07,
+     "fpr@5": 2.08,
+     "dr@5": 88.63
+    },
+    "IForest": {
+     "auc": 0.916892,
+     "fpr@1": 0.98,
+     "dr@1": 7.62,
+     "fpr@2": 2.35,
+     "dr@2": 13.38,
+     "fpr@5": 5.27,
+     "dr@5": 30.32
+    },
+    "DIF": {
+     "auc": 0.989444,
+     "fpr@1": 1.42,
+     "dr@1": 87.57,
+     "fpr@2": 2.48,
+     "dr@2": 95.6,
+     "fpr@5": 5.63,
+     "dr@5": 96.75
+    }
+   }
+  },
+  {
+   "corpus": "CIC_IOT_Dataset2023",
+   "file": "DDoS-HTTP_Flood.json",
+   "label": "CIC_IOT_Dataset2023 DDoS-HTTP_Flood",
+   "verdict": "ROLE-UNVERIFIED",
+   "split_mode": "crossfile",
+   "separate_capture": true,
+   "median_step_attack": 1.0,
+   "median_step_benign": 61.0,
+   "step_ratio": 61.0,
+   "key_is_numeric": true,
+   "interleaved": {
+    "Subspace-Q + EWMA (ours)": {
+     "auc": 0.99954,
+     "fpr@1": 0.0,
+     "dr@1": 97.42,
+     "fpr@2": 0.0,
+     "dr@2": 98.2,
+     "fpr@5": 4.28,
+     "dr@5": 99.45
+    },
+    "POT": {
+     "auc": 0.995618,
+     "fpr@1": 0.53,
+     "dr@1": 91.75,
+     "fpr@2": 0.53,
+     "dr@2": 95.88,
+     "fpr@5": 3.74,
+     "dr@5": 96.01
+    },
+    "DSPOT": {
+     "auc": 0.902318,
+     "fpr@1": 89.04,
+     "dr@1": 91.02,
+     "fpr@2": 89.04,
+     "dr@2": 91.02,
+     "fpr@5": 91.44,
+     "dr@5": 91.2
+    },
+    "ECOD": {
+     "auc": 0.993127,
+     "fpr@1": 0.27,
+     "dr@1": 86.95,
+     "fpr@2": 1.07,
+     "dr@2": 88.67,
+     "fpr@5": 4.01,
+     "dr@5": 94.52
+    },
+    "COPOD": {
+     "auc": 0.992947,
+     "fpr@1": 0.27,
+     "dr@1": 86.92,
+     "fpr@2": 1.07,
+     "dr@2": 88.62,
+     "fpr@5": 4.01,
+     "dr@5": 94.52
+    },
+    "HBOS": {
+     "auc": 0.966223,
+     "fpr@1": 0.53,
+     "dr@1": 3.63,
+     "fpr@2": 1.07,
+     "dr@2": 4.15,
+     "fpr@5": 3.74,
+     "dr@5": 94.99
+    },
+    "LODA": {
+     "auc": 0.035751,
+     "fpr@1": 1.34,
+     "dr@1": 0.94,
+     "fpr@2": 1.34,
+     "dr@2": 0.94,
+     "fpr@5": 1.34,
+     "dr@5": 0.94
+    },
+    "INNE": {
+     "auc": 0.999473,
+     "fpr@1": 0.27,
+     "dr@1": 91.57,
+     "fpr@2": 0.53,
+     "dr@2": 99.27,
+     "fpr@5": 3.21,
+     "dr@5": 99.95
+    },
+    "IForest": {
+     "auc": 0.981628,
+     "fpr@1": 0.27,
+     "dr@1": 88.96,
+     "fpr@2": 1.07,
+     "dr@2": 90.89,
+     "fpr@5": 4.55,
+     "dr@5": 94.7
+    },
+    "DIF": {
+     "auc": 0.998719,
+     "fpr@1": 0.27,
+     "dr@1": 91.41,
+     "fpr@2": 0.27,
+     "dr@2": 94.7,
+     "fpr@5": 2.67,
+     "dr@5": 100.0
+    }
+   },
+   "appended": {
+    "Subspace-Q + EWMA (ours)": {
+     "auc": 0.99954,
+     "fpr@1": 0.0,
+     "dr@1": 97.42,
+     "fpr@2": 0.0,
+     "dr@2": 98.2,
+     "fpr@5": 4.28,
+     "dr@5": 99.45
+    },
+    "POT": {
+     "auc": 0.995618,
+     "fpr@1": 0.53,
+     "dr@1": 91.75,
+     "fpr@2": 0.53,
+     "dr@2": 95.88,
+     "fpr@5": 3.74,
+     "dr@5": 96.01
+    },
+    "DSPOT": {
+     "auc": 0.902318,
+     "fpr@1": 89.04,
+     "dr@1": 91.02,
+     "fpr@2": 89.04,
+     "dr@2": 91.02,
+     "fpr@5": 91.44,
+     "dr@5": 91.2
+    },
+    "ECOD": {
+     "auc": 0.993127,
+     "fpr@1": 0.27,
+     "dr@1": 86.95,
+     "fpr@2": 1.07,
+     "dr@2": 88.67,
+     "fpr@5": 4.01,
+     "dr@5": 94.52
+    },
+    "COPOD": {
+     "auc": 0.992947,
+     "fpr@1": 0.27,
+     "dr@1": 86.92,
+     "fpr@2": 1.07,
+     "dr@2": 88.62,
+     "fpr@5": 4.01,
+     "dr@5": 94.52
+    },
+    "HBOS": {
+     "auc": 0.966223,
+     "fpr@1": 0.53,
+     "dr@1": 3.63,
+     "fpr@2": 1.07,
+     "dr@2": 4.15,
+     "fpr@5": 3.74,
+     "dr@5": 94.99
+    },
+    "LODA": {
+     "auc": 0.035751,
+     "fpr@1": 1.34,
+     "dr@1": 0.94,
+     "fpr@2": 1.34,
+     "dr@2": 0.94,
+     "fpr@5": 1.34,
+     "dr@5": 0.94
+    },
+    "INNE": {
+     "auc": 0.999473,
+     "fpr@1": 0.27,
+     "dr@1": 91.57,
+     "fpr@2": 0.53,
+     "dr@2": 99.27,
+     "fpr@5": 3.21,
+     "dr@5": 99.95
+    },
+    "IForest": {
+     "auc": 0.981628,
+     "fpr@1": 0.27,
+     "dr@1": 88.96,
+     "fpr@2": 1.07,
+     "dr@2": 90.89,
+     "fpr@5": 4.55,
+     "dr@5": 94.7
+    },
+    "DIF": {
+     "auc": 0.998719,
+     "fpr@1": 0.27,
+     "dr@1": 91.41,
+     "fpr@2": 0.27,
+     "dr@2": 94.7,
+     "fpr@5": 2.67,
+     "dr@5": 100.0
+    }
+   }
+  },
+  {
+   "corpus": "CIC_IOT_Dataset2023",
+   "file": "DDoS-ICMP_Flood.json",
+   "label": "CIC_IOT_Dataset2023 DDoS-ICMP_Flood",
+   "verdict": "USABLE",
+   "split_mode": "crossfile",
+   "separate_capture": true,
+   "median_step_attack": 1.0,
+   "median_step_benign": 60.0,
+   "step_ratio": 60.0,
+   "key_is_numeric": true,
+   "interleaved": {
+    "Subspace-Q + EWMA (ours)": {
+     "auc": 0.999696,
+     "fpr@1": 43.07,
+     "dr@1": 99.96,
+     "fpr@2": 51.33,
+     "dr@2": 100.0,
+     "fpr@5": 51.33,
+     "dr@5": 100.0
+    },
+    "POT": {
+     "auc": 0.998441,
+     "fpr@1": 0.59,
+     "dr@1": 78.69,
+     "fpr@2": 0.59,
+     "dr@2": 99.95,
+     "fpr@5": 0.59,
+     "dr@5": 99.95
+    },
+    "DSPOT": {
+     "auc": 0.295998,
+     "fpr@1": 100.0,
+     "dr@1": 99.7,
+     "fpr@2": 100.0,
+     "dr@2": 99.88,
+     "fpr@5": 100.0,
+     "dr@5": 99.88
+    },
+    "ECOD": {
+     "auc": 0.997213,
+     "fpr@1": 0.59,
+     "dr@1": 89.17,
+     "fpr@2": 0.59,
+     "dr@2": 99.95,
+     "fpr@5": 0.59,
+     "dr@5": 99.95
+    },
+    "COPOD": {
+     "auc": 0.996891,
+     "fpr@1": 0.59,
+     "dr@1": 78.32,
+     "fpr@2": 0.59,
+     "dr@2": 99.95,
+     "fpr@5": 0.59,
+     "dr@5": 99.95
+    },
+    "HBOS": {
+     "auc": 0.996984,
+     "fpr@1": 0.59,
+     "dr@1": 89.18,
+     "fpr@2": 0.59,
+     "dr@2": 99.93,
+     "fpr@5": 0.59,
+     "dr@5": 99.93
+    },
+    "LODA": {
+     "auc": 0.151695,
+     "fpr@1": 0.0,
+     "dr@1": 14.54,
+     "fpr@2": 0.0,
+     "dr@2": 14.54,
+     "fpr@5": 0.0,
+     "dr@5": 14.54
+    },
+    "INNE": {
+     "auc": 0.996801,
+     "fpr@1": 0.59,
+     "dr@1": 99.95,
+     "fpr@2": 0.59,
+     "dr@2": 99.95,
+     "fpr@5": 0.59,
+     "dr@5": 99.95
+    },
+    "IForest": {
+     "auc": 0.983532,
+     "fpr@1": 0.59,
+     "dr@1": 78.38,
+     "fpr@2": 0.59,
+     "dr@2": 93.01,
+     "fpr@5": 0.59,
+     "dr@5": 93.01
+    },
+    "DIF": {
+     "auc": 0.999705,
+     "fpr@1": 0.59,
+     "dr@1": 99.95,
+     "fpr@2": 0.59,
+     "dr@2": 99.95,
+     "fpr@5": 0.59,
+     "dr@5": 99.95
+    }
+   },
+   "appended": {
+    "Subspace-Q + EWMA (ours)": {
+     "auc": 0.999998,
+     "fpr@1": 0.59,
+     "dr@1": 99.96,
+     "fpr@2": 1.77,
+     "dr@2": 100.0,
+     "fpr@5": 4.72,
+     "dr@5": 100.0
+    },
+    "POT": {
+     "auc": 0.998441,
+     "fpr@1": 0.59,
+     "dr@1": 78.69,
+     "fpr@2": 0.59,
+     "dr@2": 99.95,
+     "fpr@5": 0.59,
+     "dr@5": 99.95
+    },
+    "DSPOT": {
+     "auc": 0.999393,
+     "fpr@1": 0.59,
+     "dr@1": 99.7,
+     "fpr@2": 0.59,
+     "dr@2": 99.88,
+     "fpr@5": 0.59,
+     "dr@5": 99.88
+    },
+    "ECOD": {
+     "auc": 0.997213,
+     "fpr@1": 0.59,
+     "dr@1": 89.17,
+     "fpr@2": 0.59,
+     "dr@2": 99.95,
+     "fpr@5": 0.59,
+     "dr@5": 99.95
+    },
+    "COPOD": {
+     "auc": 0.996891,
+     "fpr@1": 0.59,
+     "dr@1": 78.32,
+     "fpr@2": 0.59,
+     "dr@2": 99.95,
+     "fpr@5": 0.59,
+     "dr@5": 99.95
+    },
+    "HBOS": {
+     "auc": 0.996984,
+     "fpr@1": 0.59,
+     "dr@1": 89.18,
+     "fpr@2": 0.59,
+     "dr@2": 99.93,
+     "fpr@5": 0.59,
+     "dr@5": 99.93
+    },
+    "LODA": {
+     "auc": 0.151695,
+     "fpr@1": 0.0,
+     "dr@1": 14.54,
+     "fpr@2": 0.0,
+     "dr@2": 14.54,
+     "fpr@5": 0.0,
+     "dr@5": 14.54
+    },
+    "INNE": {
+     "auc": 0.996801,
+     "fpr@1": 0.59,
+     "dr@1": 99.95,
+     "fpr@2": 0.59,
+     "dr@2": 99.95,
+     "fpr@5": 0.59,
+     "dr@5": 99.95
+    },
+    "IForest": {
+     "auc": 0.983532,
+     "fpr@1": 0.59,
+     "dr@1": 78.38,
+     "fpr@2": 0.59,
+     "dr@2": 93.01,
+     "fpr@5": 0.59,
+     "dr@5": 93.01
+    },
+    "DIF": {
+     "auc": 0.999705,
+     "fpr@1": 0.59,
+     "dr@1": 99.95,
+     "fpr@2": 0.59,
+     "dr@2": 99.95,
+     "fpr@5": 0.59,
+     "dr@5": 99.95
+    }
+   }
+  },
+  {
+   "corpus": "CIC_IOT_Dataset2023",
+   "file": "DDoS-ICMP_Fragmentation.json",
+   "label": "CIC_IOT_Dataset2023 DDoS-ICMP_Fragmentation",
+   "verdict": "ROLE-UNVERIFIED",
+   "split_mode": "crossfile",
+   "separate_capture": true,
+   "median_step_attack": 1.0,
+   "median_step_benign": 3.0,
+   "step_ratio": 3.0,
+   "key_is_numeric": true,
+   "interleaved": {
+    "Subspace-Q + EWMA (ours)": {
+     "auc": 0.021639,
+     "fpr@1": 0.32,
+     "dr@1": 0.98,
+     "fpr@2": 0.78,
+     "dr@2": 0.99,
+     "fpr@5": 2.8,
+     "dr@5": 0.99
+    },
+    "POT": {
+     "auc": 0.426756,
+     "fpr@1": 2.38,
+     "dr@1": 1.25,
+     "fpr@2": 3.24,
+     "dr@2": 1.28,
+     "fpr@5": 8.32,
+     "dr@5": 1.41
+    },
+    "DSPOT": {
+     "auc": 0.642998,
+     "fpr@1": 0.01,
+     "dr@1": 0.41,
+     "fpr@2": 0.01,
+     "dr@2": 0.41,
+     "fpr@5": 0.01,
+     "dr@5": 0.41
+    },
+    "ECOD": {
+     "auc": 0.090346,
+     "fpr@1": 0.22,
+     "dr@1": 1.46,
+     "fpr@2": 0.22,
+     "dr@2": 1.46,
+     "fpr@5": 4.5,
+     "dr@5": 1.98
+    },
+    "COPOD": {
+     "auc": 0.079574,
+     "fpr@1": 0.18,
+     "dr@1": 1.32,
+     "fpr@2": 0.18,
+     "dr@2": 1.32,
+     "fpr@5": 4.55,
+     "dr@5": 1.83
+    },
+    "HBOS": {
+     "auc": 0.175476,
+     "fpr@1": 0.4,
+     "dr@1": 2.54,
+     "fpr@2": 1.49,
+     "dr@2": 2.59,
+     "fpr@5": 2.27,
+     "dr@5": 2.65
+    },
+    "LODA": {
+     "auc": 0.17105,
+     "fpr@1": 0.93,
+     "dr@1": 0.92,
+     "fpr@2": 1.09,
+     "dr@2": 1.17,
+     "fpr@5": 2.05,
+     "dr@5": 1.17
+    },
+    "INNE": {
+     "auc": 0.029699,
+     "fpr@1": 0.0,
+     "dr@1": 0.0,
+     "fpr@2": 2.55,
+     "dr@2": 1.18,
+     "fpr@5": 3.07,
+     "dr@5": 1.21
+    },
+    "IForest": {
+     "auc": 0.069116,
+     "fpr@1": 1.09,
+     "dr@1": 1.28,
+     "fpr@2": 2.17,
+     "dr@2": 1.3,
+     "fpr@5": 3.14,
+     "dr@5": 1.31
+    },
+    "DIF": {
+     "auc": 0.027085,
+     "fpr@1": 0.22,
+     "dr@1": 0.97,
+     "fpr@2": 0.22,
+     "dr@2": 0.97,
+     "fpr@5": 4.51,
+     "dr@5": 1.29
+    }
+   },
+   "appended": {
+    "Subspace-Q + EWMA (ours)": {
+     "auc": 0.01152,
+     "fpr@1": 0.5,
+     "dr@1": 0.98,
+     "fpr@2": 1.14,
+     "dr@2": 0.99,
+     "fpr@5": 3.93,
+     "dr@5": 0.99
+    },
+    "POT": {
+     "auc": 0.426756,
+     "fpr@1": 2.38,
+     "dr@1": 1.25,
+     "fpr@2": 3.24,
+     "dr@2": 1.28,
+     "fpr@5": 8.32,
+     "dr@5": 1.41
+    },
+    "DSPOT": {
+     "auc": 0.65101,
+     "fpr@1": 0.01,
+     "dr@1": 0.41,
+     "fpr@2": 0.01,
+     "dr@2": 0.41,
+     "fpr@5": 0.01,
+     "dr@5": 0.41
+    },
+    "ECOD": {
+     "auc": 0.090346,
+     "fpr@1": 0.22,
+     "dr@1": 1.46,
+     "fpr@2": 0.22,
+     "dr@2": 1.46,
+     "fpr@5": 4.5,
+     "dr@5": 1.98
+    },
+    "COPOD": {
+     "auc": 0.079574,
+     "fpr@1": 0.18,
+     "dr@1": 1.32,
+     "fpr@2": 0.18,
+     "dr@2": 1.32,
+     "fpr@5": 4.55,
+     "dr@5": 1.83
+    },
+    "HBOS": {
+     "auc": 0.175476,
+     "fpr@1": 0.4,
+     "dr@1": 2.54,
+     "fpr@2": 1.49,
+     "dr@2": 2.59,
+     "fpr@5": 2.27,
+     "dr@5": 2.65
+    },
+    "LODA": {
+     "auc": 0.171049,
+     "fpr@1": 0.93,
+     "dr@1": 0.92,
+     "fpr@2": 1.1,
+     "dr@2": 1.17,
+     "fpr@5": 2.06,
+     "dr@5": 1.17
+    },
+    "INNE": {
+     "auc": 0.029699,
+     "fpr@1": 0.0,
+     "dr@1": 0.0,
+     "fpr@2": 2.55,
+     "dr@2": 1.18,
+     "fpr@5": 3.07,
+     "dr@5": 1.21
+    },
+    "IForest": {
+     "auc": 0.069116,
+     "fpr@1": 1.09,
+     "dr@1": 1.28,
+     "fpr@2": 2.17,
+     "dr@2": 1.3,
+     "fpr@5": 3.14,
+     "dr@5": 1.31
+    },
+    "DIF": {
+     "auc": 0.027085,
+     "fpr@1": 0.22,
+     "dr@1": 0.97,
+     "fpr@2": 0.22,
+     "dr@2": 0.97,
+     "fpr@5": 4.51,
+     "dr@5": 1.29
+    }
+   }
+  },
+  {
+   "corpus": "CIC_IOT_Dataset2023",
+   "file": "DDoS-PSHACK_Flood.json",
+   "label": "CIC_IOT_Dataset2023 DDoS-PSHACK_Flood",
+   "verdict": "ROLE-UNVERIFIED",
+   "split_mode": "crossfile",
+   "separate_capture": true,
+   "median_step_attack": 1.0,
+   "median_step_benign": 5.0,
+   "step_ratio": 5.0,
+   "key_is_numeric": true,
+   "interleaved": {
+    "Subspace-Q + EWMA (ours)": {
+     "auc": 1.0,
+     "fpr@1": 0.76,
+     "dr@1": 100.0,
+     "fpr@2": 2.25,
+     "dr@2": 100.0,
+     "fpr@5": 4.8,
+     "dr@5": 100.0
+    },
+    "POT": {
+     "auc": 0.999997,
+     "fpr@1": 0.66,
+     "dr@1": 100.0,
+     "fpr@2": 1.09,
+     "dr@2": 100.0,
+     "fpr@5": 4.5,
+     "dr@5": 100.0
+    },
+    "DSPOT": {
+     "auc": 0.89168,
+     "fpr@1": 99.97,
+     "dr@1": 100.0,
+     "fpr@2": 99.97,
+     "dr@2": 100.0,
+     "fpr@5": 99.97,
+     "dr@5": 100.0
+    },
+    "ECOD": {
+     "auc": 0.998836,
+     "fpr@1": 1.29,
+     "dr@1": 97.82,
+     "fpr@2": 1.99,
+     "dr@2": 97.89,
+     "fpr@5": 6.22,
+     "dr@5": 100.0
+    },
+    "COPOD": {
+     "auc": 0.996115,
+     "fpr@1": 1.29,
+     "dr@1": 94.59,
+     "fpr@2": 1.99,
+     "dr@2": 94.59,
+     "fpr@5": 6.22,
+     "dr@5": 96.95
+    },
+    "HBOS": {
+     "auc": 0.870153,
+     "fpr@1": 1.19,
+     "dr@1": 0.0,
+     "fpr@2": 1.85,
+     "dr@2": 0.0,
+     "fpr@5": 4.57,
+     "dr@5": 0.0
+    },
+    "LODA": {
+     "auc": 0.987325,
+     "fpr@1": 0.07,
+     "dr@1": 61.09,
+     "fpr@2": 0.07,
+     "dr@2": 61.09,
+     "fpr@5": 4.63,
+     "dr@5": 99.81
+    },
+    "INNE": {
+     "auc": 1.0,
+     "fpr@1": 0.66,
+     "dr@1": 100.0,
+     "fpr@2": 1.56,
+     "dr@2": 100.0,
+     "fpr@5": 4.37,
+     "dr@5": 100.0
+    },
+    "IForest": {
+     "auc": 0.981472,
+     "fpr@1": 0.76,
+     "dr@1": 80.48,
+     "fpr@2": 2.42,
+     "dr@2": 88.44,
+     "fpr@5": 4.7,
+     "dr@5": 90.49
+    },
+    "DIF": {
+     "auc": 0.999946,
+     "fpr@1": 1.06,
+     "dr@1": 100.0,
+     "fpr@2": 1.69,
+     "dr@2": 100.0,
+     "fpr@5": 4.1,
+     "dr@5": 100.0
+    }
+   },
+   "appended": {
+    "Subspace-Q + EWMA (ours)": {
+     "auc": 1.0,
+     "fpr@1": 0.73,
+     "dr@1": 100.0,
+     "fpr@2": 2.18,
+     "dr@2": 100.0,
+     "fpr@5": 4.73,
+     "dr@5": 100.0
+    },
+    "POT": {
+     "auc": 0.999997,
+     "fpr@1": 0.66,
+     "dr@1": 100.0,
+     "fpr@2": 1.09,
+     "dr@2": 100.0,
+     "fpr@5": 4.5,
+     "dr@5": 100.0
+    },
+    "DSPOT": {
+     "auc": 0.972676,
+     "fpr@1": 92.62,
+     "dr@1": 100.0,
+     "fpr@2": 92.62,
+     "dr@2": 100.0,
+     "fpr@5": 92.65,
+     "dr@5": 100.0
+    },
+    "ECOD": {
+     "auc": 0.998836,
+     "fpr@1": 1.29,
+     "dr@1": 97.82,
+     "fpr@2": 1.99,
+     "dr@2": 97.89,
+     "fpr@5": 6.22,
+     "dr@5": 100.0
+    },
+    "COPOD": {
+     "auc": 0.996115,
+     "fpr@1": 1.29,
+     "dr@1": 94.59,
+     "fpr@2": 1.99,
+     "dr@2": 94.59,
+     "fpr@5": 6.22,
+     "dr@5": 96.95
+    },
+    "HBOS": {
+     "auc": 0.870153,
+     "fpr@1": 1.19,
+     "dr@1": 0.0,
+     "fpr@2": 1.85,
+     "dr@2": 0.0,
+     "fpr@5": 4.57,
+     "dr@5": 0.0
+    },
+    "LODA": {
+     "auc": 0.987325,
+     "fpr@1": 0.07,
+     "dr@1": 61.09,
+     "fpr@2": 0.07,
+     "dr@2": 61.09,
+     "fpr@5": 4.63,
+     "dr@5": 99.81
+    },
+    "INNE": {
+     "auc": 1.0,
+     "fpr@1": 0.66,
+     "dr@1": 100.0,
+     "fpr@2": 1.56,
+     "dr@2": 100.0,
+     "fpr@5": 4.37,
+     "dr@5": 100.0
+    },
+    "IForest": {
+     "auc": 0.981472,
+     "fpr@1": 0.76,
+     "dr@1": 80.48,
+     "fpr@2": 2.42,
+     "dr@2": 88.44,
+     "fpr@5": 4.7,
+     "dr@5": 90.49
+    },
+    "DIF": {
+     "auc": 0.999946,
+     "fpr@1": 1.06,
+     "dr@1": 100.0,
+     "fpr@2": 1.69,
+     "dr@2": 100.0,
+     "fpr@5": 4.1,
+     "dr@5": 100.0
+    }
+   }
+  },
+  {
+   "corpus": "CIC_IOT_Dataset2023",
+   "file": "DDoS-RSTFINFlood.json",
+   "label": "CIC_IOT_Dataset2023 DDoS-RSTFINFlood",
+   "verdict": "ROLE-UNVERIFIED",
+   "split_mode": "crossfile",
+   "separate_capture": true,
+   "median_step_attack": 1.0,
+   "median_step_benign": 2.0,
+   "step_ratio": 2.0,
+   "key_is_numeric": true,
+   "interleaved": {
+    "Subspace-Q + EWMA (ours)": {
+     "auc": 0.99268,
+     "fpr@1": 5.41,
+     "dr@1": 98.1,
+     "fpr@2": 6.21,
+     "dr@2": 98.61,
+     "fpr@5": 9.35,
+     "dr@5": 99.35
+    },
+    "POT": {
+     "auc": 0.882781,
+     "fpr@1": 0.49,
+     "dr@1": 71.38,
+     "fpr@2": 1.24,
+     "dr@2": 72.86,
+     "fpr@5": 4.43,
+     "dr@5": 74.94
+    },
+    "DSPOT": {
+     "auc": 0.426025,
+     "fpr@1": 2.57,
+     "dr@1": 0.3,
+     "fpr@2": 2.62,
+     "dr@2": 0.36,
+     "fpr@5": 5.14,
+     "dr@5": 0.8
+    },
+    "ECOD": {
+     "auc": 0.87117,
+     "fpr@1": 1.2,
+     "dr@1": 4.74,
+     "fpr@2": 2.3,
+     "dr@2": 6.2,
+     "fpr@5": 5.05,
+     "dr@5": 18.95
+    },
+    "COPOD": {
+     "auc": 0.850244,
+     "fpr@1": 1.2,
+     "dr@1": 4.06,
+     "fpr@2": 2.44,
+     "dr@2": 5.72,
+     "fpr@5": 5.41,
+     "dr@5": 18.33
+    },
+    "HBOS": {
+     "auc": 0.783356,
+     "fpr@1": 1.11,
+     "dr@1": 1.66,
+     "fpr@2": 2.08,
+     "dr@2": 2.79,
+     "fpr@5": 4.79,
+     "dr@5": 12.66
+    },
+    "LODA": {
+     "auc": 0.444153,
+     "fpr@1": 0.58,
+     "dr@1": 13.94,
+     "fpr@2": 0.58,
+     "dr@2": 13.94,
+     "fpr@5": 0.58,
+     "dr@5": 13.94
+    },
+    "INNE": {
+     "auc": 0.988802,
+     "fpr@1": 1.15,
+     "dr@1": 77.31,
+     "fpr@2": 1.99,
+     "dr@2": 87.01,
+     "fpr@5": 2.08,
+     "dr@5": 89.41
+    },
+    "IForest": {
+     "auc": 0.907868,
+     "fpr@1": 0.98,
+     "dr@1": 4.69,
+     "fpr@2": 2.35,
+     "dr@2": 8.54,
+     "fpr@5": 5.27,
+     "dr@5": 20.31
+    },
+    "DIF": {
+     "auc": 0.991113,
+     "fpr@1": 1.42,
+     "dr@1": 91.04,
+     "fpr@2": 2.48,
+     "dr@2": 96.17,
+     "fpr@5": 5.63,
+     "dr@5": 97.15
+    }
+   },
+   "appended": {
+    "Subspace-Q + EWMA (ours)": {
+     "auc": 0.998993,
+     "fpr@1": 0.62,
+     "dr@1": 98.55,
+     "fpr@2": 1.06,
+     "dr@2": 98.96,
+     "fpr@5": 3.81,
+     "dr@5": 99.5
+    },
+    "POT": {
+     "auc": 0.882781,
+     "fpr@1": 0.49,
+     "dr@1": 71.38,
+     "fpr@2": 1.24,
+     "dr@2": 72.86,
+     "fpr@5": 4.43,
+     "dr@5": 74.94
+    },
+    "DSPOT": {
+     "auc": 0.59241,
+     "fpr@1": 0.09,
+     "dr@1": 0.09,
+     "fpr@2": 0.09,
+     "dr@2": 0.09,
+     "fpr@5": 2.35,
+     "dr@5": 1.51
+    },
+    "ECOD": {
+     "auc": 0.87117,
+     "fpr@1": 1.2,
+     "dr@1": 4.74,
+     "fpr@2": 2.3,
+     "dr@2": 6.2,
+     "fpr@5": 5.05,
+     "dr@5": 18.95
+    },
+    "COPOD": {
+     "auc": 0.850244,
+     "fpr@1": 1.2,
+     "dr@1": 4.06,
+     "fpr@2": 2.44,
+     "dr@2": 5.72,
+     "fpr@5": 5.41,
+     "dr@5": 18.33
+    },
+    "HBOS": {
+     "auc": 0.783356,
+     "fpr@1": 1.11,
+     "dr@1": 1.66,
+     "fpr@2": 2.08,
+     "dr@2": 2.79,
+     "fpr@5": 4.79,
+     "dr@5": 12.66
+    },
+    "LODA": {
+     "auc": 0.444153,
+     "fpr@1": 0.58,
+     "dr@1": 13.94,
+     "fpr@2": 0.58,
+     "dr@2": 13.94,
+     "fpr@5": 0.58,
+     "dr@5": 13.94
+    },
+    "INNE": {
+     "auc": 0.988802,
+     "fpr@1": 1.15,
+     "dr@1": 77.31,
+     "fpr@2": 1.99,
+     "dr@2": 87.01,
+     "fpr@5": 2.08,
+     "dr@5": 89.41
+    },
+    "IForest": {
+     "auc": 0.907868,
+     "fpr@1": 0.98,
+     "dr@1": 4.69,
+     "fpr@2": 2.35,
+     "dr@2": 8.54,
+     "fpr@5": 5.27,
+     "dr@5": 20.31
+    },
+    "DIF": {
+     "auc": 0.991113,
+     "fpr@1": 1.42,
+     "dr@1": 91.04,
+     "fpr@2": 2.48,
+     "dr@2": 96.17,
+     "fpr@5": 5.63,
+     "dr@5": 97.15
+    }
+   }
+  },
+  {
+   "corpus": "CIC_IOT_Dataset2023",
+   "file": "DDoS-SYN_Flood.json",
+   "label": "CIC_IOT_Dataset2023 DDoS-SYN_Flood",
+   "verdict": "USABLE",
+   "split_mode": "crossfile",
+   "separate_capture": true,
+   "median_step_attack": 1.0,
+   "median_step_benign": 61.0,
+   "step_ratio": 61.0,
+   "key_is_numeric": true,
+   "interleaved": {
+    "Subspace-Q + EWMA (ours)": {
+     "auc": 0.999822,
+     "fpr@1": 0.27,
+     "dr@1": 97.96,
+     "fpr@2": 1.6,
+     "dr@2": 99.79,
+     "fpr@5": 4.55,
+     "dr@5": 99.97
+    },
+    "POT": {
+     "auc": 0.987223,
+     "fpr@1": 0.8,
+     "dr@1": 84.23,
+     "fpr@2": 1.87,
+     "dr@2": 84.28,
+     "fpr@5": 4.81,
+     "dr@5": 92.61
+    },
+    "DSPOT": {
+     "auc": 0.329727,
+     "fpr@1": 100.0,
+     "dr@1": 99.82,
+     "fpr@2": 100.0,
+     "dr@2": 99.82,
+     "fpr@5": 100.0,
+     "dr@5": 99.82
+    },
+    "ECOD": {
+     "auc": 0.972407,
+     "fpr@1": 0.8,
+     "dr@1": 42.55,
+     "fpr@2": 1.07,
+     "dr@2": 43.28,
+     "fpr@5": 4.81,
+     "dr@5": 78.07
+    },
+    "COPOD": {
+     "auc": 0.968391,
+     "fpr@1": 0.8,
+     "dr@1": 40.63,
+     "fpr@2": 1.07,
+     "dr@2": 41.97,
+     "fpr@5": 4.81,
+     "dr@5": 75.77
+    },
+    "HBOS": {
+     "auc": 0.954597,
+     "fpr@1": 0.27,
+     "dr@1": 4.38,
+     "fpr@2": 0.8,
+     "dr@2": 7.89,
+     "fpr@5": 5.08,
+     "dr@5": 64.27
+    },
+    "LODA": {
+     "auc": 0.146609,
+     "fpr@1": 0.27,
+     "dr@1": 10.37,
+     "fpr@2": 0.27,
+     "dr@2": 10.37,
+     "fpr@5": 0.27,
+     "dr@5": 10.37
+    },
+    "INNE": {
+     "auc": 0.988776,
+     "fpr@1": 0.27,
+     "dr@1": 67.88,
+     "fpr@2": 3.21,
+     "dr@2": 83.31,
+     "fpr@5": 5.35,
+     "dr@5": 94.24
+    },
+    "IForest": {
+     "auc": 0.96119,
+     "fpr@1": 1.87,
+     "dr@1": 41.16,
+     "fpr@2": 2.67,
+     "dr@2": 52.32,
+     "fpr@5": 5.35,
+     "dr@5": 79.01
+    },
+    "DIF": {
+     "auc": 0.993859,
+     "fpr@1": 1.07,
+     "dr@1": 80.98,
+     "fpr@2": 2.41,
+     "dr@2": 89.34,
+     "fpr@5": 5.88,
+     "dr@5": 98.32
+    }
+   },
+   "appended": {
+    "Subspace-Q + EWMA (ours)": {
+     "auc": 0.999826,
+     "fpr@1": 0.27,
+     "dr@1": 97.98,
+     "fpr@2": 1.6,
+     "dr@2": 99.82,
+     "fpr@5": 4.55,
+     "dr@5": 99.97
+    },
+    "POT": {
+     "auc": 0.987223,
+     "fpr@1": 0.8,
+     "dr@1": 84.23,
+     "fpr@2": 1.87,
+     "dr@2": 84.28,
+     "fpr@5": 4.81,
+     "dr@5": 92.61
+    },
+    "DSPOT": {
+     "auc": 0.999671,
+     "fpr@1": 94.92,
+     "dr@1": 99.97,
+     "fpr@2": 94.92,
+     "dr@2": 99.97,
+     "fpr@5": 94.92,
+     "dr@5": 99.97
+    },
+    "ECOD": {
+     "auc": 0.972407,
+     "fpr@1": 0.8,
+     "dr@1": 42.55,
+     "fpr@2": 1.07,
+     "dr@2": 43.28,
+     "fpr@5": 4.81,
+     "dr@5": 78.07
+    },
+    "COPOD": {
+     "auc": 0.968391,
+     "fpr@1": 0.8,
+     "dr@1": 40.63,
+     "fpr@2": 1.07,
+     "dr@2": 41.97,
+     "fpr@5": 4.81,
+     "dr@5": 75.77
+    },
+    "HBOS": {
+     "auc": 0.954597,
+     "fpr@1": 0.27,
+     "dr@1": 4.38,
+     "fpr@2": 0.8,
+     "dr@2": 7.89,
+     "fpr@5": 5.08,
+     "dr@5": 64.27
+    },
+    "LODA": {
+     "auc": 0.146609,
+     "fpr@1": 0.27,
+     "dr@1": 10.37,
+     "fpr@2": 0.27,
+     "dr@2": 10.37,
+     "fpr@5": 0.27,
+     "dr@5": 10.37
+    },
+    "INNE": {
+     "auc": 0.988776,
+     "fpr@1": 0.27,
+     "dr@1": 67.88,
+     "fpr@2": 3.21,
+     "dr@2": 83.31,
+     "fpr@5": 5.35,
+     "dr@5": 94.24
+    },
+    "IForest": {
+     "auc": 0.96119,
+     "fpr@1": 1.87,
+     "dr@1": 41.16,
+     "fpr@2": 2.67,
+     "dr@2": 52.32,
+     "fpr@5": 5.35,
+     "dr@5": 79.01
+    },
+    "DIF": {
+     "auc": 0.993859,
+     "fpr@1": 1.07,
+     "dr@1": 80.98,
+     "fpr@2": 2.41,
+     "dr@2": 89.34,
+     "fpr@5": 5.88,
+     "dr@5": 98.32
+    }
+   }
+  },
+  {
+   "corpus": "CIC_IOT_Dataset2023",
+   "file": "DDoS-SlowLoris.json",
+   "label": "CIC_IOT_Dataset2023 DDoS-SlowLoris",
+   "verdict": "ROLE-UNVERIFIED",
+   "split_mode": "crossfile",
+   "separate_capture": true,
+   "median_step_attack": 1.0,
+   "median_step_benign": 61.0,
+   "step_ratio": 61.0,
+   "key_is_numeric": true,
+   "interleaved": {
+    "Subspace-Q + EWMA (ours)": {
+     "auc": 0.997571,
+     "fpr@1": 0.0,
+     "dr@1": 79.31,
+     "fpr@2": 0.0,
+     "dr@2": 85.69,
+     "fpr@5": 4.55,
+     "dr@5": 98.91
+    },
+    "POT": {
+     "auc": 0.952811,
+     "fpr@1": 0.53,
+     "dr@1": 49.72,
+     "fpr@2": 0.53,
+     "dr@2": 63.81,
+     "fpr@5": 3.74,
+     "dr@5": 65.84
+    },
+    "DSPOT": {
+     "auc": 0.410153,
+     "fpr@1": 91.44,
+     "dr@1": 76.49,
+     "fpr@2": 91.44,
+     "dr@2": 76.49,
+     "fpr@5": 91.44,
+     "dr@5": 81.72
+    },
+    "ECOD": {
+     "auc": 0.956898,
+     "fpr@1": 0.27,
+     "dr@1": 35.06,
+     "fpr@2": 1.07,
+     "dr@2": 41.55,
+     "fpr@5": 4.01,
+     "dr@5": 57.27
+    },
+    "COPOD": {
+     "auc": 0.955568,
+     "fpr@1": 0.27,
+     "dr@1": 35.51,
+     "fpr@2": 1.07,
+     "dr@2": 40.66,
+     "fpr@5": 4.01,
+     "dr@5": 57.33
+    },
+    "HBOS": {
+     "auc": 0.946686,
+     "fpr@1": 0.53,
+     "dr@1": 7.87,
+     "fpr@2": 1.07,
+     "dr@2": 8.39,
+     "fpr@5": 3.74,
+     "dr@5": 61.57
+    },
+    "LODA": {
+     "auc": 0.12101,
+     "fpr@1": 1.34,
+     "dr@1": 7.33,
+     "fpr@2": 1.34,
+     "dr@2": 7.33,
+     "fpr@5": 1.34,
+     "dr@5": 7.33
+    },
+    "INNE": {
+     "auc": 0.995699,
+     "fpr@1": 0.27,
+     "dr@1": 47.46,
+     "fpr@2": 0.53,
+     "dr@2": 90.24,
+     "fpr@5": 3.21,
+     "dr@5": 99.62
+    },
+    "IForest": {
+     "auc": 0.877079,
+     "fpr@1": 0.27,
+     "dr@1": 37.0,
+     "fpr@2": 1.07,
+     "dr@2": 44.52,
+     "fpr@5": 4.55,
+     "dr@5": 59.6
+    },
+    "DIF": {
+     "auc": 0.993177,
+     "fpr@1": 0.27,
+     "dr@1": 56.24,
+     "fpr@2": 0.27,
+     "dr@2": 68.06,
+     "fpr@5": 2.67,
+     "dr@5": 100.0
+    }
+   },
+   "appended": {
+    "Subspace-Q + EWMA (ours)": {
+     "auc": 0.997829,
+     "fpr@1": 0.0,
+     "dr@1": 79.31,
+     "fpr@2": 0.0,
+     "dr@2": 85.69,
+     "fpr@5": 4.28,
+     "dr@5": 98.91
+    },
+    "POT": {
+     "auc": 0.952811,
+     "fpr@1": 0.53,
+     "dr@1": 49.72,
+     "fpr@2": 0.53,
+     "dr@2": 63.81,
+     "fpr@5": 3.74,
+     "dr@5": 65.84
+    },
+    "DSPOT": {
+     "auc": 0.73588,
+     "fpr@1": 89.04,
+     "dr@1": 78.8,
+     "fpr@2": 89.04,
+     "dr@2": 78.8,
+     "fpr@5": 91.44,
+     "dr@5": 82.39
+    },
+    "ECOD": {
+     "auc": 0.956898,
+     "fpr@1": 0.27,
+     "dr@1": 35.06,
+     "fpr@2": 1.07,
+     "dr@2": 41.55,
+     "fpr@5": 4.01,
+     "dr@5": 57.27
+    },
+    "COPOD": {
+     "auc": 0.955568,
+     "fpr@1": 0.27,
+     "dr@1": 35.51,
+     "fpr@2": 1.07,
+     "dr@2": 40.66,
+     "fpr@5": 4.01,
+     "dr@5": 57.33
+    },
+    "HBOS": {
+     "auc": 0.946686,
+     "fpr@1": 0.53,
+     "dr@1": 7.87,
+     "fpr@2": 1.07,
+     "dr@2": 8.39,
+     "fpr@5": 3.74,
+     "dr@5": 61.57
+    },
+    "LODA": {
+     "auc": 0.12101,
+     "fpr@1": 1.34,
+     "dr@1": 7.33,
+     "fpr@2": 1.34,
+     "dr@2": 7.33,
+     "fpr@5": 1.34,
+     "dr@5": 7.33
+    },
+    "INNE": {
+     "auc": 0.995699,
+     "fpr@1": 0.27,
+     "dr@1": 47.46,
+     "fpr@2": 0.53,
+     "dr@2": 90.24,
+     "fpr@5": 3.21,
+     "dr@5": 99.62
+    },
+    "IForest": {
+     "auc": 0.877079,
+     "fpr@1": 0.27,
+     "dr@1": 37.0,
+     "fpr@2": 1.07,
+     "dr@2": 44.52,
+     "fpr@5": 4.55,
+     "dr@5": 59.6
+    },
+    "DIF": {
+     "auc": 0.993177,
+     "fpr@1": 0.27,
+     "dr@1": 56.24,
+     "fpr@2": 0.27,
+     "dr@2": 68.06,
+     "fpr@5": 2.67,
+     "dr@5": 100.0
+    }
+   }
+  },
+  {
+   "corpus": "CIC_IOT_Dataset2023",
+   "file": "DDoS-SynonymousIP_Flood.json",
+   "label": "CIC_IOT_Dataset2023 DDoS-SynonymousIP_Flood",
+   "verdict": "USABLE",
+   "split_mode": "crossfile",
+   "separate_capture": true,
+   "median_step_attack": 1.0,
+   "median_step_benign": 20.0,
+   "step_ratio": 20.0,
+   "key_is_numeric": true,
+   "interleaved": {
+    "Subspace-Q + EWMA (ours)": {
+     "auc": 0.999573,
+     "fpr@1": 14.15,
+     "dr@1": 100.0,
+     "fpr@2": 15.47,
+     "dr@2": 100.0,
+     "fpr@5": 19.43,
+     "dr@5": 100.0
+    },
+    "POT": {
+     "auc": 0.999732,
+     "fpr@1": 0.29,
+     "dr@1": 100.0,
+     "fpr@2": 0.29,
+     "dr@2": 100.0,
+     "fpr@5": 0.29,
+     "dr@5": 100.0
+    },
+    "DSPOT": {
+     "auc": 0.853401,
+     "fpr@1": 100.0,
+     "dr@1": 99.34,
+     "fpr@2": 100.0,
+     "dr@2": 99.34,
+     "fpr@5": 100.0,
+     "dr@5": 99.34
+    },
+    "ECOD": {
+     "auc": 0.989634,
+     "fpr@1": 0.52,
+     "dr@1": 95.01,
+     "fpr@2": 0.52,
+     "dr@2": 95.01,
+     "fpr@5": 0.52,
+     "dr@5": 95.01
+    },
+    "COPOD": {
+     "auc": 0.987877,
+     "fpr@1": 0.46,
+     "dr@1": 94.28,
+     "fpr@2": 0.46,
+     "dr@2": 94.28,
+     "fpr@5": 0.46,
+     "dr@5": 94.28
+    },
+    "HBOS": {
+     "auc": 0.943487,
+     "fpr@1": 0.52,
+     "dr@1": 86.7,
+     "fpr@2": 0.52,
+     "dr@2": 86.7,
+     "fpr@5": 0.52,
+     "dr@5": 86.7
+    },
+    "LODA": {
+     "auc": 0.846052,
+     "fpr@1": 0.0,
+     "dr@1": 83.51,
+     "fpr@2": 0.0,
+     "dr@2": 83.51,
+     "fpr@5": 0.0,
+     "dr@5": 83.51
+    },
+    "INNE": {
+     "auc": 1.0,
+     "fpr@1": 1.09,
+     "dr@1": 100.0,
+     "fpr@2": 1.49,
+     "dr@2": 100.0,
+     "fpr@5": 2.69,
+     "dr@5": 100.0
+    },
+    "IForest": {
+     "auc": 0.948504,
+     "fpr@1": 0.69,
+     "dr@1": 80.87,
+     "fpr@2": 1.66,
+     "dr@2": 85.02,
+     "fpr@5": 2.69,
+     "dr@5": 86.31
+    },
+    "DIF": {
+     "auc": 0.999513,
+     "fpr@1": 0.92,
+     "dr@1": 97.02,
+     "fpr@2": 1.72,
+     "dr@2": 100.0,
+     "fpr@5": 2.35,
+     "dr@5": 100.0
+    }
+   },
+   "appended": {
+    "Subspace-Q + EWMA (ours)": {
+     "auc": 1.0,
+     "fpr@1": 1.03,
+     "dr@1": 100.0,
+     "fpr@2": 2.23,
+     "dr@2": 100.0,
+     "fpr@5": 5.85,
+     "dr@5": 100.0
+    },
+    "POT": {
+     "auc": 0.999732,
+     "fpr@1": 0.29,
+     "dr@1": 100.0,
+     "fpr@2": 0.29,
+     "dr@2": 100.0,
+     "fpr@5": 0.29,
+     "dr@5": 100.0
+    },
+    "DSPOT": {
+     "auc": 0.999526,
+     "fpr@1": 1.83,
+     "dr@1": 99.34,
+     "fpr@2": 3.27,
+     "dr@2": 99.34,
+     "fpr@5": 6.53,
+     "dr@5": 99.34
+    },
+    "ECOD": {
+     "auc": 0.989634,
+     "fpr@1": 0.52,
+     "dr@1": 95.01,
+     "fpr@2": 0.52,
+     "dr@2": 95.01,
+     "fpr@5": 0.52,
+     "dr@5": 95.01
+    },
+    "COPOD": {
+     "auc": 0.987877,
+     "fpr@1": 0.46,
+     "dr@1": 94.28,
+     "fpr@2": 0.46,
+     "dr@2": 94.28,
+     "fpr@5": 0.46,
+     "dr@5": 94.28
+    },
+    "HBOS": {
+     "auc": 0.943487,
+     "fpr@1": 0.52,
+     "dr@1": 86.7,
+     "fpr@2": 0.52,
+     "dr@2": 86.7,
+     "fpr@5": 0.52,
+     "dr@5": 86.7
+    },
+    "LODA": {
+     "auc": 0.846052,
+     "fpr@1": 0.0,
+     "dr@1": 83.51,
+     "fpr@2": 0.0,
+     "dr@2": 83.51,
+     "fpr@5": 0.0,
+     "dr@5": 83.51
+    },
+    "INNE": {
+     "auc": 1.0,
+     "fpr@1": 1.09,
+     "dr@1": 100.0,
+     "fpr@2": 1.49,
+     "dr@2": 100.0,
+     "fpr@5": 2.69,
+     "dr@5": 100.0
+    },
+    "IForest": {
+     "auc": 0.948504,
+     "fpr@1": 0.69,
+     "dr@1": 80.87,
+     "fpr@2": 1.66,
+     "dr@2": 85.02,
+     "fpr@5": 2.69,
+     "dr@5": 86.31
+    },
+    "DIF": {
+     "auc": 0.999513,
+     "fpr@1": 0.92,
+     "dr@1": 97.02,
+     "fpr@2": 1.72,
+     "dr@2": 100.0,
+     "fpr@5": 2.35,
+     "dr@5": 100.0
+    }
+   }
+  },
+  {
+   "corpus": "CIC_IOT_Dataset2023",
+   "file": "DDoS-TCP_Flood.json",
+   "label": "CIC_IOT_Dataset2023 DDoS-TCP_Flood",
+   "verdict": "USABLE",
+   "split_mode": "crossfile",
+   "separate_capture": true,
+   "median_step_attack": 1.0,
+   "median_step_benign": 61.0,
+   "step_ratio": 61.0,
+   "key_is_numeric": true,
+   "interleaved": {
+    "Subspace-Q + EWMA (ours)": {
+     "auc": 0.999797,
+     "fpr@1": 0.27,
+     "dr@1": 98.37,
+     "fpr@2": 1.87,
+     "dr@2": 99.62,
+     "fpr@5": 4.81,
+     "dr@5": 99.92
+    },
+    "POT": {
+     "auc": 0.990348,
+     "fpr@1": 0.8,
+     "dr@1": 85.38,
+     "fpr@2": 1.87,
+     "dr@2": 85.44,
+     "fpr@5": 4.81,
+     "dr@5": 92.91
+    },
+    "DSPOT": {
+     "auc": 0.346672,
+     "fpr@1": 100.0,
+     "dr@1": 99.35,
+     "fpr@2": 100.0,
+     "dr@2": 99.35,
+     "fpr@5": 100.0,
+     "dr@5": 99.35
+    },
+    "ECOD": {
+     "auc": 0.973734,
+     "fpr@1": 0.8,
+     "dr@1": 46.94,
+     "fpr@2": 1.07,
+     "dr@2": 47.76,
+     "fpr@5": 4.81,
+     "dr@5": 78.27
+    },
+    "COPOD": {
+     "auc": 0.969584,
+     "fpr@1": 0.8,
+     "dr@1": 41.84,
+     "fpr@2": 1.07,
+     "dr@2": 46.26,
+     "fpr@5": 4.81,
+     "dr@5": 75.82
+    },
+    "HBOS": {
+     "auc": 0.956497,
+     "fpr@1": 0.27,
+     "dr@1": 4.51,
+     "fpr@2": 0.8,
+     "dr@2": 10.0,
+     "fpr@5": 5.08,
+     "dr@5": 67.1
+    },
+    "LODA": {
+     "auc": 0.15179,
+     "fpr@1": 0.27,
+     "dr@1": 11.19,
+     "fpr@2": 0.27,
+     "dr@2": 11.19,
+     "fpr@5": 0.27,
+     "dr@5": 11.19
+    },
+    "INNE": {
+     "auc": 0.989583,
+     "fpr@1": 0.27,
+     "dr@1": 68.32,
+     "fpr@2": 3.21,
+     "dr@2": 84.65,
+     "fpr@5": 5.35,
+     "dr@5": 95.25
+    },
+    "IForest": {
+     "auc": 0.962112,
+     "fpr@1": 1.87,
+     "dr@1": 46.48,
+     "fpr@2": 2.67,
+     "dr@2": 55.77,
+     "fpr@5": 5.35,
+     "dr@5": 77.83
+    },
+    "DIF": {
+     "auc": 0.993725,
+     "fpr@1": 1.07,
+     "dr@1": 81.8,
+     "fpr@2": 2.41,
+     "dr@2": 89.11,
+     "fpr@5": 5.88,
+     "dr@5": 98.02
+    }
+   },
+   "appended": {
+    "Subspace-Q + EWMA (ours)": {
+     "auc": 0.99981,
+     "fpr@1": 0.27,
+     "dr@1": 98.4,
+     "fpr@2": 1.6,
+     "dr@2": 99.62,
+     "fpr@5": 4.55,
+     "dr@5": 99.92
+    },
+    "POT": {
+     "auc": 0.990348,
+     "fpr@1": 0.8,
+     "dr@1": 85.38,
+     "fpr@2": 1.87,
+     "dr@2": 85.44,
+     "fpr@5": 4.81,
+     "dr@5": 92.91
+    },
+    "DSPOT": {
+     "auc": 0.999662,
+     "fpr@1": 94.92,
+     "dr@1": 99.97,
+     "fpr@2": 94.92,
+     "dr@2": 99.97,
+     "fpr@5": 94.92,
+     "dr@5": 99.97
+    },
+    "ECOD": {
+     "auc": 0.973734,
+     "fpr@1": 0.8,
+     "dr@1": 46.94,
+     "fpr@2": 1.07,
+     "dr@2": 47.76,
+     "fpr@5": 4.81,
+     "dr@5": 78.27
+    },
+    "COPOD": {
+     "auc": 0.969584,
+     "fpr@1": 0.8,
+     "dr@1": 41.84,
+     "fpr@2": 1.07,
+     "dr@2": 46.26,
+     "fpr@5": 4.81,
+     "dr@5": 75.82
+    },
+    "HBOS": {
+     "auc": 0.956497,
+     "fpr@1": 0.27,
+     "dr@1": 4.51,
+     "fpr@2": 0.8,
+     "dr@2": 10.0,
+     "fpr@5": 5.08,
+     "dr@5": 67.1
+    },
+    "LODA": {
+     "auc": 0.15179,
+     "fpr@1": 0.27,
+     "dr@1": 11.19,
+     "fpr@2": 0.27,
+     "dr@2": 11.19,
+     "fpr@5": 0.27,
+     "dr@5": 11.19
+    },
+    "INNE": {
+     "auc": 0.989583,
+     "fpr@1": 0.27,
+     "dr@1": 68.32,
+     "fpr@2": 3.21,
+     "dr@2": 84.65,
+     "fpr@5": 5.35,
+     "dr@5": 95.25
+    },
+    "IForest": {
+     "auc": 0.962112,
+     "fpr@1": 1.87,
+     "dr@1": 46.48,
+     "fpr@2": 2.67,
+     "dr@2": 55.77,
+     "fpr@5": 5.35,
+     "dr@5": 77.83
+    },
+    "DIF": {
+     "auc": 0.993725,
+     "fpr@1": 1.07,
+     "dr@1": 81.8,
+     "fpr@2": 2.41,
+     "dr@2": 89.11,
+     "fpr@5": 5.88,
+     "dr@5": 98.02
+    }
+   }
+  },
+  {
+   "corpus": "CIC_IOT_Dataset2023",
+   "file": "DDoS-UDP_Flood.json",
+   "label": "CIC_IOT_Dataset2023 DDoS-UDP_Flood",
+   "verdict": "USABLE",
+   "split_mode": "crossfile",
+   "separate_capture": true,
+   "median_step_attack": 1.0,
+   "median_step_benign": 61.0,
+   "step_ratio": 61.0,
+   "key_is_numeric": true,
+   "interleaved": {
+    "Subspace-Q + EWMA (ours)": {
+     "auc": 0.994797,
+     "fpr@1": 5.61,
+     "dr@1": 98.04,
+     "fpr@2": 29.41,
+     "dr@2": 99.29,
+     "fpr@5": 37.17,
+     "dr@5": 99.71
+    },
+    "POT": {
+     "auc": 0.989733,
+     "fpr@1": 0.8,
+     "dr@1": 86.05,
+     "fpr@2": 1.87,
+     "dr@2": 86.13,
+     "fpr@5": 4.81,
+     "dr@5": 93.18
+    },
+    "DSPOT": {
+     "auc": 0.292351,
+     "fpr@1": 100.0,
+     "dr@1": 100.0,
+     "fpr@2": 100.0,
+     "dr@2": 100.0,
+     "fpr@5": 100.0,
+     "dr@5": 100.0
+    },
+    "ECOD": {
+     "auc": 0.970928,
+     "fpr@1": 0.8,
+     "dr@1": 38.48,
+     "fpr@2": 1.07,
+     "dr@2": 39.44,
+     "fpr@5": 4.81,
+     "dr@5": 78.45
+    },
+    "COPOD": {
+     "auc": 0.966067,
+     "fpr@1": 0.8,
+     "dr@1": 29.58,
+     "fpr@2": 1.07,
+     "dr@2": 36.94,
+     "fpr@5": 4.81,
+     "dr@5": 76.34
+    },
+    "HBOS": {
+     "auc": 0.952862,
+     "fpr@1": 0.27,
+     "dr@1": 5.18,
+     "fpr@2": 0.8,
+     "dr@2": 9.82,
+     "fpr@5": 5.08,
+     "dr@5": 61.11
+    },
+    "LODA": {
+     "auc": 0.144402,
+     "fpr@1": 0.27,
+     "dr@1": 9.82,
+     "fpr@2": 0.27,
+     "dr@2": 9.82,
+     "fpr@5": 0.27,
+     "dr@5": 9.82
+    },
+    "INNE": {
+     "auc": 0.988731,
+     "fpr@1": 0.27,
+     "dr@1": 67.67,
+     "fpr@2": 3.21,
+     "dr@2": 83.34,
+     "fpr@5": 5.35,
+     "dr@5": 94.39
+    },
+    "IForest": {
+     "auc": 0.959685,
+     "fpr@1": 1.87,
+     "dr@1": 39.17,
+     "fpr@2": 2.67,
+     "dr@2": 48.94,
+     "fpr@5": 5.35,
+     "dr@5": 75.31
+    },
+    "DIF": {
+     "auc": 0.99396,
+     "fpr@1": 1.07,
+     "dr@1": 81.87,
+     "fpr@2": 2.41,
+     "dr@2": 89.49,
+     "fpr@5": 5.88,
+     "dr@5": 98.2
+    }
+   },
+   "appended": {
+    "Subspace-Q + EWMA (ours)": {
+     "auc": 0.9997,
+     "fpr@1": 0.27,
+     "dr@1": 98.31,
+     "fpr@2": 1.6,
+     "dr@2": 99.4,
+     "fpr@5": 4.55,
+     "dr@5": 99.76
+    },
+    "POT": {
+     "auc": 0.989733,
+     "fpr@1": 0.8,
+     "dr@1": 86.05,
+     "fpr@2": 1.87,
+     "dr@2": 86.13,
+     "fpr@5": 4.81,
+     "dr@5": 93.18
+    },
+    "DSPOT": {
+     "auc": 1.0,
+     "fpr@1": 94.92,
+     "dr@1": 100.0,
+     "fpr@2": 94.92,
+     "dr@2": 100.0,
+     "fpr@5": 94.92,
+     "dr@5": 100.0
+    },
+    "ECOD": {
+     "auc": 0.970928,
+     "fpr@1": 0.8,
+     "dr@1": 38.48,
+     "fpr@2": 1.07,
+     "dr@2": 39.44,
+     "fpr@5": 4.81,
+     "dr@5": 78.45
+    },
+    "COPOD": {
+     "auc": 0.966067,
+     "fpr@1": 0.8,
+     "dr@1": 29.58,
+     "fpr@2": 1.07,
+     "dr@2": 36.94,
+     "fpr@5": 4.81,
+     "dr@5": 76.34
+    },
+    "HBOS": {
+     "auc": 0.952862,
+     "fpr@1": 0.27,
+     "dr@1": 5.18,
+     "fpr@2": 0.8,
+     "dr@2": 9.82,
+     "fpr@5": 5.08,
+     "dr@5": 61.11
+    },
+    "LODA": {
+     "auc": 0.144402,
+     "fpr@1": 0.27,
+     "dr@1": 9.82,
+     "fpr@2": 0.27,
+     "dr@2": 9.82,
+     "fpr@5": 0.27,
+     "dr@5": 9.82
+    },
+    "INNE": {
+     "auc": 0.988731,
+     "fpr@1": 0.27,
+     "dr@1": 67.67,
+     "fpr@2": 3.21,
+     "dr@2": 83.34,
+     "fpr@5": 5.35,
+     "dr@5": 94.39
+    },
+    "IForest": {
+     "auc": 0.959685,
+     "fpr@1": 1.87,
+     "dr@1": 39.17,
+     "fpr@2": 2.67,
+     "dr@2": 48.94,
+     "fpr@5": 5.35,
+     "dr@5": 75.31
+    },
+    "DIF": {
+     "auc": 0.99396,
+     "fpr@1": 1.07,
+     "dr@1": 81.87,
+     "fpr@2": 2.41,
+     "dr@2": 89.49,
+     "fpr@5": 5.88,
+     "dr@5": 98.2
+    }
+   }
+  },
+  {
+   "corpus": "CIC_IOT_Dataset2023",
+   "file": "DDoS-UDP_Fragmentation.json",
+   "label": "CIC_IOT_Dataset2023 DDoS-UDP_Fragmentation",
+   "verdict": "ROLE-UNVERIFIED",
+   "split_mode": "crossfile",
+   "separate_capture": true,
+   "median_step_attack": 1.0,
+   "median_step_benign": 10.0,
+   "step_ratio": 10.0,
+   "key_is_numeric": true,
+   "interleaved": {
+    "Subspace-Q + EWMA (ours)": {
+     "auc": 0.958288,
+     "fpr@1": 14.06,
+     "dr@1": 91.13,
+     "fpr@2": 16.54,
+     "dr@2": 92.24,
+     "fpr@5": 27.11,
+     "dr@5": 96.14
+    },
+    "POT": {
+     "auc": 0.802962,
+     "fpr@1": 0.92,
+     "dr@1": 29.72,
+     "fpr@2": 1.29,
+     "dr@2": 31.16,
+     "fpr@5": 3.77,
+     "dr@5": 35.49
+    },
+    "DSPOT": {
+     "auc": 0.380079,
+     "fpr@1": 86.86,
+     "dr@1": 51.47,
+     "fpr@2": 86.86,
+     "dr@2": 51.47,
+     "fpr@5": 86.86,
+     "dr@5": 51.54
+    },
+    "ECOD": {
+     "auc": 0.850495,
+     "fpr@1": 1.01,
+     "dr@1": 23.62,
+     "fpr@2": 1.47,
+     "dr@2": 32.23,
+     "fpr@5": 4.23,
+     "dr@5": 49.5
+    },
+    "COPOD": {
+     "auc": 0.798452,
+     "fpr@1": 0.92,
+     "dr@1": 21.89,
+     "fpr@2": 1.65,
+     "dr@2": 32.07,
+     "fpr@5": 4.23,
+     "dr@5": 38.31
+    },
+    "HBOS": {
+     "auc": 0.682667,
+     "fpr@1": 0.64,
+     "dr@1": 13.63,
+     "fpr@2": 1.38,
+     "dr@2": 20.63,
+     "fpr@5": 5.15,
+     "dr@5": 28.74
+    },
+    "LODA": {
+     "auc": 0.659741,
+     "fpr@1": 0.28,
+     "dr@1": 14.74,
+     "fpr@2": 1.47,
+     "dr@2": 15.63,
+     "fpr@5": 1.56,
+     "dr@5": 17.46
+    },
+    "INNE": {
+     "auc": 0.957179,
+     "fpr@1": 0.28,
+     "dr@1": 41.51,
+     "fpr@2": 1.29,
+     "dr@2": 48.9,
+     "fpr@5": 4.04,
+     "dr@5": 59.17
+    },
+    "IForest": {
+     "auc": 0.913323,
+     "fpr@1": 0.74,
+     "dr@1": 21.25,
+     "fpr@2": 1.47,
+     "dr@2": 37.04,
+     "fpr@5": 4.41,
+     "dr@5": 53.19
+    },
+    "DIF": {
+     "auc": 0.962712,
+     "fpr@1": 1.01,
+     "dr@1": 51.7,
+     "fpr@2": 2.67,
+     "dr@2": 62.85,
+     "fpr@5": 5.15,
+     "dr@5": 86.0
+    }
+   },
+   "appended": {
+    "Subspace-Q + EWMA (ours)": {
+     "auc": 0.994006,
+     "fpr@1": 0.64,
+     "dr@1": 92.15,
+     "fpr@2": 1.29,
+     "dr@2": 93.13,
+     "fpr@5": 5.24,
+     "dr@5": 96.47
+    },
+    "POT": {
+     "auc": 0.802962,
+     "fpr@1": 0.92,
+     "dr@1": 29.72,
+     "fpr@2": 1.29,
+     "dr@2": 31.16,
+     "fpr@5": 3.77,
+     "dr@5": 35.49
+    },
+    "DSPOT": {
+     "auc": 0.60065,
+     "fpr@1": 2.21,
+     "dr@1": 52.33,
+     "fpr@2": 2.21,
+     "dr@2": 52.33,
+     "fpr@5": 11.67,
+     "dr@5": 52.38
+    },
+    "ECOD": {
+     "auc": 0.850495,
+     "fpr@1": 1.01,
+     "dr@1": 23.62,
+     "fpr@2": 1.47,
+     "dr@2": 32.23,
+     "fpr@5": 4.23,
+     "dr@5": 49.5
+    },
+    "COPOD": {
+     "auc": 0.798452,
+     "fpr@1": 0.92,
+     "dr@1": 21.89,
+     "fpr@2": 1.65,
+     "dr@2": 32.07,
+     "fpr@5": 4.23,
+     "dr@5": 38.31
+    },
+    "HBOS": {
+     "auc": 0.682667,
+     "fpr@1": 0.64,
+     "dr@1": 13.63,
+     "fpr@2": 1.38,
+     "dr@2": 20.63,
+     "fpr@5": 5.15,
+     "dr@5": 28.74
+    },
+    "LODA": {
+     "auc": 0.659741,
+     "fpr@1": 0.28,
+     "dr@1": 14.74,
+     "fpr@2": 1.47,
+     "dr@2": 15.63,
+     "fpr@5": 1.56,
+     "dr@5": 17.46
+    },
+    "INNE": {
+     "auc": 0.957179,
+     "fpr@1": 0.28,
+     "dr@1": 41.51,
+     "fpr@2": 1.29,
+     "dr@2": 48.9,
+     "fpr@5": 4.04,
+     "dr@5": 59.17
+    },
+    "IForest": {
+     "auc": 0.913323,
+     "fpr@1": 0.74,
+     "dr@1": 21.25,
+     "fpr@2": 1.47,
+     "dr@2": 37.04,
+     "fpr@5": 4.41,
+     "dr@5": 53.19
+    },
+    "DIF": {
+     "auc": 0.962712,
+     "fpr@1": 1.01,
+     "dr@1": 51.7,
+     "fpr@2": 2.67,
+     "dr@2": 62.85,
+     "fpr@5": 5.15,
+     "dr@5": 86.0
+    }
+   }
+  },
+  {
+   "corpus": "CIC_IOT_Dataset2023",
+   "file": "Mirai-udpplain.json",
+   "label": "CIC_IOT_Dataset2023 Mirai-udpplain",
+   "verdict": "USABLE",
+   "split_mode": "crossfile",
+   "separate_capture": true,
+   "median_step_attack": 1.0,
+   "median_step_benign": 63.0,
+   "step_ratio": 63.0,
+   "key_is_numeric": true,
+   "interleaved": {
+    "Subspace-Q + EWMA (ours)": {
+     "auc": 0.999932,
+     "fpr@1": 0.0,
+     "dr@1": 84.85,
+     "fpr@2": 0.0,
+     "dr@2": 99.68,
+     "fpr@5": 12.95,
+     "dr@5": 100.0
+    },
+    "POT": {
+     "auc": 0.995655,
+     "fpr@1": 0.0,
+     "dr@1": 78.28,
+     "fpr@2": 0.0,
+     "dr@2": 79.17,
+     "fpr@5": 2.41,
+     "dr@5": 99.43
+    },
+    "DSPOT": {
+     "auc": 0.518848,
+     "fpr@1": 100.0,
+     "dr@1": 99.53,
+     "fpr@2": 100.0,
+     "dr@2": 99.92,
+     "fpr@5": 100.0,
+     "dr@5": 100.0
+    },
+    "ECOD": {
+     "auc": 0.985341,
+     "fpr@1": 0.3,
+     "dr@1": 15.04,
+     "fpr@2": 0.9,
+     "dr@2": 58.29,
+     "fpr@5": 3.31,
+     "dr@5": 86.77
+    },
+    "COPOD": {
+     "auc": 0.985571,
+     "fpr@1": 0.3,
+     "dr@1": 14.77,
+     "fpr@2": 0.9,
+     "dr@2": 59.09,
+     "fpr@5": 3.31,
+     "dr@5": 86.53
+    },
+    "HBOS": {
+     "auc": 0.981618,
+     "fpr@1": 0.3,
+     "dr@1": 12.84,
+     "fpr@2": 0.9,
+     "dr@2": 58.68,
+     "fpr@5": 3.61,
+     "dr@5": 82.49
+    },
+    "LODA": {
+     "auc": 0.767787,
+     "fpr@1": 0.3,
+     "dr@1": 7.4,
+     "fpr@2": 0.9,
+     "dr@2": 67.84,
+     "fpr@5": 0.9,
+     "dr@5": 76.84
+    },
+    "INNE": {
+     "auc": 0.993367,
+     "fpr@1": 0.0,
+     "dr@1": 0.0,
+     "fpr@2": 0.0,
+     "dr@2": 0.0,
+     "fpr@5": 2.41,
+     "dr@5": 100.0
+    },
+    "IForest": {
+     "auc": 0.982144,
+     "fpr@1": 0.3,
+     "dr@1": 11.62,
+     "fpr@2": 0.9,
+     "dr@2": 22.22,
+     "fpr@5": 3.61,
+     "dr@5": 82.64
+    },
+    "DIF": {
+     "auc": 0.999499,
+     "fpr@1": 0.0,
+     "dr@1": 81.84,
+     "fpr@2": 0.0,
+     "dr@2": 95.62,
+     "fpr@5": 1.2,
+     "dr@5": 99.44
+    }
+   },
+   "appended": {
+    "Subspace-Q + EWMA (ours)": {
+     "auc": 0.999999,
+     "fpr@1": 0.0,
+     "dr@1": 85.16,
+     "fpr@2": 0.0,
+     "dr@2": 99.87,
+     "fpr@5": 1.81,
+     "dr@5": 100.0
+    },
+    "POT": {
+     "auc": 0.995655,
+     "fpr@1": 0.0,
+     "dr@1": 78.28,
+     "fpr@2": 0.0,
+     "dr@2": 79.17,
+     "fpr@5": 2.41,
+     "dr@5": 99.43
+    },
+    "DSPOT": {
+     "auc": 0.999925,
+     "fpr@1": 0.0,
+     "dr@1": 99.6,
+     "fpr@2": 0.3,
+     "dr@2": 99.92,
+     "fpr@5": 92.47,
+     "dr@5": 100.0
+    },
+    "ECOD": {
+     "auc": 0.985341,
+     "fpr@1": 0.3,
+     "dr@1": 15.04,
+     "fpr@2": 0.9,
+     "dr@2": 58.29,
+     "fpr@5": 3.31,
+     "dr@5": 86.77
+    },
+    "COPOD": {
+     "auc": 0.985571,
+     "fpr@1": 0.3,
+     "dr@1": 14.77,
+     "fpr@2": 0.9,
+     "dr@2": 59.09,
+     "fpr@5": 3.31,
+     "dr@5": 86.53
+    },
+    "HBOS": {
+     "auc": 0.981618,
+     "fpr@1": 0.3,
+     "dr@1": 12.84,
+     "fpr@2": 0.9,
+     "dr@2": 58.68,
+     "fpr@5": 3.61,
+     "dr@5": 82.49
+    },
+    "LODA": {
+     "auc": 0.767787,
+     "fpr@1": 0.3,
+     "dr@1": 7.4,
+     "fpr@2": 0.9,
+     "dr@2": 67.84,
+     "fpr@5": 0.9,
+     "dr@5": 76.84
+    },
+    "INNE": {
+     "auc": 0.993367,
+     "fpr@1": 0.0,
+     "dr@1": 0.0,
+     "fpr@2": 0.0,
+     "dr@2": 0.0,
+     "fpr@5": 2.41,
+     "dr@5": 100.0
+    },
+    "IForest": {
+     "auc": 0.982144,
+     "fpr@1": 0.3,
+     "dr@1": 11.62,
+     "fpr@2": 0.9,
+     "dr@2": 22.22,
+     "fpr@5": 3.61,
+     "dr@5": 82.64
+    },
+    "DIF": {
+     "auc": 0.999499,
+     "fpr@1": 0.0,
+     "dr@1": 81.84,
+     "fpr@2": 0.0,
+     "dr@2": 95.62,
+     "fpr@5": 1.2,
+     "dr@5": 99.44
+    }
+   }
+  },
+  {
+   "corpus": "LITNET-2020",
+   "file": "code_red_worm.json",
+   "label": "LITNET-2020 code_red_worm",
+   "verdict": "USABLE",
+   "split_mode": "within",
+   "separate_capture": false,
+   "median_step_attack": null,
+   "median_step_benign": null,
+   "step_ratio": null,
+   "key_is_numeric": false,
+   "interleaved": {
+    "Subspace-Q + EWMA (ours)": {
+     "auc": 0.961754,
+     "fpr@1": 0.64,
+     "dr@1": 90.72,
+     "fpr@2": 5.43,
+     "dr@2": 92.75,
+     "fpr@5": 23.96,
+     "dr@5": 94.49
+    },
+    "POT": {
+     "auc": 0.987156,
+     "fpr@1": 51.12,
+     "dr@1": 100.0,
+     "fpr@2": 62.62,
+     "dr@2": 100.0,
+     "fpr@5": 74.12,
+     "dr@5": 100.0
+    },
+    "DSPOT": {
+     "auc": 0.77596,
+     "fpr@1": 100.0,
+     "dr@1": 100.0,
+     "fpr@2": 100.0,
+     "dr@2": 100.0,
+     "fpr@5": 100.0,
+     "dr@5": 100.0
+    },
+    "ECOD": {
+     "auc": 0.99724,
+     "fpr@1": 4.47,
+     "dr@1": 98.26,
+     "fpr@2": 9.58,
+     "dr@2": 100.0,
+     "fpr@5": 38.98,
+     "dr@5": 100.0
+    },
+    "COPOD": {
+     "auc": 0.998926,
+     "fpr@1": 3.19,
+     "dr@1": 99.42,
+     "fpr@2": 9.9,
+     "dr@2": 100.0,
+     "fpr@5": 39.3,
+     "dr@5": 100.0
+    },
+    "HBOS": {
+     "auc": 0.998787,
+     "fpr@1": 3.83,
+     "dr@1": 98.55,
+     "fpr@2": 3.83,
+     "dr@2": 98.55,
+     "fpr@5": 5.43,
+     "dr@5": 99.71
+    },
+    "LODA": {
+     "auc": 0.919642,
+     "fpr@1": 5.11,
+     "dr@1": 21.74,
+     "fpr@2": 10.86,
+     "dr@2": 82.9,
+     "fpr@5": 21.73,
+     "dr@5": 100.0
+    },
+    "INNE": {
+     "auc": 0.875399,
+     "fpr@1": 40.58,
+     "dr@1": 100.0,
+     "fpr@2": 42.81,
+     "dr@2": 100.0,
+     "fpr@5": 57.83,
+     "dr@5": 100.0
+    },
+    "IForest": {
+     "auc": 0.998861,
+     "fpr@1": 4.47,
+     "dr@1": 100.0,
+     "fpr@2": 6.07,
+     "dr@2": 100.0,
+     "fpr@5": 41.85,
+     "dr@5": 100.0
+    },
+    "DIF": {
+     "auc": 0.955448,
+     "fpr@1": 67.41,
+     "dr@1": 100.0,
+     "fpr@2": 75.72,
+     "dr@2": 100.0,
+     "fpr@5": 84.66,
+     "dr@5": 100.0
+    }
+   },
+   "appended": {
+    "Subspace-Q + EWMA (ours)": {
+     "auc": 0.963541,
+     "fpr@1": 0.32,
+     "dr@1": 94.49,
+     "fpr@2": 4.79,
+     "dr@2": 94.78,
+     "fpr@5": 23.0,
+     "dr@5": 95.36
+    },
+    "POT": {
+     "auc": 0.987156,
+     "fpr@1": 51.12,
+     "dr@1": 100.0,
+     "fpr@2": 62.62,
+     "dr@2": 100.0,
+     "fpr@5": 74.12,
+     "dr@5": 100.0
+    },
+    "DSPOT": {
+     "auc": 0.8258,
+     "fpr@1": 100.0,
+     "dr@1": 100.0,
+     "fpr@2": 100.0,
+     "dr@2": 100.0,
+     "fpr@5": 100.0,
+     "dr@5": 100.0
+    },
+    "ECOD": {
+     "auc": 0.99724,
+     "fpr@1": 4.47,
+     "dr@1": 98.26,
+     "fpr@2": 9.58,
+     "dr@2": 100.0,
+     "fpr@5": 38.98,
+     "dr@5": 100.0
+    },
+    "COPOD": {
+     "auc": 0.998926,
+     "fpr@1": 3.19,
+     "dr@1": 99.42,
+     "fpr@2": 9.9,
+     "dr@2": 100.0,
+     "fpr@5": 39.3,
+     "dr@5": 100.0
+    },
+    "HBOS": {
+     "auc": 0.998787,
+     "fpr@1": 3.83,
+     "dr@1": 98.55,
+     "fpr@2": 3.83,
+     "dr@2": 98.55,
+     "fpr@5": 5.43,
+     "dr@5": 99.71
+    },
+    "LODA": {
+     "auc": 0.919642,
+     "fpr@1": 5.11,
+     "dr@1": 21.74,
+     "fpr@2": 10.86,
+     "dr@2": 82.9,
+     "fpr@5": 21.73,
+     "dr@5": 100.0
+    },
+    "INNE": {
+     "auc": 0.875399,
+     "fpr@1": 40.58,
+     "dr@1": 100.0,
+     "fpr@2": 42.81,
+     "dr@2": 100.0,
+     "fpr@5": 57.83,
+     "dr@5": 100.0
+    },
+    "IForest": {
+     "auc": 0.998861,
+     "fpr@1": 4.47,
+     "dr@1": 100.0,
+     "fpr@2": 6.07,
+     "dr@2": 100.0,
+     "fpr@5": 41.85,
+     "dr@5": 100.0
+    },
+    "DIF": {
+     "auc": 0.955448,
+     "fpr@1": 67.41,
+     "dr@1": 100.0,
+     "fpr@2": 75.72,
+     "dr@2": 100.0,
+     "fpr@5": 84.66,
+     "dr@5": 100.0
+    }
+   }
+  }
+ ]
+}
