@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="320" viewBox="0 0 1200 320" font-family="Segoe UI, Helvetica Neue, Helvetica, Arial, sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b1220"/>
+      <stop offset="1" stop-color="#132340"/>
+    </linearGradient>
+    <linearGradient id="shield" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#38bdf8"/>
+      <stop offset="1" stop-color="#1d4ed8"/>
+    </linearGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0H0V40" fill="none" stroke="#ffffff" stroke-opacity="0.045"/>
+    </pattern>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="3" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="320" rx="14" fill="url(#bg)"/>
+  <rect width="1200" height="320" rx="14" fill="url(#grid)"/>
+
+  <!-- shield with a pulsing ring -->
+  <g transform="translate(112 160)">
+    <circle r="62" fill="none" stroke="#38bdf8" stroke-width="2" opacity="0">
+      <animate attributeName="r" values="62;96" dur="2.6s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.55;0" dur="2.6s" repeatCount="indefinite"/>
+    </circle>
+    <path d="M0 -58 L50 -40 V4 C50 34 28 52 0 64 C-28 52 -50 34 -50 4 V-40 Z" fill="url(#shield)" filter="url(#glow)"/>
+    <path d="M0 -58 L50 -40 V4 C50 34 28 52 0 64 V-58 Z" fill="#ffffff" fill-opacity="0.08"/>
+    <path d="M-20 4 L-6 18 L22 -14" fill="none" stroke="#ffffff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <!-- title -->
+  <text x="210" y="142" font-size="60" font-weight="700" fill="#f1f5f9">AntiDDoS Shield</text>
+  <text x="212" y="184" font-size="22" fill="#94a3b8">An evaluation protocol for training-free DDoS detection</text>
+  <text x="212" y="216" font-size="17" fill="#64748b">DPDK datapath · statistical detector in C · six public corpora · 42 deposited records</text>
+
+  <!-- traffic wire: benign packets pass the shield, floods stop at it -->
+  <g transform="translate(0 0)">
+    <line x1="735" y1="262" x2="1150" y2="262" stroke="#334155" stroke-width="2"/>
+    <line x1="1000" y1="236" x2="1000" y2="288" stroke="#38bdf8" stroke-width="3" stroke-linecap="round">
+      <animate attributeName="stroke-opacity" values="0.9;0.9;1;0.9;0.9" keyTimes="0;0.38;0.42;0.5;1" dur="6s" repeatCount="indefinite"/>
+    </line>
+    <text x="1000" y="226" font-size="12" fill="#38bdf8" text-anchor="middle" letter-spacing="1">DETECTOR</text>
+    <text x="736" y="288" font-size="12" fill="#64748b">ingress</text>
+    <text x="1150" y="288" font-size="12" fill="#64748b" text-anchor="end">served</text>
+
+    <!-- benign traffic: steady cyan packets, all the way through -->
+    <g fill="#7dd3fc">
+      <circle r="4"><animateMotion path="M735 262 L1150 262" dur="4s" begin="0s" repeatCount="indefinite"/></circle>
+      <circle r="4"><animateMotion path="M735 262 L1150 262" dur="4s" begin="0.8s" repeatCount="indefinite"/></circle>
+      <circle r="4"><animateMotion path="M735 262 L1150 262" dur="4s" begin="1.6s" repeatCount="indefinite"/></circle>
+      <circle r="4"><animateMotion path="M735 262 L1150 262" dur="4s" begin="2.4s" repeatCount="indefinite"/></circle>
+      <circle r="4"><animateMotion path="M735 262 L1150 262" dur="4s" begin="3.2s" repeatCount="indefinite"/></circle>
+    </g>
+
+    <!-- flood: a red burst every six seconds, stopped at the detector -->
+    <g fill="#f87171">
+      <circle r="5">
+        <animateMotion path="M735 262 L1000 262" dur="6s" keyPoints="0;1;1" keyTimes="0;0.38;1" calcMode="linear" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="1;1;0;0" keyTimes="0;0.38;0.46;1" dur="6s" repeatCount="indefinite"/>
+      </circle>
+      <circle r="5">
+        <animateMotion path="M735 262 L1000 262" dur="6s" keyPoints="0;1;1" keyTimes="0;0.38;1" calcMode="linear" begin="0.25s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="1;1;0;0" keyTimes="0;0.38;0.46;1" dur="6s" begin="0.25s" repeatCount="indefinite"/>
+      </circle>
+      <circle r="5">
+        <animateMotion path="M735 262 L1000 262" dur="6s" keyPoints="0;1;1" keyTimes="0;0.38;1" calcMode="linear" begin="0.5s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="1;1;0;0" keyTimes="0;0.38;0.46;1" dur="6s" begin="0.5s" repeatCount="indefinite"/>
+      </circle>
+      <circle r="5">
+        <animateMotion path="M735 262 L1000 262" dur="6s" keyPoints="0;1;1" keyTimes="0;0.38;1" calcMode="linear" begin="0.75s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="1;1;0;0" keyTimes="0;0.38;0.46;1" dur="6s" begin="0.75s" repeatCount="indefinite"/>
+      </circle>
+    </g>
+    <!-- impact flash on the detector line -->
+    <circle cx="1000" cy="262" r="6" fill="#f87171" opacity="0">
+      <animate attributeName="r" values="6;22" keyTimes="0;1" dur="0.6s" begin="2.4s;8.4s;14.4s;20.4s;26.4s;32.4s;38.4s;44.4s;50.4s;56.4s"/>
+      <animate attributeName="opacity" values="0.7;0" keyTimes="0;1" dur="0.6s" begin="2.4s;8.4s;14.4s;20.4s;26.4s;32.4s;38.4s;44.4s;50.4s;56.4s"/>
+    </circle>
+  </g>
+</svg>

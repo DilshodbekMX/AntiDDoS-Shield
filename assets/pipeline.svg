@@ -1,0 +1,106 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="300" viewBox="0 0 1200 300" font-family="Segoe UI, Helvetica Neue, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#94a3b8"/>
+    </marker>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0f172a" flood-opacity="0.12"/>
+    </filter>
+    <style>
+      .title { font-size: 17px; font-weight: 700; fill: #0f172a; }
+      .sub   { font-size: 12px; fill: #475569; }
+      .link  { font-size: 11px; fill: #64748b; font-style: italic; }
+      .tag   { font-size: 11px; fill: #64748b; letter-spacing: 1px; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="300" rx="14" fill="#f8fafc" stroke="#e2e8f0"/>
+  <text x="24" y="34" class="tag">SYSTEM PROTOTYPE · PACKET TO DASHBOARD</text>
+
+  <!-- connectors (drawn first so the packets travel over them) -->
+  <g stroke="#94a3b8" stroke-width="2" fill="none" marker-end="url(#arrow)">
+    <path id="c0" d="M150 165 L206 165"/>
+    <path id="c1" d="M436 165 L506 165"/>
+    <path id="c2" d="M736 165 L806 165"/>
+    <path id="c3" d="M986 165 L1036 165"/>
+  </g>
+  <!-- NIC -->
+  <g filter="url(#shadow)">
+    <rect x="40" y="130" width="110" height="70" rx="10" fill="#f1f5f9" stroke="#94a3b8"/>
+    <text x="95" y="160" class="title" text-anchor="middle">NIC</text>
+    <text x="95" y="182" class="sub" text-anchor="middle">line rate</text>
+  </g>
+
+  <!-- Layer 1 -->
+  <g filter="url(#shadow)">
+    <rect x="206" y="88" width="230" height="154" rx="12" fill="#fff4e6" stroke="#e8590c" stroke-width="1.5"/>
+    <text x="321" y="116" class="title" text-anchor="middle">Layer 1 · datapath</text>
+    <text x="321" y="136" class="sub" text-anchor="middle">DPDK, C, kernel-bypass</text>
+    <g font-size="12" fill="#7c2d12">
+      <rect x="226" y="150" width="190" height="22" rx="6" fill="#ffffff" stroke="#fdba74"/>
+      <text x="321" y="165" text-anchor="middle">packet ring</text>
+      <rect x="226" y="178" width="190" height="22" rx="6" fill="#ffffff" stroke="#fdba74"/>
+      <text x="321" y="193" text-anchor="middle">flow · reputation tables</text>
+      <rect x="226" y="206" width="190" height="22" rx="6" fill="#ffffff" stroke="#fdba74"/>
+      <text x="321" y="221" text-anchor="middle">telemetry</text>
+    </g>
+  </g>
+
+  <!-- Layer 2 -->
+  <g filter="url(#shadow)">
+    <rect x="506" y="72" width="230" height="186" rx="12" fill="#e7f5ff" stroke="#1971c2" stroke-width="1.5"/>
+    <text x="621" y="100" class="title" text-anchor="middle">Layer 2 · detector</text>
+    <text x="621" y="120" class="sub" text-anchor="middle">C, one decision per second</text>
+    <g font-size="11" fill="#1e3a8a">
+      <rect x="521" y="134" width="200" height="22" rx="6" fill="#ffffff" stroke="#93c5fd"/>
+      <text x="621" y="149" text-anchor="middle">39 per-destination features</text>
+      <rect x="521" y="162" width="200" height="22" rx="6" fill="#ffffff" stroke="#93c5fd"/>
+      <text x="621" y="177" text-anchor="middle">rolling baselines</text>
+      <rect x="521" y="190" width="200" height="22" rx="6" fill="#ffffff" stroke="#93c5fd"/>
+      <text x="621" y="205" text-anchor="middle">EWMA z · CUSUM · JS divergence</text>
+      <rect x="521" y="218" width="200" height="22" rx="6" fill="#ffffff" stroke="#93c5fd"/>
+      <text x="621" y="233" text-anchor="middle">attack classification</text>
+    </g>
+    <!-- 1 Hz heartbeat -->
+    <circle cx="716" cy="92" r="5" fill="#1971c2">
+      <animate attributeName="r" values="4;7;4" dur="1s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="1;0.35;1" dur="1s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+
+  <!-- backend -->
+  <g filter="url(#shadow)">
+    <rect x="806" y="130" width="180" height="70" rx="10" fill="#f3f0ff" stroke="#6741d9" stroke-width="1.5"/>
+    <text x="896" y="160" class="title" text-anchor="middle">FastAPI backend</text>
+    <text x="896" y="182" class="sub" text-anchor="middle">rules · tenants · API</text>
+  </g>
+
+  <!-- dashboard -->
+  <g filter="url(#shadow)">
+    <rect x="1036" y="130" width="130" height="70" rx="10" fill="#f3f0ff" stroke="#6741d9" stroke-width="1.5"/>
+    <text x="1101" y="160" class="title" text-anchor="middle">Dashboard</text>
+    <text x="1101" y="182" class="sub" text-anchor="middle">React · Vite</text>
+  </g>
+
+  <!-- packets in flight on every hop -->
+  <g fill="#0ea5e9">
+    <circle r="4"><animateMotion dur="1.4s" begin="0s"   repeatCount="indefinite"><mpath href="#c0"/></animateMotion></circle>
+    <circle r="4"><animateMotion dur="1.4s" begin="0.7s" repeatCount="indefinite"><mpath href="#c0"/></animateMotion></circle>
+    <circle r="4"><animateMotion dur="1.6s" begin="0.2s" repeatCount="indefinite"><mpath href="#c1"/></animateMotion></circle>
+    <circle r="4"><animateMotion dur="1.6s" begin="1.0s" repeatCount="indefinite"><mpath href="#c1"/></animateMotion></circle>
+    <circle r="4"><animateMotion dur="1.8s" begin="0.4s" repeatCount="indefinite"><mpath href="#c2"/></animateMotion></circle>
+    <circle r="4"><animateMotion dur="1.8s" begin="1.3s" repeatCount="indefinite"><mpath href="#c2"/></animateMotion></circle>
+    <circle r="4"><animateMotion dur="1.5s" begin="0.6s" repeatCount="indefinite"><mpath href="#c3"/></animateMotion></circle>
+  </g>
+
+  <!-- transport labels, drawn last so they sit on top of the box edges -->
+  <g>
+    <rect x="440" y="106" width="62" height="18" rx="4" fill="#f8fafc"/>
+    <text x="471" y="119" class="link" text-anchor="middle">POSIX shm</text>
+    <rect x="738" y="96" width="66" height="34" rx="4" fill="#f8fafc"/>
+    <text x="771" y="109" class="link" text-anchor="middle">Unix socket</text>
+    <text x="771" y="124" class="link" text-anchor="middle">TCP stats</text>
+  </g>
+
+  <text x="24" y="282" class="sub">No machine-learning model at any layer. The detector evaluated in the manuscript is a standalone arm; it is not in the engine's build.</text>
+</svg>

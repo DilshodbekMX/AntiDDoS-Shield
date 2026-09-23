@@ -1,8 +1,8 @@
 <div align="center">
 
-# AntiDDoS Shield
+<img src="assets/banner.svg" alt="AntiDDoS Shield — an evaluation protocol for training-free DDoS detection" width="100%">
 
-**An evaluation protocol for training-free DDoS detection, with the reference prototype it was measured against.**
+<br>
 
 [![License](https://img.shields.io/badge/license-MIT-2ea44f?style=flat-square)](LICENSE)
 [![Records](https://img.shields.io/badge/deposit-42%20records%20%C2%B7%20SHA256%20verified-0b7285?style=flat-square)](ComparisonResults/)
@@ -10,76 +10,76 @@
 [![Engine](https://img.shields.io/badge/engine-C%20%2B%20DPDK-a6324a?style=flat-square)](project/)
 [![Stack](https://img.shields.io/badge/stack-FastAPI%20%C2%B7%20React-6741d9?style=flat-square)](project/dashboard)
 
+**Reported DDoS-detector performance rests on evaluation choices that are rarely audited.<br>This repository holds the protocol that audits them, the records it produced, and the prototype it was run against.**
+
 </div>
 
-## Contents
+<br>
 
-1. [Overview](#overview)
-2. [Authors](#authors)
-3. [Repository structure](#repository-structure)
-4. [Evaluation deposit](#evaluation-deposit)
-5. [System prototype](#system-prototype)
-6. [Getting started](#getting-started)
-7. [Scope and limitations](#scope-and-limitations)
-8. [Citing this work](#citing-this-work)
-9. [License](#license)
+## What applying the protocol changed
 
-## Overview
+Three decisions decide what a benchmark can evidence: which victim–scenario slices are admissible,
+whether a library baseline scores a row independently of the batch it arrives in, and what the
+unit of statistical analysis is. The manuscript *An Evaluation Protocol for Training-Free DDoS
+Detection* (MDPI *Journal of Cybersecurity and Privacy*, in preparation) fixes all three and
+applies them end to end to six public corpora. The contribution is the protocol and the
+measurement of what it costs — not a new detector.
 
-Reported DDoS-detector performance rests on evaluation choices that are rarely audited: which
-victim–scenario slices of a corpus are admissible, whether a library baseline scores a row
-independently of the batch it arrives in, and what the unit of statistical analysis is. This
-repository accompanies the manuscript *An Evaluation Protocol for Training-Free DDoS Detection*,
-prepared for the MDPI *Journal of Cybersecurity and Privacy*, which specifies a corrected protocol
-for these three decisions and applies it end to end to six public corpora.
+<img src="assets/protocol.svg" alt="44 candidate slices reduced to 22 admissible; competitor mean AUC rises by 0.24 to 0.44 under batch-invariant scoring; the victim-clustered interval on the detector's advantage goes from excluding zero to spanning it" width="100%">
 
-The contribution is the protocol and the measurement of what it costs, not a new detector. The
-table below summarises the effect of each correction on the reported picture; the direction of
-every correction, including the five that ran against the evaluated detector, is recorded in the
-deposit.
+## How the system is built
 
-| Stage | Correction | Effect on the reported picture |
-| :-- | :-- | :-- |
-| Admissibility | A scope filter and four checks, one recorded verdict per candidate | 44 candidate victim–scenario slices reduced to 22 admissible |
-| Scoring | Library baselines rescored inductively, so attack rows cannot enter their own reference distribution | Competitor mean AUC rises by 0.24 to 0.44; batch-invariant arms move by exactly 0 |
-| Unit of analysis | Clustering on the victim host rather than the scenario | An interval that excluded zero becomes one that spans it |
+A DPDK packet datapath in C, a statistical detector in C that decides once per second, and a
+web control plane. No machine-learning model anywhere.
 
-## Authors
+<img src="assets/pipeline.svg" alt="Packets flow from the NIC through the DPDK datapath, over POSIX shared memory into the Layer 2 detector, then over a Unix socket and TCP to the FastAPI backend and the React dashboard" width="100%">
 
-| Author | Affiliation | Role |
-| :-- | :-- | :-- |
-| Pulatjon Oripov | State Institution "Cybersecurity Center", Tashkent, Uzbekistan | First author |
-| Sardor Iskandarov | State Institution "Cybersecurity Center", Tashkent, Uzbekistan | Co-author |
-| Rustamjon Oripov | State Institution "Cybersecurity Center", Tashkent, Uzbekistan | Co-author |
-| Dilshodjon Mamadaliev | State Institution "Cybersecurity Center", Tashkent, Uzbekistan · Department of Electronics Engineering, Pusan National University, Busan, Republic of Korea | Corresponding author · [ORCID 0009-0008-0073-7535](https://orcid.org/0009-0008-0073-7535) |
+## What the evaluation found
 
-Correspondence: mamadalievdilshodjon@gmail.com
+Every figure below is drawn from the deposited records in [`ComparisonResults/results/`](ComparisonResults/results/).
+Click any figure for the full-resolution image.
 
-## Repository structure
+<table>
+<tr>
+<td width="50%" align="center">
+<a href="assets/figures/fig1-admissibility-funnel.png"><img src="assets/figures/fig1-admissibility-funnel.png" alt="Admissibility funnel"></a><br>
+<sub><b>Half the candidate scenarios never reach evaluation.</b> 44 candidates, one recorded verdict each, 22 admitted.</sub>
+</td>
+<td width="50%" align="center">
+<a href="assets/figures/fig2-victim-clustered-intervals.png"><img src="assets/figures/fig2-victim-clustered-intervals.png" alt="Bootstrap intervals, i.i.d. versus victim-clustered"></a><br>
+<sub><b>The unit of analysis changes the sign of a conclusion.</b> The i.i.d. interval excludes zero; clustered on the victim host, it spans it.</sub>
+</td>
+</tr>
+<tr>
+<td align="center">
+<a href="assets/figures/fig3-advantage-concentration.png"><img src="assets/figures/fig3-advantage-concentration.png" alt="Per-scenario advantage concentration"></a><br>
+<sub><b>Five of seventeen scenarios carry the whole advantage, and one carries half of it.</b></sub>
+</td>
+<td align="center">
+<a href="assets/figures/fig4-ewma-tradeoff.png"><img src="assets/figures/fig4-ewma-tradeoff.png" alt="EWMA smoothing trade-off"></a><br>
+<sub><b>Smoothing is not a property of one detector.</b> Under the same EWMA stage most competitors improve too.</sub>
+</td>
+</tr>
+<tr>
+<td align="center">
+<a href="assets/figures/fig5-clock-null.png"><img src="assets/figures/fig5-clock-null.png" alt="Clock-only null against detector advantage"></a><br>
+<sub><b>The largest advantages sit on rows that a clock-only null also separates</b> — a scorer that reads no traffic at all.</sub>
+</td>
+<td align="center">
+<a href="assets/figures/fig6-cesnet-overshoot.png"><img src="assets/figures/fig6-cesnet-overshoot.png" alt="False-alarm overshoot on CESNET hosts"></a><br>
+<sub><b>Every arm overshoots its nominal false-alarm target, at every target,</b> on 174 real ISP hosts.</sub>
+</td>
+</tr>
+</table>
 
-```
-.
-├── ComparisonResults/     Evaluation deposit: runners, baseline registry, 42 result records
-│   ├── runners/           17 run_*.py scripts; two execute from the deposited records alone
-│   ├── results/           JSON result records, verified by SHA256SUMS.results
-│   └── README.md          Per-record index and audit history
-├── project/               System prototype: DPDK datapath, C detector, FastAPI backend, dashboard
-├── datasets/README.md     Download pointers for the six corpora (no data is committed)
-├── INSTALL.md             Build and deployment instructions for the prototype
-└── LICENSE                MIT
-```
+> [!NOTE]
+> Five of the six corrections ran *against* the evaluated detector, and the manuscript reports
+> them as such. No victim-clustered comparison of the detector against its reference reaches 5%.
 
-| Path | Status |
-| :-- | :-- |
-| `ComparisonResults/` | The deposit under review |
-| `project/` | Context for the manuscript's engine figures; not an evaluated contribution |
-| `datasets/` | Pointers only |
+## Verify the deposit
 
-## Evaluation deposit
-
-Every detector result and test statistic in the manuscript is read from the 42 JSON records in
-[`ComparisonResults/results/`](ComparisonResults/results/). The records carry a manifest that
-verifies from inside that directory:
+Every detector result and test statistic in the manuscript is read from 42 JSON records that
+verify against their manifest from inside `results/`:
 
 ```bash
 cd ComparisonResults/results
@@ -87,64 +87,22 @@ sha256sum -c ../SHA256SUMS.results     # 42 lines, each ending in OK
 ```
 
 > [!WARNING]
-> `ComparisonResults/SHA256SUMS` is an earlier manifest of code and records. Several of its
-> entries no longer match, and it is not the manuscript's manifest. Use `SHA256SUMS.results`.
+> `ComparisonResults/SHA256SUMS` is an earlier manifest; several of its entries no longer match
+> and it is not the manuscript's. Use `SHA256SUMS.results`.
 
 > [!IMPORTANT]
-> The deposit does not execute end to end. It contains neither the six corpora nor the derived
-> per-window feature tree the runners read. Two of the seventeen `runners/run_*.py` scripts,
-> `run_joint_filter.py` and `run_admissibility_ledger.py`, execute from the deposited records
+> The deposit does not run end to end: it contains neither the six corpora nor the derived
+> per-window feature tree. Two of the seventeen `runners/run_*.py` scripts —
+> `run_joint_filter.py` and `run_admissibility_ledger.py` — execute from the deposited records
 > alone; the other fifteen do not execute as deposited.
 
-The per-record index, the baseline registry, and the audit history are documented in
-[`ComparisonResults/README.md`](ComparisonResults/README.md).
+The per-record index and audit history are in [`ComparisonResults/README.md`](ComparisonResults/README.md);
+corpus download pointers are in [`datasets/README.md`](datasets/README.md). No corpus data is committed.
 
-## System prototype
-
-[`project/`](project/) holds the AntiDDoS Shield system: a DPDK packet datapath in C, a 1 Hz
-statistical anomaly detector in C, a FastAPI backend, and a React dashboard. No machine-learning
-model is present at any layer. It is supplied as context for the manuscript's engine figures; the
-arm the manuscript evaluates is in no build target of the engine.
-
-```mermaid
-flowchart LR
-    NIC["NIC<br/>line rate"] --> L1
-
-    subgraph L1["Layer 1 — DPDK datapath (C)"]
-        direction TB
-        RING["packet ring"] --> TABLES["flow / reputation tables"]
-        TABLES --> TELE["telemetry"]
-    end
-
-    L1 -- "POSIX shared memory" --> L2
-
-    subgraph L2["Layer 2 — detector (C, 1 Hz)"]
-        direction TB
-        FEAT["39 per-destination features"] --> BASE["rolling baselines"]
-        BASE --> DET["EWMA z-score · CUSUM · JS divergence"]
-        DET --> CLS["attack classification"]
-    end
-
-    L2 -- "Unix socket (control)<br/>TCP (stats)" --> API["FastAPI backend"]
-    API --> UI["React + Vite dashboard"]
-
-    classDef box fill:#ffffff,stroke:#adb5bd,color:#000
-    class RING,TABLES,TELE,FEAT,BASE,DET,CLS box
-
-    style L1 fill:#fff4e6,stroke:#e8590c,color:#000
-    style L2 fill:#e7f5ff,stroke:#1971c2,color:#000
-    style API fill:#f3f0ff,stroke:#6741d9,color:#000
-    style UI fill:#f3f0ff,stroke:#6741d9,color:#000
-    style NIC fill:#f1f3f5,stroke:#868e96,color:#000
-```
-
-## Getting started
-
-**Requirements.** A Linux host with DPDK for the datapath, Meson and Ninja, Python 3, and
-Node.js for the dashboard. Full prerequisites are in [`INSTALL.md`](INSTALL.md).
+## Run the prototype
 
 <details>
-<summary><b>Build the C engine</b></summary>
+<summary><b>Build the C engine</b> — Meson + Ninja, DPDK for the datapath (<a href="INSTALL.md">INSTALL.md</a>)</summary>
 
 ```bash
 cd project
@@ -155,7 +113,7 @@ ninja -C build
 </details>
 
 <details>
-<summary><b>Run the backend</b></summary>
+<summary><b>Run the backend</b> — FastAPI</summary>
 
 ```bash
 cd project/backend
@@ -166,7 +124,7 @@ uvicorn api.main:app
 </details>
 
 <details>
-<summary><b>Run the dashboard</b></summary>
+<summary><b>Run the dashboard</b> — React + Vite</summary>
 
 ```bash
 cd project/dashboard
@@ -185,29 +143,26 @@ python -m pytest project/tests/unit_python/
 
 </details>
 
-<details>
-<summary><b>Inspect the evaluation deposit</b></summary>
+## Scope
 
-Begin with [`ComparisonResults/README.md`](ComparisonResults/README.md), then
-[`datasets/README.md`](datasets/README.md) for how to obtain the corpora.
+- **Not a benchmark win.** The manuscript reports a negative result where the evidence is negative.
+- **Not a performance claim.** `project/` is a research prototype; throughput and detection latency have not been measured.
+- **Not the evaluated detector.** The arm the manuscript evaluates is in no build target of the engine; where a figure scores the shipped engine instead, the manuscript says so.
+- **Not a machine-learning system.** There is no trained model at any layer.
+- **Not a corpus mirror.** No dataset content is redistributed.
 
-</details>
+## Authors
 
-## Scope and limitations
+| | Affiliation | |
+| :-- | :-- | :-- |
+| **Pulatjon Oripov** | State Institution "Cybersecurity Center", Tashkent, Uzbekistan | first author |
+| **Sardor Iskandarov** | State Institution "Cybersecurity Center", Tashkent, Uzbekistan | |
+| **Rustamjon Oripov** | State Institution "Cybersecurity Center", Tashkent, Uzbekistan | |
+| **Dilshodjon Mamadaliev** | Cybersecurity Center · Department of Electronics Engineering, Pusan National University, Busan, Republic of Korea | corresponding · [ORCID](https://orcid.org/0009-0008-0073-7535) |
 
-- **Findings.** The manuscript reports a negative result where the evidence is negative. No
-  victim-clustered comparison of the evaluated detector against its reference reaches the 5% level.
-- **Performance.** `project/` is a research prototype. Its throughput and detection latency have
-  not been measured, and no line-rate figure is claimed.
-- **Evaluated arm.** The detector the manuscript evaluates is not part of the engine's build.
-  Where a figure scores the shipped engine instead, the manuscript identifies it.
-- **Models.** There is no trained model at any layer.
-- **Data.** No corpus content is redistributed; see [`datasets/README.md`](datasets/README.md).
+Correspondence: mamadalievdilshodjon@gmail.com
 
-## Citing this work
-
-The manuscript is in preparation for the MDPI *Journal of Cybersecurity and Privacy*. Until it
-appears, please cite the repository:
+## Cite
 
 ```bibtex
 @software{antiddos_shield_2026,
@@ -220,7 +175,7 @@ appears, please cite the repository:
 
 ## License
 
-Code is released under the [MIT License](LICENSE). Dataset-derived caches and results remain
-under their upstream corpus licenses (CESNET-TimeSeries24, CIC-IDS-2017, CSE-CIC-IDS2018,
-CIC-DDoS2019, CIC-IoT-2023, LITNET-2020); consult each dataset's terms before redistributing
-anything derived from it.
+Code is released under the [MIT License](LICENSE). Dataset-derived caches and results remain under
+their upstream corpus licenses (CESNET-TimeSeries24, CIC-IDS-2017, CSE-CIC-IDS2018, CIC-DDoS2019,
+CIC-IoT-2023, LITNET-2020); consult each dataset's terms before redistributing anything derived
+from it.

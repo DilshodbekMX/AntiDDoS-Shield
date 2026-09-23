@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="250" viewBox="0 0 1200 250" font-family="Segoe UI, Helvetica Neue, Helvetica, Arial, sans-serif">
+  <defs>
+    <style>
+      @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+      .card { animation: rise 0.7s ease-out both; }
+      .c1 { animation-delay: 0.1s; } .c2 { animation-delay: 0.4s; } .c3 { animation-delay: 0.7s; }
+      .big   { font-size: 44px; font-weight: 700; fill: #0f172a; }
+      .lbl   { font-size: 12px; fill: #475569; }
+      .head  { font-size: 12px; fill: #64748b; letter-spacing: 1.5px; }
+      .foot  { font-size: 13px; fill: #64748b; }
+      .arrow { fill: #0ea5e9; }
+    </style>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0f172a" flood-opacity="0.10"/>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="250" rx="14" fill="#f8fafc" stroke="#e2e8f0"/>
+  <text x="24" y="34" class="head">WHAT APPLYING THE PROTOCOL CHANGED</text>
+
+  <!-- 1 admissibility -->
+  <g class="card c1" filter="url(#shadow)">
+    <rect x="24" y="52" width="368" height="150" rx="12" fill="#ffffff" stroke="#e2e8f0"/>
+    <rect x="24" y="52" width="6" height="150" rx="3" fill="#e8590c"/>
+    <text x="48" y="80" class="head">ADMISSIBILITY</text>
+    <text x="48" y="130" class="big">44 <tspan class="arrow">→</tspan> 22</text>
+    <text x="48" y="158" class="lbl">candidate slices that pass the scope filter and</text>
+    <text x="48" y="176" class="lbl">four checks, one recorded verdict per candidate</text>
+  </g>
+
+  <!-- 2 scoring -->
+  <g class="card c2" filter="url(#shadow)">
+    <rect x="416" y="52" width="368" height="150" rx="12" fill="#ffffff" stroke="#e2e8f0"/>
+    <rect x="416" y="52" width="6" height="150" rx="3" fill="#1971c2"/>
+    <text x="440" y="80" class="head">BATCH-INVARIANT SCORING</text>
+    <text x="440" y="130" class="big">+0.24 <tspan class="lbl" font-size="22">to</tspan> +0.44</text>
+    <text x="440" y="158" class="lbl">competitor mean AUC once attack rows cannot enter</text>
+    <text x="440" y="176" class="lbl">their own reference; invariant arms move by 0</text>
+  </g>
+
+  <!-- 3 unit of analysis -->
+  <g class="card c3" filter="url(#shadow)">
+    <rect x="808" y="52" width="368" height="150" rx="12" fill="#ffffff" stroke="#e2e8f0"/>
+    <rect x="808" y="52" width="6" height="150" rx="3" fill="#6741d9"/>
+    <text x="832" y="80" class="head">UNIT OF ANALYSIS</text>
+    <text x="832" y="127" class="big" style="font-size:28px">excludes 0 <tspan class="arrow">→</tspan> spans 0</text>
+    <text x="832" y="158" class="lbl">the interval on the detector's advantage, once the</text>
+    <text x="832" y="176" class="lbl">scenarios cluster on the victim host they share</text>
+  </g>
+
+  <text x="24" y="232" class="foot">Five of the six corrections ran against the evaluated detector. Direction was not a criterion for reporting; every movement is recorded in the deposit.</text>
+</svg>

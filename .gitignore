@@ -26,6 +26,10 @@
 !/.editorconfig
 !/.pre-commit-config.yaml
 
+# ── assets/: README artwork only — three SVG diagrams and the manuscript's six
+#    figures, each drawn from the deposited records. No data, no caches.
+!/assets
+
 # ── datasets/: the README only; never the derived feature tree ───────────────
 !/datasets
 /datasets/*
