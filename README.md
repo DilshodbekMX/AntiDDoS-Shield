@@ -193,7 +193,7 @@ appears, please cite this repository:
 ```bibtex
 @software{antiddos_shield,
   title  = {AntiDDoS Shield: an evaluation protocol for training-free DDoS detection},
-  author = {Oripov, Pulatjon and Yusupov, Fayzullo and Mamadaliev, Dilshodjon},
+  author = {Oripov, Pulatjon, Mamadaliev, Dilshodjon, Iskandarov Sardor and Oripov Rustamjon},
   year   = {2026},
   url    = {https://github.com/DilshodbekMX/AntiDDoS-Shield}
 }
