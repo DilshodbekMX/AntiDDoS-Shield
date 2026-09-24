@@ -11,6 +11,10 @@ PER_FEATURE_READY = 10           # baselines.c:334 (z not computed below 10 samp
 # Cardinality features log-transformed INSIDE the main baseline, matching
 # feature_uses_log_transform() in baselines.c:259-263. The log is applied on
 # both update and z-score so the baseline lives in log space.
+# `unique_flows` is listed for continuity only: it is excluded from the evaluated
+# schedule by run_crosscorpus_auc.py::EXCLUDED_DUPLICATE_FEATURES (2026-09-24), so
+# active_features() drops the name before _log_xform ever sees it. Left in place so
+# this set still describes the pre-exclusion runs the deposited records came from.
 LOG_TRANSFORM_FEATURES = {'unique_src_ips', 'unique_dst_ports', 'unique_flows'}
 
 

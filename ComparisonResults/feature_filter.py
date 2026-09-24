@@ -11,7 +11,9 @@ LITNET has no TCP flags at all). Hard-coding a feature list per dataset is
 brittle; computing it at runtime from the cache is robust.
 
 Background -- the canonical 39-feature production set (see `layer2/baselines.h`
-L2_MAX_FEATURES enum) is `PRODUCTION_39_FEATURES` below. `flow_duration_avg`
+L2_MAX_FEATURES enum) is the engine's export contract; `PRODUCTION_39_FEATURES`
+below is the harness's candidate list drawn from it, and since 2026-09-24 it holds
+37 names, not 39. `flow_duration_avg`
 is a known extractor placeholder (always 0.0 in pcap caches because the
 offline extractor does not track flow lifetimes); `heavy_hitter_count` is a
 CMS-stub that returns non-zero counts on real attacks but degenerates to 0

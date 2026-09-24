@@ -22,19 +22,40 @@
 > is kept so existing imports resolve). The candidate count on the packet-capture
 > corpora falls from 37 to 35 and D falls by 2 in every scenario where both were
 > active; LITNET-2020 and CESNET are unaffected (neither column was populated
-> there).
+> there). No LITNET record was regenerated, because no scored column changed
+> there: `litnet_loader.py` emits 13 feature keys and neither placeholder is among
+> them, so both were already listed inert and every metric, every confidence
+> interval and every active feature name is unchanged. One bookkeeping leaf of
+> those records nonetheless no longer reproduces from the deposited code.
+> `metadata.features_inert_auto_excluded` is derived from the candidate list, so a
+> re-run of `runners/run_litnet_l1subnet.py` or
+> `runners/ablate_no_unique_dst_runner.py` now writes 27 names where the four
+> deposited records -- `litnet_l1subnet_16_results.json`,
+> `litnet_l1subnet_24_results.json` and the two
+> `rescued/ABLATION_no_unique_dst_l1subnet_*_results.json` -- store 29; the two
+> dropped names are the two placeholders. Their `SHA256SUMS.results` entries are
+> therefore not reproducible from the current deposited code.
+> `metadata.production_feature_set_size` stays 39: that is the engine's
+> export-contract size (`layer2/baselines.h`, `L2_MAX_FEATURES`), which the
+> exclusion did not change, and both runners now write the constant instead of
+> `len(PRODUCTION_39_FEATURES)`, which holds 37.
+> `rescued/litnet_l1subnet_{16,24}_results_CANONICAL.json` are byte-identical
+> copies of the first two records; the four LITNET records with no deposited
+> runner (`rescued/litnet_results_*`, `rescued/litnet_zone_results_*`) also
+> store 39.
 >
-> **Regeneration.** Sixteen records were regenerated, in two passes per runner.
+> **Regeneration.** Seventeen records were regenerated, in two passes per runner.
 > Pass 1 (gate): the unchanged runner had to reproduce its deposited record from
-> the deposited code before anything was changed. Nine records reproduced
+> the deposited code before anything was changed. Ten records reproduced
 > bit-exactly on every numeric leaf (`corrected_benchmark_results.json`,
 > `panel_auc_matrix.json`, `scenarios29_corrected_results.json`,
 > `joint_filter.json`, `admissibility_ledger.json`, `ewma_ablation.json`,
-> `c_engine_verification_report.json`, `fpr_dr_optimization_results.json`,
-> `dif_seed_sensitivity.json` -- the last two had been deposited without their
-> runners; `runners/verify_c_engine_subspace_q.py` and
-> `runners/run_dif_seed_sensitivity.py` are deposited now, each shown to
-> reproduce its record before the change was applied).
+> `fpr_dr_optimization_results.json`, `c_engine_verification_report.json`,
+> `dif_seed_sensitivity.json` and `subspace_ecod_validation_report.json` -- the last
+> three had been deposited without their runners; `runners/verify_c_engine_subspace_q.py`,
+> `runners/run_dif_seed_sensitivity.py` and `runners/run_subspace_ecod_validation.py`
+> are deposited now, each shown to reproduce its record bit-exactly before the change
+> was applied).
 > Seven differed on LODA leaves only: the four archived-registry records
 > (`post2023_benchmark_results.json`, `final_evaluation.json`,
 > `universal_ewma_tournament.json`, `usable_29_scenarios_benchmark.json`), whose
@@ -48,8 +69,11 @@
 > read the feature matrix). CESNET never carried either column
 > (`data_loader.AVAILABLE_FEATURES`), so every non-LODA CESNET leaf of
 > `final_evaluation.json` is unchanged and its LODA row moved by reseeding alone.
-> `SHA256SUMS.results` was regenerated from inside `results/`: 15 of 42 checksums
-> changed and `sha256sum -c` passes 42 of 42.
+> `SHA256SUMS.results` was regenerated from inside `results/`: 16 of 42 checksums
+> changed and `sha256sum -c` passes 42 of 42. One record that reads the retired
+> columns could NOT be regenerated and is disclosed rather than rewritten:
+> `full_tree_all_scenarios_metrics.json` has no generator anywhere in this tree or
+> the parent, so it stays at its 2026-09-14 vintage; the ledger records it as such.
 >
 > **What moved (main-article headlines, before -> after).** PANEL-23 margin
 > +0.0189 -> +0.0188; Holm-corrected scenario-level p 0.00386 -> 0.00331
@@ -95,13 +119,13 @@
 > 5. **Resubstitution.** k=8, alpha=0.5 and the "drop the SPOT fusion" decision
 >    were selected on the same panel the n=17 population is drawn from. No
 >    held-out set exists. p-values here are not tests.
-> 6. **Correction and clustering.** On USABLE-strict, Holm(m=9) = **0.079** and the
+> 6. **Correction and clustering.** On USABLE-strict, Holm(m=9) = **0.068** and the
 >    victim-cluster Wilcoxon is **p = 0.625**. The cluster bootstrap CI on the mean
 >    delta spans zero on **both** populations.
-> 7. **Concentration.** 55% of the panel effect is one scenario (2017 Wed
->    Slowhttptest); 3 of 23 are byte-identical because ours falls back to POT at
->    N < 2D.
-> 8. **Episodes.** Ours 8.33 vs POT 8.07 at 2% on the headline population — still
+> 7. **Concentration.** 48.9% of the PANEL-23 effect and 53.8% of the USABLE-strict
+>    effect is one scenario (2017 Wed Slowhttptest); one USABLE-strict row of 17 is
+>    byte-identical because ours falls back to POT at N < 2D, none of the 23 panel rows.
+> 8. **Episodes.** Ours 8.39 vs POT 8.07 at 2% on the headline population — still
 >    worse on this project's own preferred metric.
 >
 > **Bottom line:** the competitor numbers are now citable; the *superiority claim*
@@ -296,10 +320,10 @@ population. Both points are verified against the tree:
 
    | | mean AUC | median AUC |
    |---|---:|---:|
-   | INNE + EWMA | **0.960004** | 0.99767 |
-   | Pure Subspace-Q + EWMA (ours) | 0.959360 | **0.99858** |
+   | INNE + EWMA | **0.960109** | 0.99767 |
+   | Pure Subspace-Q + EWMA (ours) | 0.959381 | **0.99858** |
 
-   The gap is 0.0006 — noise in either direction — and the two statistics
+   The gap is 0.0007 — noise in either direction — and the two statistics
    disagree about the order. Anyone presenting this table ranked by *median*
    would show us first; that ranking was not declared in advance, so it is not
    a result. **Do not cite this file as a win.**
@@ -316,8 +340,15 @@ filter, one causal split, ours +0.0232 over SPOT at p=0.011.
       runners/                       scripts that wrote the records; run_joint_filter.py and
                                      run_admissibility_ledger.py run from deposited records alone;
                                      verify_c_engine_subspace_q.py needs the parent tree's layer2/subspace_q.c
+                                     (and subspace_q.h), which are not deposited: set SUBSPACE_Q_C or
+                                     ANTIDDOS_BASE. As first deposited (a7c5cea) it carried two
+                                     development-machine absolute paths, so it resolved on that machine only
       option_b_change_ledger.tsv     per-record leaf counts of the 2026-09-24 regeneration
                                      (run_dif_seed_sensitivity.py writes dif_seed_sensitivity.json)
-      results/                       the artifacts; admissibility_inputs.json has no deposited runner
+      results/                       the artifacts; four top-level records have no deposited writer --
+                                     admissibility_inputs.json (an input, not an output),
+                                     all_extracted_datasets_evaluation_results.json,
+                                     full_tree_all_scenarios_metrics.json and
+                                     threshold_transfer_results.json; panel_inventory/ has no writer here either
       SHA256SUMS.results             record checksums; from results/: sha256sum -c ../SHA256SUMS.results
       SHA256SUMS                     earlier checksums of code and records; several entries no longer match

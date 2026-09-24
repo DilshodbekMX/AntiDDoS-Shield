@@ -26,13 +26,16 @@ OUT_JSON = os.path.join(RESULTS_DIR, 'c_engine_verification_report.json')
 # 1. Locate and compile C engine shared library
 import tempfile
 SO_PATH = os.path.join(tempfile.gettempdir(), 'libsubspace_q.so')
-candidate_paths = [
-    os.path.join(HERE, '..', 'project', 'layer2', 'subspace_q.c'),
-    os.path.join(HERE, '..', 'AntiDDOS_Shield', 'project', 'layer2', 'subspace_q.c'),
-    os.path.join(HERE, '..', 'layer2', 'subspace_q.c'),
-    '/home/detector/Projects/antiddos/layer2/subspace_q.c',
-    '/home/detector/Projects/antiddos/AntiDDOS_Shield/project/layer2/subspace_q.c'
-]
+# subspace_q.c is NOT part of this deposit (see README, Results index). Point
+# SUBSPACE_Q_C at it, or set ANTIDDOS_BASE to the engine tree that holds it --
+# the same variable the other runners already require.
+_BASE = os.environ.get('ANTIDDOS_BASE', '/home/detector/Projects/antiddos')
+candidate_paths = [p for p in (
+    os.environ.get('SUBSPACE_Q_C'),
+    os.path.join(_BASE, 'layer2', 'subspace_q.c'),
+    os.path.join(_BASE, 'AntiDDOS_Shield', 'project', 'layer2', 'subspace_q.c'),
+    os.path.join(HERE, '..', '..', 'project', 'layer2', 'subspace_q.c'),
+) if p]
 SRC_PATH = next((p for p in candidate_paths if os.path.exists(p)), None)
 if not SRC_PATH:
     raise FileNotFoundError("Could not find subspace_q.c in any known location.")

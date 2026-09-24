@@ -298,7 +298,10 @@ def run_for_prefix(prefix_bits):
             'features_used': list(LITNET_FEATURES),
             'features': list(LITNET_FEATURES),
             'features_inert_auto_excluded': globals().get(f'_INERT_FEATURES_{prefix_bits}', []),
-            'production_feature_set_size': len(PRODUCTION_39_FEATURES),
+            # Engine export-contract size (layer2/baselines.h, L2_MAX_FEATURES = 39).
+            # Not len(PRODUCTION_39_FEATURES): that list is the harness's candidate
+            # set and holds 37 names since the 2026-09-24 placeholder exclusion.
+            'production_feature_set_size': 39,
             'min_windows_per_subnet': MIN_WINDOWS_PER_SUBNET,
             'min_attack_windows_for_victim': MIN_ATTACK_WINDOWS_FOR_DR,
             'n_subnets_total': len(results),

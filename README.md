@@ -93,9 +93,9 @@ sha256sum -c ../SHA256SUMS.results     # 42 lines, each ending in OK
 
 > [!IMPORTANT]
 > The deposit does not run end to end: it contains neither the six corpora nor the derived
-> per-window feature tree. Two of the seventeen `runners/run_*.py` scripts —
+> per-window feature tree. Two of the nineteen `runners/run_*.py` scripts —
 > `run_joint_filter.py` and `run_admissibility_ledger.py` — execute from the deposited records
-> alone; the other fifteen do not execute as deposited.
+> alone; the other seventeen do not execute as deposited.
 
 The per-record index and audit history are in [`ComparisonResults/README.md`](ComparisonResults/README.md);
 corpus download pointers are in [`datasets/README.md`](datasets/README.md). No corpus data is committed.

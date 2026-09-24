@@ -15,3 +15,5 @@ scenarios29_corrected_results.json	3622	1949	bit-exact
 universal_ewma_tournament.json	182	145	LODA leaves only (archived registry, unseeded)
 usable_29_scenarios_benchmark.json	75	70	LODA leaves only (archived registry, unseeded)
 dif_seed_sensitivity.json	108	102	bit-exact (runner reconstructed and deposited)
+subspace_ecod_validation_report.json	162	50	bit-exact (runner reconstructed and deposited)
+full_tree_all_scenarios_metrics.json	-	-	NOT regenerated: no generator in this tree or the parent; 2026-09-14 vintage, reads the retired columns
