@@ -15,12 +15,12 @@
  },
  "full_panel": {
   "n": 23,
-  "mean_delta_auc": 0.018865,
+  "mean_delta_auc": 0.018842,
   "wins": 18,
   "losses": 5,
   "ties": 0,
   "n_victim_clusters": 9,
-  "victim_cluster_mean": 0.007404
+  "victim_cluster_mean": 0.007399
  },
  "cuts": {
   "0.94": {
@@ -39,7 +39,7 @@
     {
      "label": "CIC-DDoS2019 cicddos_03-11_192-168-50-4_Syn",
      "victim": "192.168.50.4",
-     "delta_auc": 0.045887,
+     "delta_auc": 0.046053,
      "clock_separability": 0.5247,
      "label_runs": 2112
     }
@@ -55,8 +55,8 @@
      "CIC-IoT-2023 DDoS-UDP_Flood",
      "CIC-IoT-2023 Mirai-udpplain"
     ],
-    "mean_delta_auc": 0.011195,
-    "share_of_full_panel_pct": 59.3,
+    "mean_delta_auc": 0.011224,
+    "share_of_full_panel_pct": 59.6,
     "wins": 6,
     "losses": 1,
     "ties": 0,
@@ -67,11 +67,11 @@
     "cluster_mean_delta_auc": {
      "192.168.137.139": 0.001251,
      "192.168.137.209": 0.004276,
-     "192.168.137.90": -0.00016,
-     "192.168.137.99": 0.009037,
-     "192.168.50.4": 0.045887
+     "192.168.137.90": -0.000156,
+     "192.168.137.99": 0.009049,
+     "192.168.50.4": 0.046053
     },
-    "victim_cluster_mean": 0.012058,
+    "victim_cluster_mean": 0.012095,
     "cluster_informative_pairs": 5,
     "cluster_wilcoxon_p": 0.125,
     "cluster_exact_floor": 0.0625
@@ -96,7 +96,7 @@
      "LITNET-2020 code_red_worm",
      "CIC-IDS-2017 Fri-07-07_DDoS-LOIT (cross-day Mon->Fri)"
     ],
-    "mean_delta_auc": 0.02222,
+    "mean_delta_auc": 0.022175,
     "wins": 12,
     "losses": 4,
     "ties": 0,
@@ -119,14 +119,14 @@
     {
      "label": "CIC-DDoS2019 cicddos_03-11_192-168-50-4_Syn",
      "victim": "192.168.50.4",
-     "delta_auc": 0.045887,
+     "delta_auc": 0.046053,
      "clock_separability": 0.5247,
      "label_runs": 2112
     },
     {
      "label": "CIC-IDS-2017 Fri-07-07_DDoS-LOIT (cross-day Mon->Fri)",
      "victim": "192.168.10.50",
-     "delta_auc": 0.007069,
+     "delta_auc": 0.007064,
      "clock_separability": 0.9486,
      "label_runs": 13
     }
@@ -143,8 +143,8 @@
      "CIC-IoT-2023 Mirai-udpplain",
      "CIC-IDS-2017 Fri-07-07_DDoS-LOIT (cross-day Mon->Fri)"
     ],
-    "mean_delta_auc": 0.010679,
-    "share_of_full_panel_pct": 56.6,
+    "mean_delta_auc": 0.010704,
+    "share_of_full_panel_pct": 56.8,
     "wins": 7,
     "losses": 1,
     "ties": 0,
@@ -153,14 +153,14 @@
     "scenario_exact_floor": 0.0078125,
     "n_victim_clusters": 6,
     "cluster_mean_delta_auc": {
-     "192.168.10.50": 0.007069,
+     "192.168.10.50": 0.007064,
      "192.168.137.139": 0.001251,
      "192.168.137.209": 0.004276,
-     "192.168.137.90": -0.00016,
-     "192.168.137.99": 0.009037,
-     "192.168.50.4": 0.045887
+     "192.168.137.90": -0.000156,
+     "192.168.137.99": 0.009049,
+     "192.168.50.4": 0.046053
     },
-    "victim_cluster_mean": 0.011227,
+    "victim_cluster_mean": 0.011256,
     "cluster_informative_pairs": 6,
     "cluster_wilcoxon_p": 0.0625,
     "cluster_exact_floor": 0.03125
@@ -184,7 +184,7 @@
      "CIC-DDoS2019 cicddos_03-11_192-168-50-4_UDPLag",
      "LITNET-2020 code_red_worm"
     ],
-    "mean_delta_auc": 0.02323,
+    "mean_delta_auc": 0.023183,
     "wins": 11,
     "losses": 4,
     "ties": 0,
@@ -198,7 +198,7 @@
    "corpus": "CIC-IDS-2017",
    "victim": "192.168.10.50",
    "mode": "within",
-   "delta_auc": 0.007767,
+   "delta_auc": 0.007759,
    "clock_separability": 0.9915,
    "label_runs": 12,
    "separate_benign_capture": false
@@ -208,7 +208,7 @@
    "corpus": "CIC-IDS-2017",
    "victim": "192.168.10.50",
    "mode": "within",
-   "delta_auc": 0.033294,
+   "delta_auc": 0.033324,
    "clock_separability": 0.9976,
    "label_runs": 10,
    "separate_benign_capture": false
@@ -218,7 +218,7 @@
    "corpus": "CIC-IDS-2017",
    "victim": "192.168.10.50",
    "mode": "within",
-   "delta_auc": 0.064007,
+   "delta_auc": 0.063987,
    "clock_separability": 0.9811,
    "label_runs": 108,
    "separate_benign_capture": false
@@ -228,7 +228,7 @@
    "corpus": "CIC-IDS-2017",
    "victim": "192.168.10.50",
    "mode": "within",
-   "delta_auc": 0.212933,
+   "delta_auc": 0.212039,
    "clock_separability": 0.9927,
    "label_runs": 22,
    "separate_benign_capture": false
@@ -238,7 +238,7 @@
    "corpus": "CIC-IDS-2017",
    "victim": "192.168.10.50",
    "mode": "within",
-   "delta_auc": 0.000724,
+   "delta_auc": 0.000717,
    "clock_separability": 0.9985,
    "label_runs": 4,
    "separate_benign_capture": false
@@ -248,7 +248,7 @@
    "corpus": "CIC-IDS-2018",
    "victim": "172.31.69.25",
    "mode": "within",
-   "delta_auc": 0.006326,
+   "delta_auc": 0.006395,
    "clock_separability": 1.0,
    "label_runs": 2,
    "separate_benign_capture": false
@@ -258,7 +258,7 @@
    "corpus": "CIC-IDS-2018",
    "victim": "172.31.69.25",
    "mode": "within",
-   "delta_auc": 0.001857,
+   "delta_auc": 0.001851,
    "clock_separability": 1.0,
    "label_runs": 2,
    "separate_benign_capture": false
@@ -268,7 +268,7 @@
    "corpus": "CIC-IDS-2018",
    "victim": "172.31.69.25",
    "mode": "within",
-   "delta_auc": -3.2e-05,
+   "delta_auc": -2e-05,
    "clock_separability": 1.0,
    "label_runs": 2,
    "separate_benign_capture": false
@@ -278,7 +278,7 @@
    "corpus": "CIC-IDS-2018",
    "victim": "172.31.69.25",
    "mode": "within",
-   "delta_auc": 0.000438,
+   "delta_auc": 0.000437,
    "clock_separability": 1.0,
    "label_runs": 2,
    "separate_benign_capture": false
@@ -288,7 +288,7 @@
    "corpus": "CIC-IDS-2018",
    "victim": "172.31.69.28",
    "mode": "within",
-   "delta_auc": -0.001682,
+   "delta_auc": -0.001661,
    "clock_separability": 1.0,
    "label_runs": 2,
    "separate_benign_capture": false
@@ -298,7 +298,7 @@
    "corpus": "CIC-IDS-2018",
    "victim": "172.31.69.28",
    "mode": "within",
-   "delta_auc": -8.8e-05,
+   "delta_auc": -8.9e-05,
    "clock_separability": 1.0,
    "label_runs": 2,
    "separate_benign_capture": false
@@ -318,7 +318,7 @@
    "corpus": "CIC-DDoS2019",
    "victim": "192.168.50.4",
    "mode": "within",
-   "delta_auc": 0.045887,
+   "delta_auc": 0.046053,
    "clock_separability": 0.5247,
    "label_runs": 2112,
    "separate_benign_capture": false
@@ -328,7 +328,7 @@
    "corpus": "CIC-DDoS2019",
    "victim": "192.168.50.4",
    "mode": "within",
-   "delta_auc": 0.007666,
+   "delta_auc": 0.007667,
    "clock_separability": 0.9963,
    "label_runs": 62,
    "separate_benign_capture": false
@@ -338,7 +338,7 @@
    "corpus": "CIC-DDoS2019",
    "victim": "192.168.50.4",
    "mode": "within",
-   "delta_auc": 0.037529,
+   "delta_auc": 0.037619,
    "clock_separability": 0.9878,
    "label_runs": 84,
    "separate_benign_capture": false
@@ -358,7 +358,7 @@
    "corpus": "CIC-IoT-2023",
    "victim": "192.168.137.99",
    "mode": "treefile",
-   "delta_auc": 0.012599,
+   "delta_auc": 0.012602,
    "clock_separability": 0.6678,
    "label_runs": 3,
    "separate_benign_capture": true
@@ -368,7 +368,7 @@
    "corpus": "CIC-IoT-2023",
    "victim": "192.168.137.90",
    "mode": "treefile",
-   "delta_auc": -0.00016,
+   "delta_auc": -0.000156,
    "clock_separability": 0.7052,
    "label_runs": 426,
    "separate_benign_capture": true
@@ -378,7 +378,7 @@
    "corpus": "CIC-IoT-2023",
    "victim": "192.168.137.99",
    "mode": "treefile",
-   "delta_auc": 0.009448,
+   "delta_auc": 0.009445,
    "clock_separability": 0.5067,
    "label_runs": 3,
    "separate_benign_capture": true
@@ -388,7 +388,7 @@
    "corpus": "CIC-IoT-2023",
    "victim": "192.168.137.99",
    "mode": "treefile",
-   "delta_auc": 0.005063,
+   "delta_auc": 0.005099,
    "clock_separability": 0.5267,
    "label_runs": 259,
    "separate_benign_capture": true
@@ -418,7 +418,7 @@
    "corpus": "CIC-IDS-2017",
    "victim": "192.168.10.50",
    "mode": "crossday",
-   "delta_auc": 0.007069,
+   "delta_auc": 0.007064,
    "clock_separability": 0.9486,
    "label_runs": 13,
    "separate_benign_capture": false

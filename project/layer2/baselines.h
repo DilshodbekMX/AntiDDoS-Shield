@@ -75,6 +75,12 @@ enum l2_feature_index {
     // ===== CARDINALITY FEATURES (3) =====
     L2_FEAT_UNIQUE_SRC_IPS,         // Unique source IPs (HyperLogLog)
     L2_FEAT_UNIQUE_DST_PORTS,       // Unique destination ports (HyperLogLog)
+    // flows_per_sec and unique_flows share one key but count different things:
+    // flows_per_sec is the number of NEW flow-table entries per second on the canonical
+    // port-less (ip_lo, ip_hi, protocol) key (extract_flow_key; l1_new_flows /
+    // per-IP new_flows, every packet); unique_flows is the HyperLogLog distinct count of
+    // that same key within the window (per-IP: fed by the 1-in-8 sampled HLL update in
+    // layer1.c; aggregate: the sum of the per-IP HLL counts). Neither is a 5-tuple count.
     L2_FEAT_UNIQUE_FLOWS,           // Unique flows (HyperLogLog)
 
     // ===== CHURN FEATURES (1) =====
@@ -97,6 +103,12 @@ enum l2_feature_index {
     L2_FEAT_FIN_TCP_RATIO,          // FIN as % of TCP packets (0-100)
 
     // ===== VOLUME EXTENDED (1) =====
+    // burst_factor = 100 * window_pps / EWMA_post, where EWMA_post = EWMA + alpha *
+    // (window_pps - EWMA) already includes this window (alpha = BURST_EWMA_ALPHA = 0.033,
+    // burst_ewma.h). Dividing by the post-update mean bounds the ratio at 100/alpha
+    // (3030): it saturates instead of scaling with the burst. Aggregate path: one
+    // global EWMA (shared_memory.c); per-IP path: one EWMA per protected IP (Phase 2,
+    // per_ip_features.c), seeded on the slot's first window.
     L2_FEAT_BURST_FACTOR,           // Current PPS / EWMA PPS * 100 (100=normal)
 
     // ===== FLOW BEHAVIOR EXTENDED (1) =====

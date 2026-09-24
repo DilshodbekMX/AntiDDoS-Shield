@@ -33,7 +33,7 @@
     <rect x="416" y="52" width="368" height="150" rx="12" fill="#ffffff" stroke="#e2e8f0"/>
     <rect x="416" y="52" width="6" height="150" rx="3" fill="#1971c2"/>
     <text x="440" y="80" class="head">BATCH-INVARIANT SCORING</text>
-    <text x="440" y="130" class="big">+0.24 <tspan class="lbl" font-size="22">to</tspan> +0.44</text>
+    <text x="440" y="130" class="big">+0.25 <tspan class="lbl" font-size="22">to</tspan> +0.36</text>
     <text x="440" y="158" class="lbl">competitor mean AUC once attack rows cannot enter</text>
     <text x="440" y="176" class="lbl">their own reference; invariant arms move by 0</text>
   </g>

@@ -4,20 +4,20 @@
    "citation": "Lakhina SIGCOMM 2004 + Li TKDE (ECOD) + Siffer KDD 2017",
    "n_scenarios": 23,
    "n_failed": 0,
-   "mean_auc": 0.9862,
-   "median_auc": 0.9924,
-   "min_auc": 0.9204,
+   "mean_auc": 0.9861,
+   "median_auc": 0.9925,
+   "min_auc": 0.9181,
    "per_scenario": {
-    "dr@1pct": 82.99,
-    "dr@2pct": 86.04,
-    "dr@5pct": 90.87
+    "dr@1pct": 83.19,
+    "dr@2pct": 86.18,
+    "dr@5pct": 90.85
    },
    "pooled": {
     "dr@1pct": 46.8,
-    "dr@2pct": 65.5,
-    "dr@5pct": 95.14
+    "dr@2pct": 65.41,
+    "dr@5pct": 95.03
    },
-   "vs_spot_auc": 0.0113,
+   "vs_spot_auc": 0.0112,
    "vs_spot_p": 0.00102
   },
   "SPOT": {
@@ -42,141 +42,141 @@
    "citation": "Siffer et al., ACM SIGKDD 2017, Sec. 4.2",
    "n_scenarios": 23,
    "n_failed": 0,
-   "mean_auc": 0.7493,
+   "mean_auc": 0.749,
    "median_auc": 0.8027,
-   "min_auc": 0.3427,
+   "min_auc": 0.341,
    "per_scenario": {
-    "dr@1pct": 34.35,
-    "dr@2pct": 39.81,
-    "dr@5pct": 47.56
+    "dr@1pct": 34.34,
+    "dr@2pct": 39.8,
+    "dr@5pct": 47.55
    },
    "pooled": {
     "dr@1pct": 15.54,
-    "dr@2pct": 21.76,
-    "dr@5pct": 40.79
+    "dr@2pct": 21.72,
+    "dr@5pct": 40.68
    },
-   "vs_spot_auc": -0.2255,
+   "vs_spot_auc": -0.2258,
    "vs_spot_p": 0.0
   },
   "ECOD": {
    "citation": "Li et al., IEEE TKDE (PyOD reference impl.)",
    "n_scenarios": 23,
    "n_failed": 0,
-   "mean_auc": 0.7295,
-   "median_auc": 0.857,
-   "min_auc": 0.0417,
+   "mean_auc": 0.7224,
+   "median_auc": 0.8525,
+   "min_auc": 0.041,
    "per_scenario": {
-    "dr@1pct": 15.98,
-    "dr@2pct": 24.41,
-    "dr@5pct": 45.08
+    "dr@1pct": 14.84,
+    "dr@2pct": 21.28,
+    "dr@5pct": 43.46
    },
    "pooled": {
-    "dr@1pct": 1.33,
-    "dr@2pct": 5.44,
-    "dr@5pct": 10.29
+    "dr@1pct": 0.88,
+    "dr@2pct": 4.5,
+    "dr@5pct": 8.9
    },
-   "vs_spot_auc": -0.2453,
+   "vs_spot_auc": -0.2524,
    "vs_spot_p": 0.0
   },
   "COPOD": {
    "citation": "Li et al., IEEE ICDM 2020, pp. 1118-1123 (PyOD)",
    "n_scenarios": 23,
    "n_failed": 0,
-   "mean_auc": 0.7252,
-   "median_auc": 0.8741,
-   "min_auc": 0.0406,
+   "mean_auc": 0.7164,
+   "median_auc": 0.8723,
+   "min_auc": 0.0394,
    "per_scenario": {
-    "dr@1pct": 19.33,
-    "dr@2pct": 27.61,
-    "dr@5pct": 45.47
+    "dr@1pct": 18.12,
+    "dr@2pct": 24.98,
+    "dr@5pct": 43.81
    },
    "pooled": {
-    "dr@1pct": 1.44,
-    "dr@2pct": 7.18,
-    "dr@5pct": 12.73
+    "dr@1pct": 0.91,
+    "dr@2pct": 6.12,
+    "dr@5pct": 10.81
    },
-   "vs_spot_auc": -0.2496,
+   "vs_spot_auc": -0.2584,
    "vs_spot_p": 0.0
   },
   "HBOS": {
    "citation": "Goldstein & Dengel, KI-2012 (PyOD)",
    "n_scenarios": 23,
    "n_failed": 0,
-   "mean_auc": 0.9431,
-   "median_auc": 0.9565,
-   "min_auc": 0.7644,
+   "mean_auc": 0.9387,
+   "median_auc": 0.9554,
+   "min_auc": 0.7564,
    "per_scenario": {
-    "dr@1pct": 33.68,
-    "dr@2pct": 46.91,
-    "dr@5pct": 61.88
+    "dr@1pct": 30.32,
+    "dr@2pct": 45.76,
+    "dr@5pct": 61.0
    },
    "pooled": {
-    "dr@1pct": 10.99,
-    "dr@2pct": 29.94,
-    "dr@5pct": 56.2
+    "dr@1pct": 10.71,
+    "dr@2pct": 29.56,
+    "dr@5pct": 52.15
    },
-   "vs_spot_auc": -0.0317,
-   "vs_spot_p": 0.00098
+   "vs_spot_auc": -0.0361,
+   "vs_spot_p": 0.00035
   },
   "LODA": {
    "citation": "Pevny, Machine Learning 102(2):275-304, 2016 (PyOD)",
    "n_scenarios": 23,
    "n_failed": 0,
-   "mean_auc": 0.5876,
-   "median_auc": 0.5729,
-   "min_auc": 0.052,
+   "mean_auc": 0.6032,
+   "median_auc": 0.6271,
+   "min_auc": 0.0614,
    "per_scenario": {
-    "dr@1pct": 13.45,
-    "dr@2pct": 22.7,
-    "dr@5pct": 36.61
+    "dr@1pct": 17.8,
+    "dr@2pct": 31.13,
+    "dr@5pct": 41.98
    },
    "pooled": {
-    "dr@1pct": 2.43,
-    "dr@2pct": 2.43,
-    "dr@5pct": 2.48
+    "dr@1pct": 11.45,
+    "dr@2pct": 12.49,
+    "dr@5pct": 24.35
    },
-   "vs_spot_auc": -0.3872,
+   "vs_spot_auc": -0.3716,
    "vs_spot_p": 0.0
   },
   "INNE": {
    "citation": "Bandaragoda et al., Comput. Intell. 34(4):968-998, 2018 (PyOD)",
    "n_scenarios": 23,
    "n_failed": 0,
-   "mean_auc": 0.9806,
-   "median_auc": 0.9896,
+   "mean_auc": 0.9808,
+   "median_auc": 0.9908,
    "min_auc": 0.8754,
    "per_scenario": {
-    "dr@1pct": 69.68,
-    "dr@2pct": 82.94,
-    "dr@5pct": 88.63
+    "dr@1pct": 65.3,
+    "dr@2pct": 83.44,
+    "dr@5pct": 88.58
    },
    "pooled": {
-    "dr@1pct": 74.49,
-    "dr@2pct": 79.19,
-    "dr@5pct": 88.62
+    "dr@1pct": 73.5,
+    "dr@2pct": 79.99,
+    "dr@5pct": 88.87
    },
-   "vs_spot_auc": 0.0057,
-   "vs_spot_p": 0.9881
+   "vs_spot_auc": 0.0059,
+   "vs_spot_p": 0.79977
   },
   "DIF": {
    "citation": "Xu et al., IEEE TKDE (PyOD; needs torch)",
    "n_scenarios": 23,
    "n_failed": 0,
-   "mean_auc": 0.5503,
-   "median_auc": 0.6369,
-   "min_auc": 0.0006,
+   "mean_auc": 0.625,
+   "median_auc": 0.9405,
+   "min_auc": 0.0002,
    "per_scenario": {
-    "dr@1pct": 30.41,
-    "dr@2pct": 36.88,
-    "dr@5pct": 44.34
+    "dr@1pct": 37.02,
+    "dr@2pct": 40.76,
+    "dr@5pct": 50.09
    },
    "pooled": {
-    "dr@1pct": 0.0,
-    "dr@2pct": 0.0,
-    "dr@5pct": 6.43
+    "dr@1pct": 0.11,
+    "dr@2pct": 0.11,
+    "dr@5pct": 7.2
    },
-   "vs_spot_auc": -0.4245,
-   "vs_spot_p": 0.00242
+   "vs_spot_auc": -0.3499,
+   "vs_spot_p": 0.00671
   }
  },
  "per_scenario": [
@@ -186,7 +186,7 @@
    "n_benign": 212,
    "scores": {
     "Subspace-ECOD (ours)": {
-     "auc": 0.9912,
+     "auc": 0.9911,
      "dr@1pct": 96.74,
      "dr@2pct": 97.71,
      "dr@5pct": 97.71
@@ -204,40 +204,40 @@
      "dr@5pct": 50.7
     },
     "ECOD": {
-     "auc": 0.7177,
-     "dr@1pct": 6.25,
-     "dr@2pct": 10.04,
-     "dr@5pct": 11.18
+     "auc": 0.6975,
+     "dr@1pct": 4.14,
+     "dr@2pct": 9.86,
+     "dr@5pct": 10.3
     },
     "COPOD": {
-     "auc": 0.7686,
-     "dr@1pct": 4.49,
-     "dr@2pct": 11.71,
-     "dr@5pct": 24.47
+     "auc": 0.7389,
+     "dr@1pct": 2.38,
+     "dr@2pct": 7.57,
+     "dr@5pct": 22.54
     },
     "HBOS": {
-     "auc": 0.8603,
+     "auc": 0.8482,
      "dr@1pct": 0.0,
-     "dr@2pct": 0.62,
-     "dr@5pct": 21.04
+     "dr@2pct": 0.35,
+     "dr@5pct": 18.84
     },
     "LODA": {
-     "auc": 0.9547,
-     "dr@1pct": 12.5,
-     "dr@2pct": 69.98,
-     "dr@5pct": 91.99
+     "auc": 0.9396,
+     "dr@1pct": 30.19,
+     "dr@2pct": 30.81,
+     "dr@5pct": 89.17
     },
     "INNE": {
-     "auc": 0.9949,
-     "dr@1pct": 97.1,
+     "auc": 0.9951,
+     "dr@1pct": 97.36,
      "dr@2pct": 97.36,
-     "dr@5pct": 98.59
+     "dr@5pct": 97.98
     },
     "DIF": {
-     "auc": 0.1931,
-     "dr@1pct": 1.32,
-     "dr@2pct": 1.41,
-     "dr@5pct": 1.67
+     "auc": 0.2234,
+     "dr@1pct": 2.46,
+     "dr@2pct": 2.46,
+     "dr@5pct": 2.46
     }
    }
   },
@@ -247,7 +247,7 @@
    "n_benign": 2430,
    "scores": {
     "Subspace-ECOD (ours)": {
-     "auc": 0.9723,
+     "auc": 0.9716,
      "dr@1pct": 88.86,
      "dr@2pct": 90.52,
      "dr@5pct": 91.94
@@ -265,40 +265,40 @@
      "dr@5pct": 63.74
     },
     "ECOD": {
-     "auc": 0.8962,
-     "dr@1pct": 3.08,
-     "dr@2pct": 12.8,
-     "dr@5pct": 38.86
+     "auc": 0.8877,
+     "dr@1pct": 1.9,
+     "dr@2pct": 9.72,
+     "dr@5pct": 32.23
     },
     "COPOD": {
-     "auc": 0.8696,
-     "dr@1pct": 1.9,
-     "dr@2pct": 8.29,
-     "dr@5pct": 46.21
+     "auc": 0.8554,
+     "dr@1pct": 1.66,
+     "dr@2pct": 6.87,
+     "dr@5pct": 41.0
     },
     "HBOS": {
-     "auc": 0.8589,
+     "auc": 0.8472,
      "dr@1pct": 0.24,
      "dr@2pct": 0.24,
-     "dr@5pct": 8.53
+     "dr@5pct": 4.98
     },
     "LODA": {
-     "auc": 0.8822,
-     "dr@1pct": 7.35,
-     "dr@2pct": 8.53,
-     "dr@5pct": 69.67
+     "auc": 0.8607,
+     "dr@1pct": 6.16,
+     "dr@2pct": 72.51,
+     "dr@5pct": 75.59
     },
     "INNE": {
-     "auc": 0.9799,
-     "dr@1pct": 71.8,
-     "dr@2pct": 90.52,
+     "auc": 0.9804,
+     "dr@1pct": 72.51,
+     "dr@2pct": 90.76,
      "dr@5pct": 93.13
     },
     "DIF": {
-     "auc": 0.9807,
-     "dr@1pct": 79.62,
-     "dr@2pct": 81.04,
-     "dr@5pct": 87.68
+     "auc": 0.9835,
+     "dr@1pct": 80.81,
+     "dr@2pct": 83.18,
+     "dr@5pct": 88.86
     }
    }
   },
@@ -308,8 +308,8 @@
    "n_benign": 2539,
    "scores": {
     "Subspace-ECOD (ours)": {
-     "auc": 0.9708,
-     "dr@1pct": 78.19,
+     "auc": 0.9709,
+     "dr@1pct": 82.72,
      "dr@2pct": 83.59,
      "dr@5pct": 87.26
     },
@@ -326,40 +326,40 @@
      "dr@5pct": 81.21
     },
     "ECOD": {
-     "auc": 0.9348,
-     "dr@1pct": 13.39,
-     "dr@2pct": 24.41,
-     "dr@5pct": 59.61
+     "auc": 0.9339,
+     "dr@1pct": 11.45,
+     "dr@2pct": 19.44,
+     "dr@5pct": 59.4
     },
     "COPOD": {
      "auc": 0.9039,
-     "dr@1pct": 10.8,
-     "dr@2pct": 22.03,
-     "dr@5pct": 61.56
+     "dr@1pct": 6.7,
+     "dr@2pct": 17.49,
+     "dr@5pct": 61.12
     },
     "HBOS": {
-     "auc": 0.8562,
+     "auc": 0.859,
      "dr@1pct": 0.0,
      "dr@2pct": 0.22,
-     "dr@5pct": 64.36
+     "dr@5pct": 64.15
     },
     "LODA": {
-     "auc": 0.9088,
-     "dr@1pct": 1.51,
-     "dr@2pct": 11.23,
-     "dr@5pct": 39.74
+     "auc": 0.8954,
+     "dr@1pct": 9.72,
+     "dr@2pct": 53.56,
+     "dr@5pct": 68.03
     },
     "INNE": {
-     "auc": 0.976,
-     "dr@1pct": 84.23,
+     "auc": 0.9752,
+     "dr@1pct": 84.02,
      "dr@2pct": 86.18,
-     "dr@5pct": 87.69
+     "dr@5pct": 87.9
     },
     "DIF": {
-     "auc": 0.9738,
-     "dr@1pct": 79.27,
-     "dr@2pct": 80.35,
-     "dr@5pct": 83.8
+     "auc": 0.9782,
+     "dr@1pct": 78.19,
+     "dr@2pct": 84.45,
+     "dr@5pct": 88.55
     }
    }
   },
@@ -369,10 +369,10 @@
    "n_benign": 2620,
    "scores": {
     "Subspace-ECOD (ours)": {
-     "auc": 0.9204,
+     "auc": 0.9181,
      "dr@1pct": 30.08,
      "dr@2pct": 33.12,
-     "dr@5pct": 50.76
+     "dr@5pct": 51.14
     },
     "SPOT": {
      "auc": 0.7755,
@@ -387,40 +387,40 @@
      "dr@5pct": 60.28
     },
     "ECOD": {
-     "auc": 0.6912,
-     "dr@1pct": 1.27,
-     "dr@2pct": 4.44,
-     "dr@5pct": 16.12
-    },
-    "COPOD": {
-     "auc": 0.6505,
+     "auc": 0.6845,
      "dr@1pct": 0.89,
      "dr@2pct": 3.05,
-     "dr@5pct": 15.36
+     "dr@5pct": 15.74
+    },
+    "COPOD": {
+     "auc": 0.6369,
+     "dr@1pct": 0.38,
+     "dr@2pct": 1.52,
+     "dr@5pct": 15.1
     },
     "HBOS": {
-     "auc": 0.7644,
+     "auc": 0.7564,
      "dr@1pct": 0.13,
-     "dr@2pct": 0.25,
-     "dr@5pct": 4.44
+     "dr@2pct": 0.13,
+     "dr@5pct": 3.17
     },
     "LODA": {
-     "auc": 0.5729,
-     "dr@1pct": 0.13,
-     "dr@2pct": 0.63,
-     "dr@5pct": 18.27
+     "auc": 0.5359,
+     "dr@1pct": 1.14,
+     "dr@2pct": 9.77,
+     "dr@5pct": 14.09
     },
     "INNE": {
-     "auc": 0.942,
-     "dr@1pct": 59.01,
-     "dr@2pct": 59.01,
-     "dr@5pct": 76.78
+     "auc": 0.9427,
+     "dr@1pct": 59.26,
+     "dr@2pct": 59.26,
+     "dr@5pct": 75.13
     },
     "DIF": {
-     "auc": 0.8882,
+     "auc": 0.9126,
      "dr@1pct": 16.37,
-     "dr@2pct": 17.26,
-     "dr@5pct": 22.34
+     "dr@2pct": 17.64,
+     "dr@5pct": 25.25
     }
    }
   },
@@ -430,10 +430,10 @@
    "n_benign": 2640,
    "scores": {
     "Subspace-ECOD (ours)": {
-     "auc": 0.9991,
+     "auc": 0.999,
      "dr@1pct": 98.66,
      "dr@2pct": 98.74,
-     "dr@5pct": 99.45
+     "dr@5pct": 99.37
     },
     "SPOT": {
      "auc": 0.9993,
@@ -448,40 +448,40 @@
      "dr@5pct": 32.36
     },
     "ECOD": {
-     "auc": 0.6753,
+     "auc": 0.6843,
      "dr@1pct": 0.39,
-     "dr@2pct": 1.58,
-     "dr@5pct": 4.66
+     "dr@2pct": 1.03,
+     "dr@5pct": 3.95
     },
     "COPOD": {
-     "auc": 0.7033,
+     "auc": 0.6907,
      "dr@1pct": 0.39,
-     "dr@2pct": 1.26,
-     "dr@5pct": 7.34
+     "dr@2pct": 0.95,
+     "dr@5pct": 6.0
     },
     "HBOS": {
-     "auc": 0.9125,
+     "auc": 0.9106,
      "dr@1pct": 0.39,
-     "dr@2pct": 0.79,
-     "dr@5pct": 3.79
+     "dr@2pct": 0.55,
+     "dr@5pct": 4.1
     },
     "LODA": {
-     "auc": 0.7115,
-     "dr@1pct": 0.08,
-     "dr@2pct": 2.76,
-     "dr@5pct": 13.81
+     "auc": 0.6271,
+     "dr@1pct": 0.47,
+     "dr@2pct": 4.1,
+     "dr@5pct": 11.52
     },
     "INNE": {
-     "auc": 0.9986,
-     "dr@1pct": 96.69,
-     "dr@2pct": 97.4,
+     "auc": 0.9987,
+     "dr@1pct": 96.92,
+     "dr@2pct": 98.03,
      "dr@5pct": 99.37
     },
     "DIF": {
-     "auc": 0.8595,
-     "dr@1pct": 2.13,
-     "dr@2pct": 3.63,
-     "dr@5pct": 25.97
+     "auc": 0.9405,
+     "dr@1pct": 6.95,
+     "dr@2pct": 16.57,
+     "dr@5pct": 46.49
     }
    }
   },
@@ -509,40 +509,40 @@
      "dr@5pct": 72.04
     },
     "ECOD": {
-     "auc": 0.8262,
-     "dr@1pct": 24.76,
-     "dr@2pct": 25.71,
-     "dr@5pct": 38.27
+     "auc": 0.7977,
+     "dr@1pct": 18.36,
+     "dr@2pct": 18.84,
+     "dr@5pct": 31.75
     },
     "COPOD": {
-     "auc": 0.9101,
-     "dr@1pct": 38.51,
-     "dr@2pct": 42.42,
-     "dr@5pct": 47.27
+     "auc": 0.8893,
+     "dr@1pct": 32.7,
+     "dr@2pct": 35.43,
+     "dr@5pct": 39.81
     },
     "HBOS": {
-     "auc": 0.9717,
-     "dr@1pct": 92.3,
+     "auc": 0.9718,
+     "dr@1pct": 92.42,
      "dr@2pct": 92.42,
-     "dr@5pct": 93.72
+     "dr@5pct": 93.6
     },
     "LODA": {
-     "auc": 0.5229,
-     "dr@1pct": 0.12,
-     "dr@2pct": 0.47,
-     "dr@5pct": 0.71
+     "auc": 0.6125,
+     "dr@1pct": 0.24,
+     "dr@2pct": 0.36,
+     "dr@5pct": 0.59
     },
     "INNE": {
-     "auc": 0.955,
+     "auc": 0.9558,
      "dr@1pct": 0.0,
      "dr@2pct": 92.18,
-     "dr@5pct": 92.54
+     "dr@5pct": 92.42
     },
     "DIF": {
-     "auc": 0.0513,
-     "dr@1pct": 0.59,
-     "dr@2pct": 0.71,
-     "dr@5pct": 1.66
+     "auc": 0.0488,
+     "dr@1pct": 0.12,
+     "dr@2pct": 0.24,
+     "dr@5pct": 0.95
     }
    }
   },
@@ -570,37 +570,37 @@
      "dr@5pct": 46.75
     },
     "ECOD": {
-     "auc": 0.0417,
-     "dr@1pct": 1.1,
-     "dr@2pct": 1.32,
-     "dr@5pct": 2.6
+     "auc": 0.041,
+     "dr@1pct": 0.34,
+     "dr@2pct": 0.82,
+     "dr@5pct": 1.51
     },
     "COPOD": {
-     "auc": 0.0406,
-     "dr@1pct": 0.47,
-     "dr@2pct": 0.63,
-     "dr@5pct": 1.38
+     "auc": 0.0394,
+     "dr@1pct": 0.28,
+     "dr@2pct": 0.38,
+     "dr@5pct": 1.25
     },
     "HBOS": {
-     "auc": 0.9341,
+     "auc": 0.9243,
      "dr@1pct": 0.22,
-     "dr@2pct": 3.14,
+     "dr@2pct": 2.73,
      "dr@5pct": 5.11
     },
     "LODA": {
-     "auc": 0.2066,
-     "dr@1pct": 0.06,
-     "dr@2pct": 0.13,
-     "dr@5pct": 0.6
+     "auc": 0.9397,
+     "dr@1pct": 0.0,
+     "dr@2pct": 13.86,
+     "dr@5pct": 57.35
     },
     "INNE": {
-     "auc": 0.993,
-     "dr@1pct": 99.75,
+     "auc": 0.992,
+     "dr@1pct": 0.0,
      "dr@2pct": 99.75,
      "dr@5pct": 99.75
     },
     "DIF": {
-     "auc": 0.0014,
+     "auc": 0.0012,
      "dr@1pct": 0.0,
      "dr@2pct": 0.0,
      "dr@5pct": 0.0
@@ -625,46 +625,46 @@
      "dr@5pct": 99.83
     },
     "DSPOT": {
-     "auc": 0.6539,
+     "auc": 0.6537,
      "dr@1pct": 4.47,
      "dr@2pct": 4.89,
      "dr@5pct": 18.06
     },
     "ECOD": {
-     "auc": 0.1949,
-     "dr@1pct": 3.09,
-     "dr@2pct": 3.68,
-     "dr@5pct": 4.39
+     "auc": 0.1798,
+     "dr@1pct": 1.63,
+     "dr@2pct": 2.34,
+     "dr@5pct": 2.55
     },
     "COPOD": {
-     "auc": 0.2425,
-     "dr@1pct": 3.3,
-     "dr@2pct": 3.39,
-     "dr@5pct": 4.89
+     "auc": 0.226,
+     "dr@1pct": 2.01,
+     "dr@2pct": 2.01,
+     "dr@5pct": 3.18
     },
     "HBOS": {
-     "auc": 0.9932,
-     "dr@1pct": 97.78,
-     "dr@2pct": 99.71,
-     "dr@5pct": 99.71
+     "auc": 0.9921,
+     "dr@1pct": 95.53,
+     "dr@2pct": 97.78,
+     "dr@5pct": 97.78
     },
     "LODA": {
-     "auc": 0.7825,
-     "dr@1pct": 2.47,
-     "dr@2pct": 31.48,
-     "dr@5pct": 53.43
-    },
-    "INNE": {
-     "auc": 0.9976,
-     "dr@1pct": 99.83,
-     "dr@2pct": 99.83,
-     "dr@5pct": 99.83
-    },
-    "DIF": {
-     "auc": 0.0014,
+     "auc": 0.2335,
      "dr@1pct": 0.0,
      "dr@2pct": 0.0,
      "dr@5pct": 0.0
+    },
+    "INNE": {
+     "auc": 0.9977,
+     "dr@1pct": 99.83,
+     "dr@2pct": 99.83,
+     "dr@5pct": 99.87
+    },
+    "DIF": {
+     "auc": 0.0027,
+     "dr@1pct": 0.04,
+     "dr@2pct": 0.08,
+     "dr@5pct": 0.13
     }
    }
   },
@@ -692,25 +692,25 @@
      "dr@5pct": 53.48
     },
     "ECOD": {
-     "auc": 0.0544,
-     "dr@1pct": 0.95,
-     "dr@2pct": 0.95,
-     "dr@5pct": 2.33
+     "auc": 0.0528,
+     "dr@1pct": 0.53,
+     "dr@2pct": 0.53,
+     "dr@5pct": 1.69
     },
     "COPOD": {
-     "auc": 0.0619,
-     "dr@1pct": 0.61,
-     "dr@2pct": 0.66,
-     "dr@5pct": 1.88
+     "auc": 0.0593,
+     "dr@1pct": 0.37,
+     "dr@2pct": 0.4,
+     "dr@5pct": 1.08
     },
     "HBOS": {
-     "auc": 0.997,
-     "dr@1pct": 99.74,
+     "auc": 0.9849,
+     "dr@1pct": 26.25,
      "dr@2pct": 99.74,
      "dr@5pct": 99.89
     },
     "LODA": {
-     "auc": 0.052,
+     "auc": 0.0614,
      "dr@1pct": 0.0,
      "dr@2pct": 0.0,
      "dr@5pct": 0.0
@@ -722,7 +722,7 @@
      "dr@5pct": 99.89
     },
     "DIF": {
-     "auc": 0.0006,
+     "auc": 0.0002,
      "dr@1pct": 0.0,
      "dr@2pct": 0.0,
      "dr@5pct": 0.0
@@ -735,7 +735,7 @@
    "n_benign": 1401,
    "scores": {
     "Subspace-ECOD (ours)": {
-     "auc": 0.9898,
+     "auc": 0.9899,
      "dr@1pct": 98.0,
      "dr@2pct": 98.0,
      "dr@5pct": 98.06
@@ -753,37 +753,37 @@
      "dr@5pct": 40.75
     },
     "ECOD": {
-     "auc": 0.3863,
-     "dr@1pct": 3.06,
-     "dr@2pct": 6.28,
-     "dr@5pct": 8.58
+     "auc": 0.3671,
+     "dr@1pct": 1.55,
+     "dr@2pct": 3.55,
+     "dr@5pct": 5.31
     },
     "COPOD": {
-     "auc": 0.1281,
+     "auc": 0.1277,
      "dr@1pct": 0.21,
-     "dr@2pct": 0.61,
-     "dr@5pct": 1.12
+     "dr@2pct": 0.52,
+     "dr@5pct": 0.85
     },
     "HBOS": {
-     "auc": 0.9868,
+     "auc": 0.9864,
      "dr@1pct": 97.97,
-     "dr@2pct": 98.03,
-     "dr@5pct": 98.12
+     "dr@2pct": 98.0,
+     "dr@5pct": 98.06
     },
     "LODA": {
-     "auc": 0.9401,
+     "auc": 0.0925,
      "dr@1pct": 0.03,
-     "dr@2pct": 0.03,
-     "dr@5pct": 63.31
+     "dr@2pct": 0.09,
+     "dr@5pct": 0.15
     },
     "INNE": {
-     "auc": 0.9888,
+     "auc": 0.9884,
      "dr@1pct": 98.0,
-     "dr@2pct": 98.0,
+     "dr@2pct": 98.03,
      "dr@5pct": 98.09
     },
     "DIF": {
-     "auc": 0.0116,
+     "auc": 0.0105,
      "dr@1pct": 0.0,
      "dr@2pct": 0.0,
      "dr@5pct": 0.0
@@ -814,40 +814,40 @@
      "dr@5pct": 52.68
     },
     "ECOD": {
-     "auc": 0.6909,
-     "dr@1pct": 3.91,
-     "dr@2pct": 4.63,
-     "dr@5pct": 6.63
+     "auc": 0.6624,
+     "dr@1pct": 1.0,
+     "dr@2pct": 1.63,
+     "dr@5pct": 3.72
     },
     "COPOD": {
-     "auc": 0.7712,
-     "dr@1pct": 5.45,
-     "dr@2pct": 5.81,
-     "dr@5pct": 8.81
+     "auc": 0.7299,
+     "dr@1pct": 2.54,
+     "dr@2pct": 3.09,
+     "dr@5pct": 5.18
     },
     "HBOS": {
-     "auc": 0.9458,
+     "auc": 0.9017,
      "dr@1pct": 0.0,
      "dr@2pct": 0.09,
-     "dr@5pct": 5.81
+     "dr@5pct": 3.0
     },
     "LODA": {
-     "auc": 0.7267,
+     "auc": 0.0968,
      "dr@1pct": 0.0,
      "dr@2pct": 0.0,
      "dr@5pct": 0.0
     },
     "INNE": {
-     "auc": 0.9986,
+     "auc": 0.9983,
      "dr@1pct": 100.0,
      "dr@2pct": 100.0,
      "dr@5pct": 100.0
     },
     "DIF": {
-     "auc": 0.0777,
+     "auc": 0.0633,
      "dr@1pct": 0.0,
      "dr@2pct": 0.09,
-     "dr@5pct": 0.36
+     "dr@5pct": 0.54
     }
    }
   },
@@ -875,40 +875,40 @@
      "dr@5pct": 77.57
     },
     "ECOD": {
-     "auc": 0.9758,
-     "dr@1pct": 1.35,
-     "dr@2pct": 48.4,
-     "dr@5pct": 97.3
+     "auc": 0.972,
+     "dr@1pct": 0.84,
+     "dr@2pct": 29.68,
+     "dr@5pct": 95.11
     },
     "COPOD": {
-     "auc": 0.977,
-     "dr@1pct": 1.35,
-     "dr@2pct": 52.11,
-     "dr@5pct": 96.12
+     "auc": 0.9739,
+     "dr@1pct": 0.84,
+     "dr@2pct": 42.16,
+     "dr@5pct": 94.27
     },
     "HBOS": {
-     "auc": 0.9847,
+     "auc": 0.984,
      "dr@1pct": 0.17,
      "dr@2pct": 90.73,
      "dr@5pct": 96.63
     },
     "LODA": {
-     "auc": 0.087,
+     "auc": 0.1292,
      "dr@1pct": 0.0,
-     "dr@2pct": 1.01,
-     "dr@5pct": 3.04
+     "dr@2pct": 1.35,
+     "dr@5pct": 7.42
     },
     "INNE": {
-     "auc": 0.9895,
+     "auc": 0.9896,
      "dr@1pct": 0.0,
-     "dr@2pct": 94.44,
+     "dr@2pct": 91.91,
      "dr@5pct": 96.29
     },
     "DIF": {
-     "auc": 0.9974,
-     "dr@1pct": 94.77,
-     "dr@2pct": 96.46,
-     "dr@5pct": 99.83
+     "auc": 0.9961,
+     "dr@1pct": 93.42,
+     "dr@2pct": 94.6,
+     "dr@5pct": 98.99
     }
    }
   },
@@ -918,10 +918,10 @@
    "n_benign": 2594,
    "scores": {
     "Subspace-ECOD (ours)": {
-     "auc": 0.9583,
+     "auc": 0.9582,
      "dr@1pct": 7.81,
      "dr@2pct": 19.67,
-     "dr@5pct": 36.18
+     "dr@5pct": 36.3
     },
     "SPOT": {
      "auc": 0.9213,
@@ -930,46 +930,46 @@
      "dr@5pct": 37.95
     },
     "DSPOT": {
-     "auc": 0.5373,
+     "auc": 0.5349,
      "dr@1pct": 4.66,
      "dr@2pct": 6.11,
      "dr@5pct": 11.22
     },
     "ECOD": {
-     "auc": 0.857,
+     "auc": 0.8525,
      "dr@1pct": 0.11,
-     "dr@2pct": 11.65,
-     "dr@5pct": 54.5
+     "dr@2pct": 9.38,
+     "dr@5pct": 53.87
     },
     "COPOD": {
-     "auc": 0.8741,
+     "auc": 0.8723,
      "dr@1pct": 0.11,
-     "dr@2pct": 11.5,
-     "dr@5pct": 56.38
+     "dr@2pct": 9.81,
+     "dr@5pct": 56.6
     },
     "HBOS": {
-     "auc": 0.9584,
+     "auc": 0.958,
      "dr@1pct": 0.11,
-     "dr@2pct": 20.2,
+     "dr@2pct": 12.72,
      "dr@5pct": 57.53
     },
     "LODA": {
-     "auc": 0.5693,
-     "dr@1pct": 3.32,
-     "dr@2pct": 6.15,
-     "dr@5pct": 40.82
+     "auc": 0.8212,
+     "dr@1pct": 9.2,
+     "dr@2pct": 34.95,
+     "dr@5pct": 45.23
     },
     "INNE": {
-     "auc": 0.9529,
-     "dr@1pct": 8.75,
-     "dr@2pct": 12.39,
-     "dr@5pct": 41.09
+     "auc": 0.9532,
+     "dr@1pct": 9.36,
+     "dr@2pct": 12.63,
+     "dr@5pct": 40.26
     },
     "DIF": {
-     "auc": 0.9532,
-     "dr@1pct": 9.3,
-     "dr@2pct": 14.8,
-     "dr@5pct": 60.36
+     "auc": 0.9534,
+     "dr@1pct": 1.53,
+     "dr@2pct": 11.13,
+     "dr@5pct": 73.88
     }
    }
   },
@@ -997,40 +997,40 @@
      "dr@5pct": 54.27
     },
     "ECOD": {
-     "auc": 0.9683,
-     "dr@1pct": 0.48,
-     "dr@2pct": 28.52,
-     "dr@5pct": 93.26
+     "auc": 0.9636,
+     "dr@1pct": 0.24,
+     "dr@2pct": 17.45,
+     "dr@5pct": 90.37
     },
     "COPOD": {
-     "auc": 0.9694,
-     "dr@1pct": 0.48,
-     "dr@2pct": 31.65,
-     "dr@5pct": 93.74
+     "auc": 0.9652,
+     "dr@1pct": 0.24,
+     "dr@2pct": 17.21,
+     "dr@5pct": 92.78
     },
     "HBOS": {
-     "auc": 0.9807,
+     "auc": 0.9792,
      "dr@1pct": 0.0,
-     "dr@2pct": 86.64,
+     "dr@2pct": 73.65,
      "dr@5pct": 95.07
     },
     "LODA": {
-     "auc": 0.0741,
-     "dr@1pct": 4.93,
-     "dr@2pct": 6.86,
-     "dr@5pct": 6.86
+     "auc": 0.2286,
+     "dr@1pct": 1.32,
+     "dr@2pct": 9.03,
+     "dr@5pct": 16.0
     },
     "INNE": {
-     "auc": 0.9915,
-     "dr@1pct": 82.07,
-     "dr@2pct": 88.33,
+     "auc": 0.9918,
+     "dr@1pct": 82.19,
+     "dr@2pct": 84.24,
      "dr@5pct": 94.83
     },
     "DIF": {
-     "auc": 0.9953,
-     "dr@1pct": 85.92,
-     "dr@2pct": 93.98,
-     "dr@5pct": 100.0
+     "auc": 0.9901,
+     "dr@1pct": 63.54,
+     "dr@2pct": 90.73,
+     "dr@5pct": 99.04
     }
    }
   },
@@ -1040,7 +1040,7 @@
    "n_benign": 2649,
    "scores": {
     "Subspace-ECOD (ours)": {
-     "auc": 0.972,
+     "auc": 0.9721,
      "dr@1pct": 26.27,
      "dr@2pct": 46.61,
      "dr@5pct": 76.91
@@ -1058,40 +1058,40 @@
      "dr@5pct": 43.22
     },
     "ECOD": {
-     "auc": 0.9641,
-     "dr@1pct": 0.21,
-     "dr@2pct": 24.79,
-     "dr@5pct": 79.45
+     "auc": 0.962,
+     "dr@1pct": 0.0,
+     "dr@2pct": 19.92,
+     "dr@5pct": 79.03
     },
     "COPOD": {
-     "auc": 0.9644,
-     "dr@1pct": 0.21,
-     "dr@2pct": 22.67,
-     "dr@5pct": 78.6
+     "auc": 0.9623,
+     "dr@1pct": 0.0,
+     "dr@2pct": 18.22,
+     "dr@5pct": 78.39
     },
     "HBOS": {
-     "auc": 0.9666,
+     "auc": 0.9665,
      "dr@1pct": 0.0,
-     "dr@2pct": 25.42,
-     "dr@5pct": 77.54
+     "dr@2pct": 23.73,
+     "dr@5pct": 77.12
     },
     "LODA": {
-     "auc": 0.3997,
-     "dr@1pct": 31.78,
-     "dr@2pct": 36.02,
-     "dr@5pct": 36.23
+     "auc": 0.9666,
+     "dr@1pct": 4.66,
+     "dr@2pct": 49.36,
+     "dr@5pct": 72.25
     },
     "INNE": {
-     "auc": 0.9713,
-     "dr@1pct": 9.11,
-     "dr@2pct": 50.42,
+     "auc": 0.9719,
+     "dr@1pct": 10.17,
+     "dr@2pct": 54.66,
      "dr@5pct": 79.87
     },
     "DIF": {
-     "auc": 0.986,
-     "dr@1pct": 48.52,
-     "dr@2pct": 67.16,
-     "dr@5pct": 99.79
+     "auc": 0.9874,
+     "dr@1pct": 63.98,
+     "dr@2pct": 69.28,
+     "dr@5pct": 96.61
     }
    }
   },
@@ -1113,34 +1113,34 @@
      "dr@5pct": 99.95
     },
     "DSPOT": {
-     "auc": 0.3427,
+     "auc": 0.341,
      "dr@1pct": 7.19,
      "dr@2pct": 7.62,
      "dr@5pct": 10.68
     },
     "ECOD": {
-     "auc": 0.7671,
-     "dr@1pct": 60.73,
-     "dr@2pct": 60.73,
-     "dr@5pct": 60.73
+     "auc": 0.7673,
+     "dr@1pct": 60.83,
+     "dr@2pct": 60.83,
+     "dr@5pct": 60.83
     },
     "COPOD": {
-     "auc": 0.7978,
-     "dr@1pct": 74.17,
-     "dr@2pct": 74.17,
-     "dr@5pct": 74.17
+     "auc": 0.7937,
+     "dr@1pct": 73.44,
+     "dr@2pct": 73.44,
+     "dr@5pct": 73.44
     },
     "HBOS": {
-     "auc": 0.997,
+     "auc": 0.9968,
      "dr@1pct": 99.93,
      "dr@2pct": 99.93,
      "dr@5pct": 99.93
     },
     "LODA": {
-     "auc": 0.47,
-     "dr@1pct": 46.8,
-     "dr@2pct": 46.8,
-     "dr@5pct": 46.8
+     "auc": 0.4133,
+     "dr@1pct": 40.53,
+     "dr@2pct": 40.53,
+     "dr@5pct": 40.53
     },
     "INNE": {
      "auc": 0.9968,
@@ -1149,10 +1149,10 @@
      "dr@5pct": 99.95
     },
     "DIF": {
-     "auc": 0.2595,
-     "dr@1pct": 25.82,
-     "dr@2pct": 25.82,
-     "dr@5pct": 25.82
+     "auc": 0.7011,
+     "dr@1pct": 69.75,
+     "dr@2pct": 69.75,
+     "dr@5pct": 69.75
     }
    }
   },
@@ -1164,8 +1164,8 @@
     "Subspace-ECOD (ours)": {
      "auc": 0.9909,
      "dr@1pct": 81.58,
-     "dr@2pct": 85.7,
-     "dr@5pct": 94.81
+     "dr@2pct": 86.59,
+     "dr@5pct": 94.5
     },
     "SPOT": {
      "auc": 0.9872,
@@ -1174,46 +1174,46 @@
      "dr@5pct": 92.61
     },
     "DSPOT": {
-     "auc": 0.918,
-     "dr@1pct": 44.9,
+     "auc": 0.9173,
+     "dr@1pct": 44.88,
      "dr@2pct": 49.25,
-     "dr@5pct": 69.3
+     "dr@5pct": 69.24
     },
     "ECOD": {
-     "auc": 0.9497,
-     "dr@1pct": 30.76,
-     "dr@2pct": 37.94,
-     "dr@5pct": 52.74
+     "auc": 0.9493,
+     "dr@1pct": 28.71,
+     "dr@2pct": 36.55,
+     "dr@5pct": 51.85
     },
     "COPOD": {
-     "auc": 0.9437,
-     "dr@1pct": 28.14,
-     "dr@2pct": 35.6,
-     "dr@5pct": 51.64
+     "auc": 0.9434,
+     "dr@1pct": 25.02,
+     "dr@2pct": 32.8,
+     "dr@5pct": 51.85
     },
     "HBOS": {
-     "auc": 0.9546,
-     "dr@1pct": 11.21,
-     "dr@2pct": 36.44,
-     "dr@5pct": 64.27
+     "auc": 0.9534,
+     "dr@1pct": 10.35,
+     "dr@2pct": 28.14,
+     "dr@5pct": 64.42
     },
     "LODA": {
-     "auc": 0.3568,
-     "dr@1pct": 7.65,
-     "dr@2pct": 10.79,
-     "dr@5pct": 28.06
+     "auc": 0.6255,
+     "dr@1pct": 21.06,
+     "dr@2pct": 41.63,
+     "dr@5pct": 62.09
     },
     "INNE": {
-     "auc": 0.9888,
-     "dr@1pct": 67.88,
-     "dr@2pct": 81.29,
-     "dr@5pct": 94.21
+     "auc": 0.99,
+     "dr@1pct": 69.69,
+     "dr@2pct": 85.22,
+     "dr@5pct": 94.71
     },
     "DIF": {
-     "auc": 0.543,
-     "dr@1pct": 10.92,
-     "dr@2pct": 48.39,
-     "dr@5pct": 50.69
+     "auc": 0.9545,
+     "dr@1pct": 51.74,
+     "dr@2pct": 56.35,
+     "dr@5pct": 67.33
     }
    }
   },
@@ -1235,34 +1235,34 @@
      "dr@5pct": 100.0
     },
     "DSPOT": {
-     "auc": 0.9227,
+     "auc": 0.9216,
      "dr@1pct": 46.09,
-     "dr@2pct": 48.83,
-     "dr@5pct": 53.04
+     "dr@2pct": 48.8,
+     "dr@5pct": 53.01
     },
     "ECOD": {
-     "auc": 0.97,
-     "dr@1pct": 90.67,
-     "dr@2pct": 90.67,
-     "dr@5pct": 90.67
+     "auc": 0.976,
+     "dr@1pct": 93.32,
+     "dr@2pct": 93.32,
+     "dr@5pct": 93.32
     },
     "COPOD": {
-     "auc": 0.9547,
-     "dr@1pct": 89.26,
-     "dr@2pct": 89.26,
-     "dr@5pct": 89.26
+     "auc": 0.9593,
+     "dr@1pct": 90.28,
+     "dr@2pct": 90.28,
+     "dr@5pct": 90.28
     },
     "HBOS": {
-     "auc": 0.9435,
-     "dr@1pct": 86.7,
-     "dr@2pct": 86.7,
-     "dr@5pct": 86.7
+     "auc": 0.9513,
+     "dr@1pct": 88.15,
+     "dr@2pct": 88.15,
+     "dr@5pct": 88.15
     },
     "LODA": {
-     "auc": 0.8405,
-     "dr@1pct": 76.87,
-     "dr@2pct": 76.87,
-     "dr@5pct": 76.87
+     "auc": 0.7729,
+     "dr@1pct": 73.32,
+     "dr@2pct": 73.32,
+     "dr@5pct": 73.32
     },
     "INNE": {
      "auc": 1.0,
@@ -1271,10 +1271,10 @@
      "dr@5pct": 100.0
     },
     "DIF": {
-     "auc": 0.9981,
-     "dr@1pct": 96.0,
-     "dr@2pct": 99.82,
-     "dr@5pct": 99.82
+     "auc": 0.999,
+     "dr@1pct": 96.99,
+     "dr@2pct": 99.76,
+     "dr@5pct": 99.76
     }
    }
   },
@@ -1286,8 +1286,8 @@
     "Subspace-ECOD (ours)": {
      "auc": 0.9919,
      "dr@1pct": 82.67,
-     "dr@2pct": 86.09,
-     "dr@5pct": 94.89
+     "dr@2pct": 87.39,
+     "dr@5pct": 94.7
     },
     "SPOT": {
      "auc": 0.9903,
@@ -1296,46 +1296,46 @@
      "dr@5pct": 92.91
     },
     "DSPOT": {
-     "auc": 0.9254,
-     "dr@1pct": 57.27,
-     "dr@2pct": 58.54,
-     "dr@5pct": 69.74
+     "auc": 0.9253,
+     "dr@1pct": 57.24,
+     "dr@2pct": 58.49,
+     "dr@5pct": 69.68
     },
     "ECOD": {
-     "auc": 0.9593,
-     "dr@1pct": 38.28,
-     "dr@2pct": 44.63,
-     "dr@5pct": 63.22
+     "auc": 0.9595,
+     "dr@1pct": 37.03,
+     "dr@2pct": 43.87,
+     "dr@5pct": 65.09
     },
     "COPOD": {
-     "auc": 0.9515,
-     "dr@1pct": 32.57,
-     "dr@2pct": 44.44,
-     "dr@5pct": 61.51
+     "auc": 0.951,
+     "dr@1pct": 30.59,
+     "dr@2pct": 43.36,
+     "dr@5pct": 61.56
     },
     "HBOS": {
-     "auc": 0.9565,
-     "dr@1pct": 15.24,
-     "dr@2pct": 40.02,
-     "dr@5pct": 67.1
+     "auc": 0.9554,
+     "dr@1pct": 14.05,
+     "dr@2pct": 32.44,
+     "dr@5pct": 67.29
     },
     "LODA": {
-     "auc": 0.36,
-     "dr@1pct": 7.23,
-     "dr@2pct": 9.83,
-     "dr@5pct": 25.86
+     "auc": 0.5728,
+     "dr@1pct": 17.5,
+     "dr@2pct": 37.08,
+     "dr@5pct": 56.94
     },
     "INNE": {
-     "auc": 0.9896,
-     "dr@1pct": 68.32,
-     "dr@2pct": 83.1,
-     "dr@5pct": 95.11
+     "auc": 0.9908,
+     "dr@1pct": 70.9,
+     "dr@2pct": 87.12,
+     "dr@5pct": 95.46
     },
     "DIF": {
-     "auc": 0.6369,
-     "dr@1pct": 12.74,
-     "dr@2pct": 42.24,
-     "dr@5pct": 61.29
+     "auc": 0.9771,
+     "dr@1pct": 61.94,
+     "dr@2pct": 64.47,
+     "dr@5pct": 83.92
     }
    }
   },
@@ -1345,10 +1345,10 @@
    "n_benign": 374,
    "scores": {
     "Subspace-ECOD (ours)": {
-     "auc": 0.9924,
-     "dr@1pct": 83.57,
-     "dr@2pct": 86.9,
-     "dr@5pct": 95.58
+     "auc": 0.9925,
+     "dr@1pct": 83.63,
+     "dr@2pct": 87.7,
+     "dr@5pct": 95.31
     },
     "SPOT": {
      "auc": 0.9897,
@@ -1364,39 +1364,39 @@
     },
     "ECOD": {
      "auc": 0.8681,
-     "dr@1pct": 22.18,
-     "dr@2pct": 31.91,
-     "dr@5pct": 49.38
+     "dr@1pct": 21.26,
+     "dr@2pct": 27.92,
+     "dr@5pct": 48.85
     },
     "COPOD": {
-     "auc": 0.8863,
-     "dr@1pct": 22.06,
-     "dr@2pct": 26.96,
-     "dr@5pct": 46.35
+     "auc": 0.8846,
+     "dr@1pct": 21.04,
+     "dr@2pct": 25.31,
+     "dr@5pct": 42.5
     },
     "HBOS": {
-     "auc": 0.9529,
-     "dr@1pct": 17.41,
-     "dr@2pct": 34.66,
-     "dr@5pct": 61.11
+     "auc": 0.9526,
+     "dr@1pct": 16.71,
+     "dr@2pct": 32.11,
+     "dr@5pct": 61.55
     },
     "LODA": {
-     "auc": 0.3828,
-     "dr@1pct": 6.04,
-     "dr@2pct": 8.61,
-     "dr@5pct": 24.86
+     "auc": 0.6363,
+     "dr@1pct": 20.47,
+     "dr@2pct": 42.9,
+     "dr@5pct": 63.7
     },
     "INNE": {
-     "auc": 0.9887,
-     "dr@1pct": 67.67,
-     "dr@2pct": 81.24,
-     "dr@5pct": 94.32
+     "auc": 0.9901,
+     "dr@1pct": 69.4,
+     "dr@2pct": 85.46,
+     "dr@5pct": 94.83
     },
     "DIF": {
-     "auc": 0.6588,
-     "dr@1pct": 27.9,
-     "dr@2pct": 62.43,
-     "dr@5pct": 62.43
+     "auc": 0.9643,
+     "dr@1pct": 52.86,
+     "dr@2pct": 53.55,
+     "dr@5pct": 65.17
     }
    }
   },
@@ -1408,7 +1408,7 @@
     "Subspace-ECOD (ours)": {
      "auc": 0.998,
      "dr@1pct": 95.81,
-     "dr@2pct": 99.19,
+     "dr@2pct": 99.22,
      "dr@5pct": 100.0
     },
     "SPOT": {
@@ -1424,40 +1424,40 @@
      "dr@5pct": 15.72
     },
     "ECOD": {
-     "auc": 0.4857,
-     "dr@1pct": 28.1,
-     "dr@2pct": 30.21,
-     "dr@5pct": 49.45
+     "auc": 0.4608,
+     "dr@1pct": 27.83,
+     "dr@2pct": 28.9,
+     "dr@5pct": 46.89
     },
     "COPOD": {
-     "auc": 0.3763,
-     "dr@1pct": 27.8,
-     "dr@2pct": 29.08,
-     "dr@5pct": 38.0
+     "auc": 0.3513,
+     "dr@1pct": 28.11,
+     "dr@2pct": 29.42,
+     "dr@5pct": 35.44
     },
     "HBOS": {
-     "auc": 0.9816,
-     "dr@1pct": 58.68,
-     "dr@2pct": 63.23,
+     "auc": 0.9815,
+     "dr@1pct": 58.24,
+     "dr@2pct": 79.25,
      "dr@5pct": 99.48
     },
     "LODA": {
-     "auc": 0.876,
-     "dr@1pct": 8.4,
-     "dr@2pct": 86.63,
-     "dr@5pct": 88.92
+     "auc": 0.9882,
+     "dr@1pct": 76.27,
+     "dr@2pct": 96.18,
+     "dr@5pct": 100.0
     },
     "INNE": {
-     "auc": 0.9934,
-     "dr@1pct": 95.35,
-     "dr@2pct": 99.12,
+     "auc": 0.9928,
+     "dr@1pct": 84.84,
+     "dr@2pct": 99.13,
      "dr@5pct": 100.0
     },
     "DIF": {
-     "auc": 0.1879,
-     "dr@1pct": 18.24,
-     "dr@2pct": 18.24,
-     "dr@5pct": 18.24
+     "auc": 0.2835,
+     "dr@1pct": 19.02,
+     "dr@2pct": 28.33,
+     "dr@5pct": 28.33
     }
    }
   },
@@ -1528,7 +1528,7 @@
    "n_benign": 4086,
    "scores": {
     "Subspace-ECOD (ours)": {
-     "auc": 0.9937,
+     "auc": 0.9938,
      "dr@1pct": 97.18,
      "dr@2pct": 97.71,
      "dr@5pct": 97.71
@@ -1546,43 +1546,43 @@
      "dr@5pct": 63.2
     },
     "ECOD": {
-     "auc": 0.9365,
-     "dr@1pct": 16.81,
-     "dr@2pct": 35.65,
-     "dr@5pct": 53.7
+     "auc": 0.9273,
+     "dr@1pct": 12.5,
+     "dr@2pct": 30.19,
+     "dr@5pct": 47.01
     },
     "COPOD": {
-     "auc": 0.9391,
-     "dr@1pct": 12.76,
-     "dr@2pct": 26.41,
-     "dr@5pct": 39.79
+     "auc": 0.9283,
+     "dr@1pct": 8.8,
+     "dr@2pct": 25.0,
+     "dr@5pct": 33.45
     },
     "HBOS": {
-     "auc": 0.9351,
+     "auc": 0.931,
      "dr@1pct": 0.0,
-     "dr@2pct": 1.14,
-     "dr@5pct": 14.26
+     "dr@2pct": 0.88,
+     "dr@5pct": 4.05
     },
     "LODA": {
-     "auc": 0.9513,
-     "dr@1pct": 84.95,
-     "dr@2pct": 92.69,
-     "dr@5pct": 92.96
+     "auc": 0.9383,
+     "dr@1pct": 89.96,
+     "dr@2pct": 90.14,
+     "dr@5pct": 92.43
     },
     "INNE": {
-     "auc": 0.9961,
-     "dr@1pct": 97.27,
-     "dr@2pct": 97.27,
-     "dr@5pct": 97.27
+     "auc": 0.9963,
+     "dr@1pct": 97.54,
+     "dr@2pct": 97.54,
+     "dr@5pct": 97.54
     },
     "DIF": {
-     "auc": 0.9914,
-     "dr@1pct": 87.76,
-     "dr@2pct": 90.32,
-     "dr@5pct": 93.66
+     "auc": 0.9918,
+     "dr@1pct": 89.35,
+     "dr@2pct": 90.67,
+     "dr@5pct": 91.81
     }
    }
   }
  ],
- "elapsed_sec": 142.0
+ "elapsed_sec": 1379.8
 }

@@ -1,5 +1,5 @@
 {
- "note": "DIF seed sensitivity on PANEL-23, both competitor modules, random_state 42 against 7. Supports the seed-robustness sentence in Section 2.5 and the attribution in Section 3.2. The +0.4366 attribution rests on both archived and corrected runs having used seed 42, not on either module being seed-insensitive.",
+ "note": "DIF seed sensitivity on PANEL-23, both competitor modules, random_state 42 against 7. Supports the seed-robustness sentence in Section 2.5 and the attribution in Section 3.2. The corrected-minus-archived attribution rests on both archived and corrected runs having used seed 42, not on either module being seed-insensitive.",
  "arm": "DIF (Deep Isolation Forest)",
  "population": "PANEL-23",
  "seeds": [
@@ -13,150 +13,150 @@
  "per_scenario": [
   {
    "label": "CIC-IDS-2017 Fri-07-07_DDoS-LOIT",
-   "archived_42": 0.1930723491894765,
-   "archived_7": 0.18454773452032952,
-   "corrected_42": 0.995382673398884,
-   "corrected_7": 0.9965453095934095
+   "archived_42": 0.2234254584108424,
+   "archived_7": 0.20498521791124105,
+   "corrected_42": 0.9967363141110815,
+   "corrected_7": 0.997433895827797
   },
   {
    "label": "CIC-IDS-2017 Wed-05-07_DoS-GoldenEye",
-   "archived_42": 0.9806672127630527,
-   "archived_7": 0.9824254480915882,
-   "corrected_42": 0.984984299728902,
-   "corrected_7": 0.9846429894876445
+   "archived_42": 0.9835186160357303,
+   "archived_7": 0.9805989507148012,
+   "corrected_42": 0.9856688705556531,
+   "corrected_7": 0.984131999297876
   },
   {
    "label": "CIC-IDS-2017 Wed-05-07_DoS-Hulk",
-   "archived_42": 0.9737894461944422,
-   "archived_7": 0.9771810299287913,
-   "corrected_42": 0.9761006909915896,
-   "corrected_7": 0.9773545646872079
+   "archived_42": 0.9781524843116922,
+   "archived_7": 0.9742377443203518,
+   "corrected_42": 0.9772252642789757,
+   "corrected_7": 0.977527248785044
   },
   {
    "label": "CIC-IDS-2017 Wed-05-07_DoS-Slowhttptest",
-   "archived_42": 0.8882449529197505,
-   "archived_7": 0.8983231293835006,
-   "corrected_42": 0.9190757352656256,
-   "corrected_7": 0.9302941062502421
+   "archived_42": 0.9125949354826212,
+   "archived_7": 0.8984834541016005,
+   "corrected_42": 0.9304500716859767,
+   "corrected_7": 0.9304050257682024
   },
   {
    "label": "CIC-IDS-2017 Wed-05-07_DoS-Slowloris",
-   "archived_42": 0.8595064695893426,
-   "archived_7": 0.9329769677835975,
-   "corrected_42": 0.9916331826552821,
-   "corrected_7": 0.9959349812250364
+   "archived_42": 0.9405216330630696,
+   "archived_7": 0.9339390351821291,
+   "corrected_42": 0.9973484848484848,
+   "corrected_7": 0.9957104589701274
   },
   {
    "label": "CIC-IDS-2018 Fri-16-02_DoS-Hulk",
-   "archived_42": 0.05132566916424689,
-   "archived_7": 0.05093204313666538,
-   "corrected_42": 0.9691409062497527,
-   "corrected_7": 0.9694277191844227
+   "archived_42": 0.04882149554154238,
+   "archived_7": 0.04258084168717215,
+   "corrected_42": 0.9587543219742225,
+   "corrected_7": 0.9685435441375436
   },
   {
    "label": "CIC-IDS-2018 Fri-16-02_DoS-SlowHTTPTest",
-   "archived_42": 0.001355385883159407,
-   "archived_7": 0.001437937094809921,
-   "corrected_42": 0.9978961109044899,
-   "corrected_7": 0.9899601099710488
+   "archived_42": 0.0012115775886586886,
+   "archived_7": 0.0007915290205430002,
+   "corrected_42": 0.9914477819831251,
+   "corrected_7": 0.9951587944022694
   },
   {
    "label": "CIC-IDS-2018 Thu-15-02_DoS-Slowloris",
-   "archived_42": 0.0013730635748133097,
-   "archived_7": 0.0023765007526937534,
-   "corrected_42": 0.9975447074134773,
-   "corrected_7": 0.9991038587605396
+   "archived_42": 0.002685642830128514,
+   "archived_7": 0.002483101469050567,
+   "corrected_42": 0.997376000192808,
+   "corrected_7": 0.9988424552647777
   },
   {
    "label": "CIC-IDS-2018 Tue-20-02_DDoS-LOIC-HTTP",
-   "archived_42": 0.0006415300622554002,
-   "archived_7": 0.0010532583111655825,
-   "corrected_42": 0.9962352543836437,
-   "corrected_7": 0.9962169746939458
+   "archived_42": 0.00019672427960613356,
+   "archived_7": 0.0006554574448823832,
+   "corrected_42": 0.9985524226682079,
+   "corrected_7": 0.9970186696564116
   },
   {
    "label": "CIC-IDS-2018 Wed-21-02_DDoS-HOIC",
-   "archived_42": 0.011641061201628049,
-   "archived_7": 0.011868742287086804,
-   "corrected_42": 0.9895622722918613,
-   "corrected_7": 0.9896460294972534
+   "archived_42": 0.010497028675264008,
+   "archived_7": 0.01146705398422421,
+   "corrected_42": 0.9893326433644167,
+   "corrected_7": 0.9894369611241041
   },
   {
    "label": "CIC-IDS-2018 Wed-21-02_DDoS-LOIC-UDP",
-   "archived_42": 0.07769208269831739,
-   "archived_7": 0.09531242783909849,
-   "corrected_42": 0.9999624378454102,
-   "corrected_7": 0.999990763404609
+   "archived_42": 0.06328360966147879,
+   "archived_7": 0.08559183484967442,
+   "corrected_42": 1.0,
+   "corrected_7": 0.993712957403901
   },
   {
    "label": "CIC-DDoS2019 cicddos_03-11_192-168-50-4_LDAP",
-   "archived_42": 0.9974469101165515,
-   "archived_7": 0.9923186437642705,
-   "corrected_42": 0.9973884105120208,
-   "corrected_7": 0.9927173961706637
+   "archived_42": 0.9960888835828023,
+   "archived_7": 0.9964816666417944,
+   "corrected_42": 0.9972057484815472,
+   "corrected_7": 0.9968917608082496
   },
   {
    "label": "CIC-DDoS2019 cicddos_03-11_192-168-50-4_Syn",
-   "archived_42": 0.9532095750790678,
-   "archived_7": 0.7627338353421553,
-   "corrected_42": 0.9726923296303871,
-   "corrected_7": 0.9688450240350573
+   "archived_42": 0.9534444307310435,
+   "archived_7": 0.8661469683767881,
+   "corrected_42": 0.9691510555166554,
+   "corrected_7": 0.9704746923827356
   },
   {
    "label": "CIC-DDoS2019 cicddos_03-11_192-168-50-4_UDP",
-   "archived_42": 0.9952558098783578,
-   "archived_7": 0.9872425853310518,
-   "corrected_42": 0.996383633460465,
-   "corrected_7": 0.9902291050900917
+   "archived_42": 0.9900748842673305,
+   "archived_7": 0.9858809719219759,
+   "corrected_42": 0.9946612774311907,
+   "corrected_7": 0.9935499934735534
   },
   {
    "label": "CIC-DDoS2019 cicddos_03-11_192-168-50-4_UDPLag",
-   "archived_42": 0.9859564850183311,
-   "archived_7": 0.9843377097849524,
-   "corrected_42": 0.9849583469297656,
-   "corrected_7": 0.9829532730611489
+   "archived_42": 0.987353718384296,
+   "archived_7": 0.9863139912087069,
+   "corrected_42": 0.9871329763070171,
+   "corrected_7": 0.9861108445143995
   },
   {
    "label": "CIC-IoT-2023 DDoS-ICMP_Flood",
-   "archived_42": 0.25953818779153714,
-   "archived_7": 0.5139094119430506,
-   "corrected_42": 0.9997053875191666,
-   "corrected_7": 0.9996559333785628
+   "archived_42": 0.7011263863934015,
+   "archived_7": 0.8829625515354392,
+   "corrected_42": 0.999670347148186,
+   "corrected_7": 0.9996999202272405
   },
   {
    "label": "CIC-IoT-2023 DDoS-SYN_Flood",
-   "archived_42": 0.5429572738900976,
-   "archived_7": 0.8263342014825318,
-   "corrected_42": 0.9938587433925626,
-   "corrected_7": 0.9965668645337002
+   "archived_42": 0.9544754048522021,
+   "archived_7": 0.8774389551948151,
+   "corrected_42": 0.9961850937054747,
+   "corrected_7": 0.9948870728895077
   },
   {
    "label": "CIC-IoT-2023 DDoS-SynonymousIP_Flood",
-   "archived_42": 0.9981220195918199,
-   "archived_7": 0.9986816380995727,
-   "corrected_42": 0.9995134801513005,
-   "corrected_7": 0.9997146738661951
+   "archived_42": 0.9989850664956433,
+   "archived_7": 0.9990185125802102,
+   "corrected_42": 0.9996893306990231,
+   "corrected_7": 0.9998972481113306
   },
   {
    "label": "CIC-IoT-2023 DDoS-TCP_Flood",
-   "archived_42": 0.636898976824189,
-   "archived_7": 0.8715713150489505,
-   "corrected_42": 0.9937248219284751,
-   "corrected_7": 0.9963848175411529
+   "archived_42": 0.977124183006536,
+   "archived_7": 0.956442027059027,
+   "corrected_42": 0.9958160637004302,
+   "corrected_7": 0.994680735152474
   },
   {
    "label": "CIC-IoT-2023 DDoS-UDP_Flood",
-   "archived_42": 0.6587586733603771,
-   "archived_7": 0.7857068173105044,
-   "corrected_42": 0.9939604064918685,
-   "corrected_7": 0.996622333211602
+   "archived_42": 0.9643465980121922,
+   "archived_7": 0.8864806954750782,
+   "corrected_42": 0.9962217814300557,
+   "corrected_7": 0.9950264399533482
   },
   {
    "label": "CIC-IoT-2023 Mirai-udpplain",
-   "archived_42": 0.18793010543864125,
-   "archived_7": 0.13044378928054864,
-   "corrected_42": 0.9994990708921039,
-   "corrected_7": 0.9994620792041362
+   "archived_42": 0.2835234089566741,
+   "archived_7": 0.1654995789112853,
+   "corrected_42": 0.9995215741689509,
+   "corrected_7": 0.9994904394982448
   },
   {
    "label": "LITNET-2020 code_red_worm",
@@ -167,34 +167,34 @@
   },
   {
    "label": "CIC-IDS-2017 Fri-07-07_DDoS-LOIT (cross-day Mon->Fri)",
-   "archived_42": 0.9914031422997112,
-   "archived_7": 0.9894810000482583,
-   "corrected_42": 0.9937621938188109,
-   "corrected_7": 0.9941333943455151
+   "archived_42": 0.9917820986122313,
+   "archived_7": 0.991538868551495,
+   "corrected_42": 0.9946640193584413,
+   "corrected_7": 0.9951125623048127
   }
  ],
  "summary": {
   "archived": {
-   "mean_auc_seed42": 0.550325,
-   "mean_auc_seed7": 0.584202,
-   "abs_delta_of_means": 0.033877,
-   "per_scenario_abs_delta_mean": 0.057665,
-   "per_scenario_abs_delta_median": 0.008013,
-   "per_scenario_abs_delta_max": 0.283377,
-   "max_scenario": "CIC-IoT-2023 DDoS-SYN_Flood"
+   "mean_auc_seed42": 0.624953,
+   "mean_auc_seed7": 0.61676,
+   "abs_delta_of_means": 0.008193,
+   "per_scenario_abs_delta_mean": 0.029999,
+   "per_scenario_abs_delta_median": 0.006241,
+   "per_scenario_abs_delta_max": 0.181836,
+   "max_scenario": "CIC-IoT-2023 DDoS-ICMP_Flood"
   },
   "corrected": {
-   "mean_auc_seed42": 0.986888,
-   "mean_auc_seed7": 0.987172,
-   "abs_delta_of_means": 0.000285,
-   "per_scenario_abs_delta_mean": 0.002464,
-   "per_scenario_abs_delta_median": 0.001559,
-   "per_scenario_abs_delta_max": 0.011218,
-   "max_scenario": "CIC-IDS-2017 Wed-05-07_DoS-Slowhttptest"
+   "mean_auc_seed42": 0.987316,
+   "mean_auc_seed7": 0.987491,
+   "abs_delta_of_means": 0.000176,
+   "per_scenario_abs_delta_mean": 0.001667,
+   "per_scenario_abs_delta_median": 0.001135,
+   "per_scenario_abs_delta_max": 0.009789,
+   "max_scenario": "CIC-IDS-2018 Fri-16-02_DoS-Hulk"
   },
   "panel_delta_corrected_minus_archived": {
-   "at_seed_42": 0.436563,
-   "at_seed_7": 0.40297
+   "at_seed_42": 0.362363,
+   "at_seed_7": 0.370732
   }
  }
 }

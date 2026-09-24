@@ -1,5 +1,6 @@
 #include "per_ip_features.h"
 #include "hyperloglog.h"
+#include "burst_ewma.h"
 #include <rte_hash.h>
 #include <rte_jhash.h>
 #include <rte_malloc.h>
@@ -604,6 +605,18 @@ int per_ip_features_snapshot(uint32_t dst_ip, struct per_ip_feature_snapshot *ou
     out->bytes_per_sec = (uint64_t)(bytes_diff / delta_sec);
     out->flows_per_sec = (uint32_t)(flows_diff / delta_sec);
 
+    // Burst factor (Phase 2): this window's rate over the per-IP EWMA of past windows,
+    // divided by the post-update mean exactly like the aggregate path (burst_ewma.h).
+    // Preview only: this snapshot runs at least twice per window (the global aggregate
+    // in l2_features_export_update() and the per-IP export), so the EWMA itself is
+    // committed once, in per_ip_features_reset_window(), from the rate parked here.
+    {
+        double x = (double)out->packets_per_sec;
+        out->burst_factor = burst_factor_from(burst_ewma_step(pif->burst_ewma_pps, x), x);
+        pif->burst_window_pps = out->packets_per_sec;
+        pif->burst_window_valid = 1;
+    }
+
     // TCP flag rates
     uint64_t syn_diff = pif->aggregated.syn_packets - pif->previous.syn_packets;
     uint64_t synack_diff = pif->aggregated.syn_ack_packets - pif->previous.syn_ack_packets;
@@ -789,6 +802,33 @@ void per_ip_features_reset_window(struct per_ip_features *pif) {
     pif->prev_unique_dst_ports = (uint32_t)hll_count(&pif->hll.dst_port);
     pif->prev_unique_flows = (uint32_t)hll_count(&pif->hll.flows);
 
+    uint64_t now_ns = get_timestamp_ns();
+
+    // Commit this window's packet rate into the per-IP burst EWMA (Phase 2). This is
+    // the one routine that runs exactly once per window roll: the only periodic caller
+    // of per_ip_features_reset_all_windows() is the tail of
+    // l2_per_ip_features_export_update() (1 Hz, stats thread), whereas
+    // per_ip_features_snapshot() runs at least twice per window. Normally the rate is
+    // the one the snapshot just exported, so the exported ratio's post-update mean is
+    // exactly the mean committed here. When no snapshot ran this window (a slot
+    // outside the export selection, or the factory reset) derive the rate from the
+    // counters with the snapshot's own delta rule.
+    {
+        double x;
+        if (pif->burst_window_valid) {
+            x = (double)pif->burst_window_pps;
+            pif->burst_window_valid = 0;
+        } else {
+            uint64_t pkt_diff = (pif->aggregated.rx_packets > pif->previous.rx_packets) ?
+                                (pif->aggregated.rx_packets - pif->previous.rx_packets) : 0;
+            uint64_t delta_ns = (pif->previous.timestamp_ns > 0) ?
+                                (now_ns - pif->previous.timestamp_ns) : 1000000000ULL;
+            if (delta_ns == 0) delta_ns = 1;
+            x = (double)(uint64_t)(pkt_diff / (delta_ns / 1000000000.0));
+        }
+        pif->burst_ewma_pps = burst_ewma_step(pif->burst_ewma_pps, x);
+    }
+
     // Save current aggregated as previous
     pif->previous.rx_packets = pif->aggregated.rx_packets;
     pif->previous.rx_bytes = pif->aggregated.rx_bytes;
@@ -802,7 +842,7 @@ void per_ip_features_reset_window(struct per_ip_features *pif) {
     pif->previous.ack_packets = pif->aggregated.ack_packets;
     pif->previous.rst_packets = pif->aggregated.rst_packets;
     pif->previous.fin_packets = pif->aggregated.fin_packets;
-    pif->previous.timestamp_ns = get_timestamp_ns();
+    pif->previous.timestamp_ns = now_ns;
 
     // Reset CMS window counters (decay)
     cms_reset_window(&pif->cms);

@@ -25,7 +25,7 @@ Detection* (MDPI *Journal of Cybersecurity and Privacy*, in preparation) fixes a
 applies them end to end to six public corpora. The contribution is the protocol and the
 measurement of what it costs — not a new detector.
 
-<img src="assets/protocol.svg" alt="44 candidate slices reduced to 22 admissible; competitor mean AUC rises by 0.24 to 0.44 under batch-invariant scoring; the victim-clustered interval on the detector's advantage goes from excluding zero to spanning it" width="100%">
+<img src="assets/protocol.svg" alt="44 candidate slices reduced to 22 admissible; competitor mean AUC rises by 0.25 to 0.36 under batch-invariant scoring; the victim-clustered interval on the detector's advantage goes from excluding zero to spanning it" width="100%">
 
 ## How the system is built
 
@@ -74,7 +74,8 @@ Click any figure for the full-resolution image.
 
 > [!NOTE]
 > Five of the six corrections ran *against* the evaluated detector, and the manuscript reports
-> them as such. No victim-clustered comparison of the detector against its reference reaches 5%.
+> them as such. No victim-clustered AUC comparison of the detector against its reference reaches 5%;
+> the two clustered comparisons that do, on benign-alarm episodes at the 1% and 5% targets, run against the detector.
 
 ## Verify the deposit
 

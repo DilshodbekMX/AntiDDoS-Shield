@@ -8,6 +8,7 @@
 
 #include "per_ip_features_v6.h"
 #include "hyperloglog.h"
+#include "burst_ewma.h"
 #include <rte_hash.h>
 #include <rte_jhash.h>
 #include <rte_malloc.h>
@@ -550,6 +551,16 @@ int per_ip_features_v6_snapshot(const uint8_t dst_ip6[16],
     out->bytes_per_sec = (uint64_t)(bytes_diff / delta_sec);
     out->flows_per_sec = (uint32_t)(flows_diff / delta_sec);
 
+    /* Burst factor (Phase 2): preview against the post-update per-IP EWMA (burst_ewma.h);
+     * the EWMA is committed once per window in per_ip_features_v6_reset_window() from
+     * the rate parked here. Same protocol as the IPv4 path. */
+    {
+        double x = (double)out->packets_per_sec;
+        out->burst_factor = burst_factor_from(burst_ewma_step(pif->burst_ewma_pps, x), x);
+        pif->burst_window_pps = out->packets_per_sec;
+        pif->burst_window_valid = 1;
+    }
+
     /* TCP flag rates */
     uint64_t syn_diff = pif->aggregated.syn_packets - pif->previous.syn_packets;
     uint64_t synack_diff = pif->aggregated.syn_ack_packets - pif->previous.syn_ack_packets;
@@ -641,6 +652,29 @@ void per_ip_features_v6_reset_window(struct per_ip_features_v6 *pif) {
     pif->prev_unique_dst_ports = (uint32_t)hll_count(&pif->hll.dst_port);
     pif->prev_unique_flows = (uint32_t)hll_count(&pif->hll.flows);
 
+    uint64_t now_ns = get_timestamp_ns_v6();
+
+    /* Commit this window's packet rate into the per-IP burst EWMA (Phase 2) -- once per
+     * window roll, mirroring per_ip_features_reset_window(). Use the rate the snapshot
+     * parked; if no snapshot ran this window derive it from the counters with the
+     * snapshot's delta rule. (No periodic caller rolls IPv6 windows today -- only the
+     * factory reset does -- so this path is dormant until an IPv6 export exists.) */
+    {
+        double x;
+        if (pif->burst_window_valid) {
+            x = (double)pif->burst_window_pps;
+            pif->burst_window_valid = 0;
+        } else {
+            uint64_t pkt_diff = (pif->aggregated.rx_packets > pif->previous.rx_packets) ?
+                                (pif->aggregated.rx_packets - pif->previous.rx_packets) : 0;
+            uint64_t delta_ns = (pif->previous.timestamp_ns > 0) ?
+                                (now_ns - pif->previous.timestamp_ns) : 1000000000ULL;
+            if (delta_ns == 0) delta_ns = 1;
+            x = (double)(uint64_t)(pkt_diff / (delta_ns / 1000000000.0));
+        }
+        pif->burst_ewma_pps = burst_ewma_step(pif->burst_ewma_pps, x);
+    }
+
     /* Save current aggregated as previous */
     pif->previous.rx_packets = pif->aggregated.rx_packets;
     pif->previous.rx_bytes = pif->aggregated.rx_bytes;
@@ -654,7 +688,7 @@ void per_ip_features_v6_reset_window(struct per_ip_features_v6 *pif) {
     pif->previous.ack_packets = pif->aggregated.ack_packets;
     pif->previous.rst_packets = pif->aggregated.rst_packets;
     pif->previous.fin_packets = pif->aggregated.fin_packets;
-    pif->previous.timestamp_ns = get_timestamp_ns_v6();
+    pif->previous.timestamp_ns = now_ns;
 
     /* Reset CMS window counters */
     cms_v6_reset_window(&pif->cms);

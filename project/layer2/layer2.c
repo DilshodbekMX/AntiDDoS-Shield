@@ -1656,8 +1656,9 @@ static void per_ip_features_to_snapshot(const struct l2_per_ip_features_export *
     }
 
     // ===== VOLUME EXTENDED (1) =====
-    // burst_factor needs historical PPS baseline -- not available per-IP; zero until Phase 2
-    out->values[L2_FEAT_BURST_FACTOR] = 0.0;
+    // burst_factor (Phase 2): per-IP EWMA ratio exported by Layer 1 --
+    // 100 * window_pps / post-update per-IP EWMA, bounded by 100/alpha (burst_ewma.h).
+    out->values[L2_FEAT_BURST_FACTOR] = (double)in->burst_factor;
 
     // ===== FLOW BEHAVIOR EXTENDED (1) =====
     // udp_flow_ratio not tracked per-IP; zero until Phase 2

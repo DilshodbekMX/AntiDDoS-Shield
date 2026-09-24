@@ -1,0 +1,17 @@
+record	numeric_leaves	leaves_changed	gate_verdict
+adjacency_free_fpr.json	2013	959	2 LODA leaves of 2013 (corrected registry)
+admissibility_ledger.json	353	0	bit-exact
+batch_invariance_gate.json	185	95	archived-registry LODA leaves only; corrected registry bit-exact
+c_engine_verification_report.json	189	66	bit-exact
+corrected_benchmark_results.json	402	247	bit-exact
+ewma_ablation.json	109	67	bit-exact
+final_evaluation.json	346	222	LODA leaves only (archived registry, unseeded)
+fpr_dr_optimization_results.json	48	33	bit-exact
+joint_filter.json	144	39	bit-exact
+order_sensitivity.json	4226	2252	5 LODA leaves of 4226 (corrected registry)
+panel_auc_matrix.json	2014	831	bit-exact
+post2023_benchmark_results.json	990	556	LODA leaves only (archived registry, unseeded)
+scenarios29_corrected_results.json	3622	1949	bit-exact
+universal_ewma_tournament.json	182	145	LODA leaves only (archived registry, unseeded)
+usable_29_scenarios_benchmark.json	75	70	LODA leaves only (archived registry, unseeded)
+dif_seed_sensitivity.json	108	102	bit-exact (runner reconstructed and deposited)

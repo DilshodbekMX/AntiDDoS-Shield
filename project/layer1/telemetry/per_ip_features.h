@@ -46,6 +46,9 @@
  * FLOW BEHAVIOR (2):
  *   - avg_packets_per_flow, flow_duration_avg_ms
  *
+ * VOLUME EXTENDED (1) - per-IP EWMA (Phase 2, burst_ewma.h):
+ *   - burst_factor = 100 * window_pps / post-update EWMA(window_pps)
+ *
  * Memory per IP: ~100KB (3 HLLs @ 16KB + CMS ~50KB + counters)
  * With 100 protected IPs: ~10MB
  * With 1000 protected IPs: ~100MB
@@ -203,6 +206,19 @@ struct per_ip_features {
     uint64_t last_packet_ns;
     uint64_t total_packets;
 
+    // Burst factor state (Phase 2): per-IP EWMA of the per-window packet rate
+    // (burst_ewma.h, alpha = BURST_EWMA_ALPHA shared with the aggregate path).
+    // burst_ewma_pps below BURST_EWMA_SEED_FLOOR (0.0 from the registration memset)
+    // means unseeded; the first window roll seeds it. The EWMA is committed exactly
+    // once per window in per_ip_features_reset_window(). per_ip_features_snapshot()
+    // only previews the ratio and parks this window's rate in burst_window_pps
+    // (burst_window_valid = 1) so the roll commits the very rate that was exported.
+    // Not part of the shared-memory layout (this struct lives in the rte_zmalloc pool).
+    double   burst_ewma_pps;
+    uint64_t burst_window_pps;
+    uint32_t burst_window_valid;
+    uint32_t _pad3;
+
 } __attribute__((aligned(64)));
 
 // ==================== Exported Features (for Layer 2/3) ====================
@@ -278,6 +294,9 @@ struct per_ip_feature_snapshot {
     uint8_t fragment_ratio;
     uint8_t src_port_entropy;
     uint8_t ttl_mean;
+
+    // ===== BURST FEATURE (Phase 2) =====
+    uint16_t burst_factor;              // 100 * window_pps / post-update per-IP EWMA; <= 100/alpha
 } __attribute__((packed));
 
 // ==================== Public API ====================

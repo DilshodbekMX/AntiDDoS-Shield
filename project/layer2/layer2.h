@@ -143,6 +143,9 @@ struct layer2_features {
     // ===== CARDINALITY FEATURES (3) =====
     uint32_t unique_src_ips;
     uint32_t unique_dst_ports;
+    // unique_flows is the HyperLogLog distinct count, within the window, of the same
+    // canonical port-less (ip_lo, ip_hi, protocol) flow key on which flows_per_sec
+    // (above) counts NEW flow-table entries per second; neither is a 5-tuple count.
     uint32_t unique_flows;
 
     // ===== CHURN FEATURES (1) =====
@@ -165,6 +168,10 @@ struct layer2_features {
     uint8_t  fin_tcp_ratio;         // FIN as % of TCP packets (0-100)
 
     // ===== VOLUME EXTENDED (1) =====
+    // 100 * window_pps / post-update EWMA (alpha = BURST_EWMA_ALPHA = 0.033, burst_ewma.h):
+    // because the divisor already contains alpha * window_pps the ratio saturates at
+    // 100/alpha = 3030. Global EWMA on the aggregate path, one EWMA per protected IP on
+    // the per-IP path (Phase 2).
     uint16_t burst_factor;          // Current PPS / EWMA PPS * 100 (100=normal)
 
     // ===== FLOW BEHAVIOR EXTENDED (1) =====

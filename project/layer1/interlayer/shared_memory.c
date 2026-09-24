@@ -353,6 +353,7 @@ uint64_t anomaly_get_baseline_pps(void) {
 
 #include "../telemetry/per_ip_features.h"
 #include "../telemetry/hyperloglog.h"
+#include "../telemetry/burst_ewma.h"
 #include "../../core/dpdk_core.h"
 #include <time.h>
 
@@ -544,16 +545,13 @@ void l2_features_export_update(void) {
         l2f->rst_tcp_ratio = l2f->fin_tcp_ratio = 0;
     }
 
-    // Burst factor: current PPS / EWMA PPS * 100 (100 = normal, >200 = micro-burst)
+    // Burst factor: current PPS / EWMA PPS * 100 (100 = normal, >200 = micro-burst).
+    // One global EWMA for the aggregate view. The constant (BURST_EWMA_ALPHA), the seed
+    // rule and the post-update-mean ratio live in burst_ewma.h, shared with the per-IP
+    // path; burst_ewma_update() is the former inline code, bit-for-bit.
     {
         static double ewma_pps = 0.0;
-        double current_pps_d = (double)l2f->packets_per_sec;
-        if (ewma_pps < 1.0)
-            ewma_pps = current_pps_d;  // Seed on first call
-        else
-            ewma_pps = ewma_pps + 0.033 * (current_pps_d - ewma_pps);  // ~30s EWMA
-        l2f->burst_factor = (ewma_pps > 0.0) ?
-            (uint16_t)(current_pps_d * 100.0 / ewma_pps) : 100;
+        l2f->burst_factor = burst_ewma_update(&ewma_pps, (double)l2f->packets_per_sec);
     }
 
     // UDP flow ratio: UDP_flows / UDP_PPS * 100
@@ -734,8 +732,9 @@ void l2_per_ip_features_export_update(void) {
             out->rst_tcp_ratio = out->fin_tcp_ratio = 0;
         }
 
-        // Burst factor: use global burst_factor (per-IP burst would need per-IP EWMA)
-        out->burst_factor = 100;  // Default normal, per-IP burst detection is a future enhancement
+        // Burst factor (Phase 2): per-IP EWMA ratio from per_ip_features_snapshot()
+        // (100 * window_pps / post-update per-IP EWMA, bounded by 100/alpha).
+        out->burst_factor = in->burst_factor;
 
         // UDP flow ratio and ICMP echo ratio not available per-IP (no per-IP counters yet)
         out->udp_flow_ratio = 0;

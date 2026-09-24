@@ -80,6 +80,19 @@ if get_option('build_tests')
         link_args: ['-lm'],
         install: false,
     )
+
+    # Test: burst_factor EWMA (pure C, no DPDK) -- the one definition shared by the
+    # aggregate path (shared_memory.c) and the per-IP path (per_ip_features*.c): seed,
+    # steady state 100, 4x burst -> 363, saturation at 100/alpha, bit-identity with the
+    # legacy aggregate literal code.
+    test_burst_ewma = executable(
+        'test_burst_ewma',
+        files('test_burst_ewma.c'),
+        include_directories: [include_directories('../../')],
+        link_args: ['-lm'],
+        install: false,
+    )
+    test('burst_ewma_tests', test_burst_ewma)
     # Test: Subspace-Q + EWMA Parity Fixture (pure C, no DPDK) -- bit-level C engine fidelity
 
 
@@ -178,5 +191,17 @@ if get_option('build_tests')
         install: false,
     )
     test('baselines_tests', test_baselines, env: test_env)
+
+    # Test: Per-IP burst_factor wiring (Phase 2) -- snapshot previews, reset_window commits,
+    # v4 + v6 (requires EAL: rte_hash / rte_malloc; exits 77 = skip if EAL cannot init)
+    test_per_ip_burst = executable(
+        'test_per_ip_burst',
+        files('test_per_ip_burst.c'),
+        dependencies: [dpdk_dep, m_dep],
+        link_with: [layer1_lib],
+        include_directories: [include_directories('../../')],
+        install: false,
+    )
+    test('per_ip_burst_tests', test_per_ip_burst, env: test_env)
   endif  # dpdk_dep.found()
 endif

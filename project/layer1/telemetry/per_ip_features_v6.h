@@ -156,6 +156,15 @@ struct per_ip_features_v6 {
     uint64_t last_packet_ns;
     uint64_t total_packets;
 
+    /* Burst factor state (Phase 2) -- same protocol as the IPv4 struct: EWMA of the
+     * per-window packet rate (burst_ewma.h), committed once per window in
+     * per_ip_features_v6_reset_window(); the snapshot previews the ratio and parks
+     * this window's rate for the commit. Not part of the shared-memory layout. */
+    double   burst_ewma_pps;
+    uint64_t burst_window_pps;
+    uint32_t burst_window_valid;
+    uint32_t _pad2;
+
 } __attribute__((aligned(64)));
 
 /* ==================== IPv6 Feature Snapshot ==================== */
@@ -222,6 +231,9 @@ struct per_ip_feature_snapshot_v6 {
     uint32_t active_flows;
     uint32_t sample_count;
     uint64_t total_packets;
+
+    /* ===== BURST FEATURE (Phase 2) ===== */
+    uint16_t burst_factor;              /* 100 * window_pps / post-update per-IP EWMA; <= 100/alpha */
 } __attribute__((packed));
 
 /* ==================== IPv6 Public API ==================== */
