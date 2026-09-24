@@ -5,7 +5,7 @@
 <br>
 
 [![License](https://img.shields.io/badge/license-MIT-2ea44f?style=flat-square)](LICENSE)
-[![Records](https://img.shields.io/badge/deposit-42%20records%20%C2%B7%20SHA256%20verified-0b7285?style=flat-square)](ComparisonResults/)
+[![Records](https://img.shields.io/badge/deposit-44%20records%20%C2%B7%20SHA256%20verified-0b7285?style=flat-square)](ComparisonResults/)
 [![Corpora](https://img.shields.io/badge/corpora-6%20public-495057?style=flat-square)](datasets/README.md)
 [![Engine](https://img.shields.io/badge/engine-C%20%2B%20DPDK-a6324a?style=flat-square)](project/)
 [![Stack](https://img.shields.io/badge/stack-FastAPI%20%C2%B7%20React-6741d9?style=flat-square)](project/dashboard)
@@ -79,12 +79,12 @@ Click any figure for the full-resolution image.
 
 ## Verify the deposit
 
-Every detector result and test statistic in the manuscript is read from 42 JSON records that
+Every detector result and test statistic in the manuscript is read from 44 JSON records that
 verify against their manifest from inside `results/`:
 
 ```bash
 cd ComparisonResults/results
-sha256sum -c ../SHA256SUMS.results     # 42 lines, each ending in OK
+sha256sum -c ../SHA256SUMS.results     # 44 lines, each ending in OK
 ```
 
 > [!WARNING]
@@ -93,9 +93,9 @@ sha256sum -c ../SHA256SUMS.results     # 42 lines, each ending in OK
 
 > [!IMPORTANT]
 > The deposit does not run end to end: it contains neither the six corpora nor the derived
-> per-window feature tree. Two of the nineteen `runners/run_*.py` scripts —
+> per-window feature tree. Two of the twenty `runners/run_*.py` scripts —
 > `run_joint_filter.py` and `run_admissibility_ledger.py` — execute from the deposited records
-> alone; the other seventeen do not execute as deposited.
+> alone; the other eighteen do not execute as deposited.
 
 The per-record index and audit history are in [`ComparisonResults/README.md`](ComparisonResults/README.md);
 corpus download pointers are in [`datasets/README.md`](datasets/README.md). No corpus data is committed.

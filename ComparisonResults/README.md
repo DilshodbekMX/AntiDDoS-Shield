@@ -69,8 +69,10 @@
 > read the feature matrix). CESNET never carried either column
 > (`data_loader.AVAILABLE_FEATURES`), so every non-LODA CESNET leaf of
 > `final_evaluation.json` is unchanged and its LODA row moved by reseeding alone.
-> `SHA256SUMS.results` was regenerated from inside `results/`: 16 of 42 checksums
-> changed and `sha256sum -c` passes 42 of 42. One record that reads the retired
+> `SHA256SUMS.results` was regenerated from inside `results/`: 16 of the 42
+> checksums then deposited changed and `sha256sum -c` passed 42 of 42. (The
+> manifest has since grown to 44 with the two matched-smoothing records added
+> below.) One record that reads the retired
 > columns could NOT be regenerated and is disclosed rather than rewritten:
 > `full_tree_all_scenarios_metrics.json` has no generator anywhere in this tree or
 > the parent, so it stays at its 2026-09-14 vintage; the ledger records it as such.
@@ -284,6 +286,67 @@ Dropping the SPOT fusion measured *better* than keeping it.
 It also shows EWMA is not a free win: it **hurts** SPOT (0.9748 → 0.9666) and
 leaves LODA where it was (0.6430 → 0.6432 mean), so applying it to our
 arm is not the asymmetry it might look like.
+
+### `matched_smoothing_benchmark.json`, `matched_smoothing_matrix.json` — the matched-smoothing control
+
+**The comparison the headline most depends on.** In every other corrected-registry
+comparison here — `corrected_benchmark_results.json` and the records derived from it —
+ours is the only EWMA-smoothed arm and the other nine are raw, so the margin confounds
+the smoothing stage with the subspace residual. (The tournament record
+`universal_ewma_tournament.json` does smooth competitors, but under the *uncorrected*
+registry, and on PANEL-23 only rather than on both evaluated attack populations.) Here every competitor gets the
+same EWMA stage at the same α = 0.5, inside the corrected registry, on both evaluated
+attack populations — same scenarios, same causal split, same seed 20260827, same oracle
+thresholds. Written by `runners/run_matched_smoothing.py`.
+
+Our detector is untouched, so our **scores** cannot move: every per-scenario AUC is
+bit-identical, as are our mean AUC, detection rates and episode rates. Our
+**comparisons** all move, because the reference is smoothed too — 8 of the 21 leaves in
+our row differ on each population, and they are the 8 that compare.
+
+The point estimate holds and the inference does not:
+
+| | PANEL-23 | USABLE-strict |
+|---|---|---|
+| ours | 0.9937 | 0.9904 |
+| matched runner-up | DIF 0.9934 (**+0.0002**) | IForest 0.9844 (+0.0060) |
+| Δ vs reference | +0.0188 → **+0.0270** | +0.0232 → +0.0230 |
+| Wilcoxon *p*, raw | 0.00055 → **0.01631** | 0.01129 → 0.24350 |
+| *p* Holm | 0.00331 → **0.11418** | 0.06771 → **1.0** |
+| victim-cluster *p* | 0.20312 → 0.09766 | 0.62500 → 0.68750 |
+| i.i.d. 95% CI | [0.0045, 0.0404] → [0.0065, 0.0552] | [0.0038, 0.051] → **[−0.0004, 0.0584]** |
+| cluster 95% CI | [−0.0012, 0.0361] → **[0.0075, 0.0513]** | [−0.0048, 0.0474] → [−0.0046, 0.0526] |
+| *p* Bonferroni | 0.00497 → **0.14680** | 0.10157 → **1.0** |
+| scenario wins | 18/23 → **16/23** | 12/17 → **10/17** |
+
+The margin over the reference *widens* on PANEL-23, where EWMA costs POT more than it
+gives it (0.9748 → 0.9666); on USABLE-strict the stage slightly *helps* POT
+(0.9672 → 0.9674) and the margin narrows, +0.0232 → +0.0230. Four things in our own row
+go the other way: no population's Holm-adjusted *p* is below 5% any more (nor is
+USABLE-strict's raw *p*, 0.01129 → 0.24350, though PANEL-23's raw *p* still is), both
+Bonferroni values rise, the USABLE-strict i.i.d. interval comes to span zero, and our
+scenario win counts fall, 18 of 23 to 16 and 12 of 17 to 10.
+
+The field behind us moves too. DIF closes to 0.0002 — which is not a difference between
+detectors. "First of ten" in the detection cells survives in 5 of 6; DIF takes
+PANEL-23 at the 5% target, 98.23 against our 98.01. On benign alarm episodes the
+matched field ranks ours 5th / 3rd / 6th of ten at the 1 / 2 / 5% targets on PANEL-23
+and 5th / 3rd / 4th on USABLE-strict.
+
+**Gate.** `MS_MATCHED=0` re-runs the identical code with the competitors unsmoothed. Its
+output is `corrected_benchmark_results.json` and `panel_auc_matrix.json` leaf for leaf
+apart from `elapsed_sec`. That is how the overlay was shown to change nothing else.
+Redirect the output when you run it, or it overwrites the two deposited records in place:
+
+```bash
+ANTIDDOS_BASE=/path/to/antiddos \
+  MS_MATCHED=0 MS_OUT=gate_benchmark.json MS_MATRIX=gate_matrix.json \
+  python3 runners/run_matched_smoothing.py
+```
+
+`ANTIDDOS_BASE` is required, not optional: without it the run aborts with
+`FileNotFoundError` on the cross-day CIC-IDS-2017 scenario, whose train cache lives
+under `$ANTIDDOS_BASE/datasets/feature_caches/`, and writes no gate output at all.
 
 ### `fpr_dr_optimization_results.json` — k and residual-metric sweep
 k=4 → k=8 and raw → EWMA, with benign-episode counts alongside DR. Kept because
