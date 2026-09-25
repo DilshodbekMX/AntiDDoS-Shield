@@ -1,0 +1,829 @@
+{
+ "note": "Emit the per-cell provenance of the two operating-point tables in the main text.\n\nSections 3.6 and 3.7 report their held-out operating point and their benign-episode\ngrid as tables rather than as numeric prose. Every cell of both is either a summary\ncell stored in a deposited record, or an unweighted scenario mean over a deposited\nper_scenario block. This runner writes the mapping from table cell to record key so a\nreader can trace any printed cell without re-deriving it.\n\nTwo things it is deliberately NOT:\n\n  * It is not an analysis. It reads deposited records only, runs no detector and\n    fits nothing. Re-running it after a detector re-run will change the file only if\n    the records changed.\n  * It is not a second source of truth. Where a record stores a summary cell, this\n    file cites that cell rather than recomputing it. Only 18 of 102 cells are\n    aggregated here, and for those it applies the aggregation the source runners\n    themselves apply: the unweighted mean of the ALREADY-ROUNDED per-scenario values,\n    rounded to two decimals (run_adjacency_free_fpr.py:93-94,\n    run_29_scenarios_corrected.py:171). Averaging unrounded values instead would move\n    cells in the last printed digit.\n\nThe fourth episode regime -- oracle thresholds with the attack rows excised -- is\nabsent rather than empty. run_adjacency_free_episodes.py takes both thresholds from\nthe calibration prefix, so every excised figure in this deposit is a held-out figure.\n\nWrites results/table_cell_provenance.json (override with TP_OUTDIR / TP_OUT).",
+ "aggregation_rule": "unweighted mean of the already-rounded per-scenario cells, rounded to two decimals, as the source runners do",
+ "not_measured": {
+  "regime": "oracle thresholds x attack rows excised",
+  "reason": "runners/run_adjacency_free_episodes.py takes both thresholds from the calibration prefix (cs_a, ts_a = s_all[:nc], s_all[nc:]), so every excised figure in this deposit is a held-out figure. The regime was not run; its cells are absent rather than estimated."
+ },
+ "stratum_name_trap": "scenarios29_corrected_results.json summary[\"non-causal-split-only\"] is 13 rows, seven of them ROLE-UNVERIFIED, not the admissible six. Its ours fpr@1pct reads 6.56 against the admissible six-row 10.55. No cell here is taken from it.",
+ "n_cells": 102,
+ "n_stored": 84,
+ "cells": [
+  {
+   "table": "heldout_operating_point",
+   "row": "USABLE-22",
+   "column": "detection rate % @1%, ours",
+   "value": 93.19,
+   "record": "scenarios29_corrected_results.json :: summary[\"USABLE-22\"][\"Subspace-Q + EWMA (ours)\"][\"dr@1pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "heldout_operating_point",
+   "row": "USABLE-22",
+   "column": "stream-realized FPR % @1%, ours",
+   "value": 4.38,
+   "record": "scenarios29_corrected_results.json :: summary[\"USABLE-22\"][\"Subspace-Q + EWMA (ours)\"][\"fpr@1pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "heldout_operating_point",
+   "row": "USABLE-22",
+   "column": "adjacency-free FPR % @1%, ours",
+   "value": 1.43,
+   "record": "adjacency_free_episodes.json :: summary[\"USABLE-22\"][\"Subspace-Q + EWMA (ours)\"][\"free_fpr@1pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "heldout_operating_point",
+   "row": "USABLE-22",
+   "column": "detection rate % @2%, ours",
+   "value": 95.05,
+   "record": "scenarios29_corrected_results.json :: summary[\"USABLE-22\"][\"Subspace-Q + EWMA (ours)\"][\"dr@2pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "heldout_operating_point",
+   "row": "USABLE-22",
+   "column": "stream-realized FPR % @2%, ours",
+   "value": 6.71,
+   "record": "scenarios29_corrected_results.json :: summary[\"USABLE-22\"][\"Subspace-Q + EWMA (ours)\"][\"fpr@2pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "heldout_operating_point",
+   "row": "USABLE-22",
+   "column": "adjacency-free FPR % @2%, ours",
+   "value": 2.31,
+   "record": "adjacency_free_episodes.json :: summary[\"USABLE-22\"][\"Subspace-Q + EWMA (ours)\"][\"free_fpr@2pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "heldout_operating_point",
+   "row": "USABLE-22",
+   "column": "detection rate % @5%, ours",
+   "value": 97.62,
+   "record": "scenarios29_corrected_results.json :: summary[\"USABLE-22\"][\"Subspace-Q + EWMA (ours)\"][\"dr@5pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "heldout_operating_point",
+   "row": "USABLE-22",
+   "column": "stream-realized FPR % @5%, ours",
+   "value": 10.82,
+   "record": "scenarios29_corrected_results.json :: summary[\"USABLE-22\"][\"Subspace-Q + EWMA (ours)\"][\"fpr@5pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "heldout_operating_point",
+   "row": "USABLE-22",
+   "column": "adjacency-free FPR % @5%, ours",
+   "value": 5.63,
+   "record": "adjacency_free_episodes.json :: summary[\"USABLE-22\"][\"Subspace-Q + EWMA (ours)\"][\"free_fpr@5pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "heldout_operating_point",
+   "row": "USABLE-22",
+   "column": "detection rate % @1%, reference",
+   "value": 81.38,
+   "record": "scenarios29_corrected_results.json :: summary[\"USABLE-22\"][\"POT\"][\"dr@1pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "heldout_operating_point",
+   "row": "USABLE-22",
+   "column": "stream-realized FPR % @1%, reference",
+   "value": 3.97,
+   "record": "scenarios29_corrected_results.json :: summary[\"USABLE-22\"][\"POT\"][\"fpr@1pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "heldout_operating_point",
+   "row": "USABLE-22",
+   "column": "adjacency-free FPR % @1%, reference",
+   "value": 3.97,
+   "record": "adjacency_free_episodes.json :: summary[\"USABLE-22\"][\"POT\"][\"free_fpr@1pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "heldout_operating_point",
+   "row": "USABLE-22",
+   "column": "detection rate % @2%, reference",
+   "value": 85.47,
+   "record": "scenarios29_corrected_results.json :: summary[\"USABLE-22\"][\"POT\"][\"dr@2pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "heldout_operating_point",
+   "row": "USABLE-22",
+   "column": "stream-realized FPR % @2%, reference",
+   "value": 5.29,
+   "record": "scenarios29_corrected_results.json :: summary[\"USABLE-22\"][\"POT\"][\"fpr@2pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "heldout_operating_point",
+   "row": "USABLE-22",
+   "column": "adjacency-free FPR % @2%, reference",
+   "value": 5.29,
+   "record": "adjacency_free_episodes.json :: summary[\"USABLE-22\"][\"POT\"][\"free_fpr@2pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "heldout_operating_point",
+   "row": "USABLE-22",
+   "column": "detection rate % @5%, reference",
+   "value": 88.77,
+   "record": "scenarios29_corrected_results.json :: summary[\"USABLE-22\"][\"POT\"][\"dr@5pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "heldout_operating_point",
+   "row": "USABLE-22",
+   "column": "stream-realized FPR % @5%, reference",
+   "value": 8.18,
+   "record": "scenarios29_corrected_results.json :: summary[\"USABLE-22\"][\"POT\"][\"fpr@5pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "heldout_operating_point",
+   "row": "USABLE-22",
+   "column": "adjacency-free FPR % @5%, reference",
+   "value": 8.18,
+   "record": "adjacency_free_episodes.json :: summary[\"USABLE-22\"][\"POT\"][\"free_fpr@5pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "heldout_operating_point",
+   "row": "USABLE-16-causal",
+   "column": "detection rate % @1%, ours",
+   "value": 91.93,
+   "record": "scenarios29_corrected_results.json :: summary[\"causal-split-only\"][\"Subspace-Q + EWMA (ours)\"][\"dr@1pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "heldout_operating_point",
+   "row": "USABLE-16-causal",
+   "column": "stream-realized FPR % @1%, ours",
+   "value": 2.06,
+   "record": "scenarios29_corrected_results.json :: summary[\"causal-split-only\"][\"Subspace-Q + EWMA (ours)\"][\"fpr@1pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "heldout_operating_point",
+   "row": "USABLE-16-causal",
+   "column": "adjacency-free FPR % @1%, ours",
+   "value": 1.81,
+   "record": "adjacency_free_episodes.json :: summary[\"USABLE-16-causal\"][\"Subspace-Q + EWMA (ours)\"][\"free_fpr@1pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "heldout_operating_point",
+   "row": "USABLE-16-causal",
+   "column": "detection rate % @2%, ours",
+   "value": 93.3,
+   "record": "scenarios29_corrected_results.json :: summary[\"causal-split-only\"][\"Subspace-Q + EWMA (ours)\"][\"dr@2pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "heldout_operating_point",
+   "row": "USABLE-16-causal",
+   "column": "stream-realized FPR % @2%, ours",
+   "value": 3.0,
+   "record": "scenarios29_corrected_results.json :: summary[\"causal-split-only\"][\"Subspace-Q + EWMA (ours)\"][\"fpr@2pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "heldout_operating_point",
+   "row": "USABLE-16-causal",
+   "column": "adjacency-free FPR % @2%, ours",
+   "value": 2.63,
+   "record": "adjacency_free_episodes.json :: summary[\"USABLE-16-causal\"][\"Subspace-Q + EWMA (ours)\"][\"free_fpr@2pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "heldout_operating_point",
+   "row": "USABLE-16-causal",
+   "column": "detection rate % @5%, ours",
+   "value": 96.75,
+   "record": "scenarios29_corrected_results.json :: summary[\"causal-split-only\"][\"Subspace-Q + EWMA (ours)\"][\"dr@5pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "heldout_operating_point",
+   "row": "USABLE-16-causal",
+   "column": "stream-realized FPR % @5%, ours",
+   "value": 6.76,
+   "record": "scenarios29_corrected_results.json :: summary[\"causal-split-only\"][\"Subspace-Q + EWMA (ours)\"][\"fpr@5pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "heldout_operating_point",
+   "row": "USABLE-16-causal",
+   "column": "adjacency-free FPR % @5%, ours",
+   "value": 6.11,
+   "record": "adjacency_free_episodes.json :: summary[\"USABLE-16-causal\"][\"Subspace-Q + EWMA (ours)\"][\"free_fpr@5pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "heldout_operating_point",
+   "row": "USABLE-16-causal",
+   "column": "detection rate % @1%, reference",
+   "value": 79.86,
+   "record": "scenarios29_corrected_results.json :: summary[\"causal-split-only\"][\"POT\"][\"dr@1pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "heldout_operating_point",
+   "row": "USABLE-16-causal",
+   "column": "stream-realized FPR % @1%, reference",
+   "value": 5.25,
+   "record": "scenarios29_corrected_results.json :: summary[\"causal-split-only\"][\"POT\"][\"fpr@1pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "heldout_operating_point",
+   "row": "USABLE-16-causal",
+   "column": "adjacency-free FPR % @1%, reference",
+   "value": 5.25,
+   "record": "adjacency_free_episodes.json :: summary[\"USABLE-16-causal\"][\"POT\"][\"free_fpr@1pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "heldout_operating_point",
+   "row": "USABLE-16-causal",
+   "column": "detection rate % @2%, reference",
+   "value": 84.09,
+   "record": "scenarios29_corrected_results.json :: summary[\"causal-split-only\"][\"POT\"][\"dr@2pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "heldout_operating_point",
+   "row": "USABLE-16-causal",
+   "column": "stream-realized FPR % @2%, reference",
+   "value": 6.87,
+   "record": "scenarios29_corrected_results.json :: summary[\"causal-split-only\"][\"POT\"][\"fpr@2pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "heldout_operating_point",
+   "row": "USABLE-16-causal",
+   "column": "adjacency-free FPR % @2%, reference",
+   "value": 6.87,
+   "record": "adjacency_free_episodes.json :: summary[\"USABLE-16-causal\"][\"POT\"][\"free_fpr@2pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "heldout_operating_point",
+   "row": "USABLE-16-causal",
+   "column": "detection rate % @5%, reference",
+   "value": 85.92,
+   "record": "scenarios29_corrected_results.json :: summary[\"causal-split-only\"][\"POT\"][\"dr@5pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "heldout_operating_point",
+   "row": "USABLE-16-causal",
+   "column": "stream-realized FPR % @5%, reference",
+   "value": 10.14,
+   "record": "scenarios29_corrected_results.json :: summary[\"causal-split-only\"][\"POT\"][\"fpr@5pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "heldout_operating_point",
+   "row": "USABLE-16-causal",
+   "column": "adjacency-free FPR % @5%, reference",
+   "value": 10.14,
+   "record": "adjacency_free_episodes.json :: summary[\"USABLE-16-causal\"][\"POT\"][\"free_fpr@5pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "heldout_operating_point",
+   "row": "USABLE-6-crossfile",
+   "column": "detection rate % @1%, ours",
+   "value": 96.54,
+   "record": "scenarios29_corrected_results.json :: mean over per_scenario[verdict==\"USABLE\" and causal is False][\"arms\"][\"Subspace-Q + EWMA (ours)\"][\"dr@1\"]",
+   "derivation": "unweighted scenario mean"
+  },
+  {
+   "table": "heldout_operating_point",
+   "row": "USABLE-6-crossfile",
+   "column": "stream-realized FPR % @1%, ours",
+   "value": 10.55,
+   "record": "adjacency_free_episodes.json :: summary[\"USABLE-6-crossfile\"][\"Subspace-Q + EWMA (ours)\"][\"stream_fpr@1pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "heldout_operating_point",
+   "row": "USABLE-6-crossfile",
+   "column": "adjacency-free FPR % @1%, ours",
+   "value": 0.4,
+   "record": "adjacency_free_episodes.json :: summary[\"USABLE-6-crossfile\"][\"Subspace-Q + EWMA (ours)\"][\"free_fpr@1pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "heldout_operating_point",
+   "row": "USABLE-6-crossfile",
+   "column": "detection rate % @2%, ours",
+   "value": 99.73,
+   "record": "scenarios29_corrected_results.json :: mean over per_scenario[verdict==\"USABLE\" and causal is False][\"arms\"][\"Subspace-Q + EWMA (ours)\"][\"dr@2\"]",
+   "derivation": "unweighted scenario mean"
+  },
+  {
+   "table": "heldout_operating_point",
+   "row": "USABLE-6-crossfile",
+   "column": "stream-realized FPR % @2%, ours",
+   "value": 16.61,
+   "record": "adjacency_free_episodes.json :: summary[\"USABLE-6-crossfile\"][\"Subspace-Q + EWMA (ours)\"][\"stream_fpr@2pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "heldout_operating_point",
+   "row": "USABLE-6-crossfile",
+   "column": "adjacency-free FPR % @2%, ours",
+   "value": 1.47,
+   "record": "adjacency_free_episodes.json :: summary[\"USABLE-6-crossfile\"][\"Subspace-Q + EWMA (ours)\"][\"free_fpr@2pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "heldout_operating_point",
+   "row": "USABLE-6-crossfile",
+   "column": "detection rate % @5%, ours",
+   "value": 99.94,
+   "record": "scenarios29_corrected_results.json :: mean over per_scenario[verdict==\"USABLE\" and causal is False][\"arms\"][\"Subspace-Q + EWMA (ours)\"][\"dr@5\"]",
+   "derivation": "unweighted scenario mean"
+  },
+  {
+   "table": "heldout_operating_point",
+   "row": "USABLE-6-crossfile",
+   "column": "stream-realized FPR % @5%, ours",
+   "value": 21.66,
+   "record": "adjacency_free_episodes.json :: summary[\"USABLE-6-crossfile\"][\"Subspace-Q + EWMA (ours)\"][\"stream_fpr@5pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "heldout_operating_point",
+   "row": "USABLE-6-crossfile",
+   "column": "adjacency-free FPR % @5%, ours",
+   "value": 4.34,
+   "record": "adjacency_free_episodes.json :: summary[\"USABLE-6-crossfile\"][\"Subspace-Q + EWMA (ours)\"][\"free_fpr@5pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "heldout_operating_point",
+   "row": "USABLE-6-crossfile",
+   "column": "detection rate % @1%, reference",
+   "value": 85.44,
+   "record": "scenarios29_corrected_results.json :: mean over per_scenario[verdict==\"USABLE\" and causal is False][\"arms\"][\"POT\"][\"dr@1\"]",
+   "derivation": "unweighted scenario mean"
+  },
+  {
+   "table": "heldout_operating_point",
+   "row": "USABLE-6-crossfile",
+   "column": "stream-realized FPR % @1%, reference",
+   "value": 0.55,
+   "record": "adjacency_free_episodes.json :: summary[\"USABLE-6-crossfile\"][\"POT\"][\"stream_fpr@1pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "heldout_operating_point",
+   "row": "USABLE-6-crossfile",
+   "column": "adjacency-free FPR % @1%, reference",
+   "value": 0.55,
+   "record": "adjacency_free_episodes.json :: summary[\"USABLE-6-crossfile\"][\"POT\"][\"free_fpr@1pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "heldout_operating_point",
+   "row": "USABLE-6-crossfile",
+   "column": "detection rate % @2%, reference",
+   "value": 89.16,
+   "record": "scenarios29_corrected_results.json :: mean over per_scenario[verdict==\"USABLE\" and causal is False][\"arms\"][\"POT\"][\"dr@2\"]",
+   "derivation": "unweighted scenario mean"
+  },
+  {
+   "table": "heldout_operating_point",
+   "row": "USABLE-6-crossfile",
+   "column": "stream-realized FPR % @2%, reference",
+   "value": 1.08,
+   "record": "adjacency_free_episodes.json :: summary[\"USABLE-6-crossfile\"][\"POT\"][\"stream_fpr@2pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "heldout_operating_point",
+   "row": "USABLE-6-crossfile",
+   "column": "adjacency-free FPR % @2%, reference",
+   "value": 1.08,
+   "record": "adjacency_free_episodes.json :: summary[\"USABLE-6-crossfile\"][\"POT\"][\"free_fpr@2pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "heldout_operating_point",
+   "row": "USABLE-6-crossfile",
+   "column": "detection rate % @5%, reference",
+   "value": 96.35,
+   "record": "scenarios29_corrected_results.json :: mean over per_scenario[verdict==\"USABLE\" and causal is False][\"arms\"][\"POT\"][\"dr@5\"]",
+   "derivation": "unweighted scenario mean"
+  },
+  {
+   "table": "heldout_operating_point",
+   "row": "USABLE-6-crossfile",
+   "column": "stream-realized FPR % @5%, reference",
+   "value": 2.95,
+   "record": "adjacency_free_episodes.json :: summary[\"USABLE-6-crossfile\"][\"POT\"][\"stream_fpr@5pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "heldout_operating_point",
+   "row": "USABLE-6-crossfile",
+   "column": "adjacency-free FPR % @5%, reference",
+   "value": 2.95,
+   "record": "adjacency_free_episodes.json :: summary[\"USABLE-6-crossfile\"][\"POT\"][\"free_fpr@5pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "episodes",
+   "row": "held-out, stream-realized, USABLE-22",
+   "column": "episodes/1000 @1%, ours",
+   "value": 12.1,
+   "record": "adjacency_free_episodes.json :: summary[\"USABLE-22\"][\"Subspace-Q + EWMA (ours)\"][\"stream_ep@1pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "episodes",
+   "row": "held-out, stream-realized, USABLE-22",
+   "column": "episodes/1000 @2%, ours",
+   "value": 20.07,
+   "record": "adjacency_free_episodes.json :: summary[\"USABLE-22\"][\"Subspace-Q + EWMA (ours)\"][\"stream_ep@2pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "episodes",
+   "row": "held-out, stream-realized, USABLE-22",
+   "column": "episodes/1000 @5%, ours",
+   "value": 25.11,
+   "record": "adjacency_free_episodes.json :: summary[\"USABLE-22\"][\"Subspace-Q + EWMA (ours)\"][\"stream_ep@5pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "episodes",
+   "row": "held-out, stream-realized, USABLE-22",
+   "column": "episodes/1000 @1%, reference",
+   "value": 6.24,
+   "record": "adjacency_free_episodes.json :: summary[\"USABLE-22\"][\"POT\"][\"stream_ep@1pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "episodes",
+   "row": "held-out, stream-realized, USABLE-22",
+   "column": "episodes/1000 @2%, reference",
+   "value": 7.8,
+   "record": "adjacency_free_episodes.json :: summary[\"USABLE-22\"][\"POT\"][\"stream_ep@2pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "episodes",
+   "row": "held-out, stream-realized, USABLE-22",
+   "column": "episodes/1000 @5%, reference",
+   "value": 9.89,
+   "record": "adjacency_free_episodes.json :: summary[\"USABLE-22\"][\"POT\"][\"stream_ep@5pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "episodes",
+   "row": "held-out, attack rows excised, USABLE-22",
+   "column": "episodes/1000 @1%, ours",
+   "value": 4.63,
+   "record": "adjacency_free_episodes.json :: summary[\"USABLE-22\"][\"Subspace-Q + EWMA (ours)\"][\"free_ep@1pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "episodes",
+   "row": "held-out, attack rows excised, USABLE-22",
+   "column": "episodes/1000 @2%, ours",
+   "value": 6.79,
+   "record": "adjacency_free_episodes.json :: summary[\"USABLE-22\"][\"Subspace-Q + EWMA (ours)\"][\"free_ep@2pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "episodes",
+   "row": "held-out, attack rows excised, USABLE-22",
+   "column": "episodes/1000 @5%, ours",
+   "value": 9.18,
+   "record": "adjacency_free_episodes.json :: summary[\"USABLE-22\"][\"Subspace-Q + EWMA (ours)\"][\"free_ep@5pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "episodes",
+   "row": "held-out, attack rows excised, USABLE-22",
+   "column": "episodes/1000 @1%, reference",
+   "value": 6.24,
+   "record": "adjacency_free_episodes.json :: summary[\"USABLE-22\"][\"POT\"][\"free_ep@1pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "episodes",
+   "row": "held-out, attack rows excised, USABLE-22",
+   "column": "episodes/1000 @2%, reference",
+   "value": 7.8,
+   "record": "adjacency_free_episodes.json :: summary[\"USABLE-22\"][\"POT\"][\"free_ep@2pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "episodes",
+   "row": "held-out, attack rows excised, USABLE-22",
+   "column": "episodes/1000 @5%, reference",
+   "value": 9.89,
+   "record": "adjacency_free_episodes.json :: summary[\"USABLE-22\"][\"POT\"][\"free_ep@5pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "episodes",
+   "row": "held-out, stream-realized, USABLE-16-causal",
+   "column": "episodes/1000 @1%, ours",
+   "value": 6.62,
+   "record": "adjacency_free_episodes.json :: summary[\"USABLE-16-causal\"][\"Subspace-Q + EWMA (ours)\"][\"stream_ep@1pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "episodes",
+   "row": "held-out, stream-realized, USABLE-16-causal",
+   "column": "episodes/1000 @2%, ours",
+   "value": 8.42,
+   "record": "adjacency_free_episodes.json :: summary[\"USABLE-16-causal\"][\"Subspace-Q + EWMA (ours)\"][\"stream_ep@2pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "episodes",
+   "row": "held-out, stream-realized, USABLE-16-causal",
+   "column": "episodes/1000 @5%, ours",
+   "value": 10.8,
+   "record": "adjacency_free_episodes.json :: summary[\"USABLE-16-causal\"][\"Subspace-Q + EWMA (ours)\"][\"stream_ep@5pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "episodes",
+   "row": "held-out, stream-realized, USABLE-16-causal",
+   "column": "episodes/1000 @1%, reference",
+   "value": 6.71,
+   "record": "adjacency_free_episodes.json :: summary[\"USABLE-16-causal\"][\"POT\"][\"stream_ep@1pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "episodes",
+   "row": "held-out, stream-realized, USABLE-16-causal",
+   "column": "episodes/1000 @2%, reference",
+   "value": 8.52,
+   "record": "adjacency_free_episodes.json :: summary[\"USABLE-16-causal\"][\"POT\"][\"stream_ep@2pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "episodes",
+   "row": "held-out, stream-realized, USABLE-16-causal",
+   "column": "episodes/1000 @5%, reference",
+   "value": 9.6,
+   "record": "adjacency_free_episodes.json :: summary[\"USABLE-16-causal\"][\"POT\"][\"stream_ep@5pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "episodes",
+   "row": "held-out, attack rows excised, USABLE-16-causal",
+   "column": "episodes/1000 @1%, ours",
+   "value": 5.29,
+   "record": "adjacency_free_episodes.json :: summary[\"USABLE-16-causal\"][\"Subspace-Q + EWMA (ours)\"][\"free_ep@1pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "episodes",
+   "row": "held-out, attack rows excised, USABLE-16-causal",
+   "column": "episodes/1000 @2%, ours",
+   "value": 6.61,
+   "record": "adjacency_free_episodes.json :: summary[\"USABLE-16-causal\"][\"Subspace-Q + EWMA (ours)\"][\"free_ep@2pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "episodes",
+   "row": "held-out, attack rows excised, USABLE-16-causal",
+   "column": "episodes/1000 @5%, ours",
+   "value": 7.63,
+   "record": "adjacency_free_episodes.json :: summary[\"USABLE-16-causal\"][\"Subspace-Q + EWMA (ours)\"][\"free_ep@5pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "episodes",
+   "row": "held-out, attack rows excised, USABLE-16-causal",
+   "column": "episodes/1000 @1%, reference",
+   "value": 6.71,
+   "record": "adjacency_free_episodes.json :: summary[\"USABLE-16-causal\"][\"POT\"][\"free_ep@1pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "episodes",
+   "row": "held-out, attack rows excised, USABLE-16-causal",
+   "column": "episodes/1000 @2%, reference",
+   "value": 8.52,
+   "record": "adjacency_free_episodes.json :: summary[\"USABLE-16-causal\"][\"POT\"][\"free_ep@2pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "episodes",
+   "row": "held-out, attack rows excised, USABLE-16-causal",
+   "column": "episodes/1000 @5%, reference",
+   "value": 9.6,
+   "record": "adjacency_free_episodes.json :: summary[\"USABLE-16-causal\"][\"POT\"][\"free_ep@5pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "episodes",
+   "row": "held-out, stream-realized, USABLE-6-crossfile",
+   "column": "episodes/1000 @1%, ours",
+   "value": 26.7,
+   "record": "adjacency_free_episodes.json :: summary[\"USABLE-6-crossfile\"][\"Subspace-Q + EWMA (ours)\"][\"stream_ep@1pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "episodes",
+   "row": "held-out, stream-realized, USABLE-6-crossfile",
+   "column": "episodes/1000 @2%, ours",
+   "value": 51.15,
+   "record": "adjacency_free_episodes.json :: summary[\"USABLE-6-crossfile\"][\"Subspace-Q + EWMA (ours)\"][\"stream_ep@2pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "episodes",
+   "row": "held-out, stream-realized, USABLE-6-crossfile",
+   "column": "episodes/1000 @5%, ours",
+   "value": 63.27,
+   "record": "adjacency_free_episodes.json :: summary[\"USABLE-6-crossfile\"][\"Subspace-Q + EWMA (ours)\"][\"stream_ep@5pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "episodes",
+   "row": "held-out, stream-realized, USABLE-6-crossfile",
+   "column": "episodes/1000 @1%, reference",
+   "value": 4.98,
+   "record": "adjacency_free_episodes.json :: summary[\"USABLE-6-crossfile\"][\"POT\"][\"stream_ep@1pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "episodes",
+   "row": "held-out, stream-realized, USABLE-6-crossfile",
+   "column": "episodes/1000 @2%, reference",
+   "value": 5.87,
+   "record": "adjacency_free_episodes.json :: summary[\"USABLE-6-crossfile\"][\"POT\"][\"stream_ep@2pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "episodes",
+   "row": "held-out, stream-realized, USABLE-6-crossfile",
+   "column": "episodes/1000 @5%, reference",
+   "value": 10.67,
+   "record": "adjacency_free_episodes.json :: summary[\"USABLE-6-crossfile\"][\"POT\"][\"stream_ep@5pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "episodes",
+   "row": "held-out, attack rows excised, USABLE-6-crossfile",
+   "column": "episodes/1000 @1%, ours",
+   "value": 2.88,
+   "record": "adjacency_free_episodes.json :: summary[\"USABLE-6-crossfile\"][\"Subspace-Q + EWMA (ours)\"][\"free_ep@1pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "episodes",
+   "row": "held-out, attack rows excised, USABLE-6-crossfile",
+   "column": "episodes/1000 @2%, ours",
+   "value": 7.25,
+   "record": "adjacency_free_episodes.json :: summary[\"USABLE-6-crossfile\"][\"Subspace-Q + EWMA (ours)\"][\"free_ep@2pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "episodes",
+   "row": "held-out, attack rows excised, USABLE-6-crossfile",
+   "column": "episodes/1000 @5%, ours",
+   "value": 13.3,
+   "record": "adjacency_free_episodes.json :: summary[\"USABLE-6-crossfile\"][\"Subspace-Q + EWMA (ours)\"][\"free_ep@5pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "episodes",
+   "row": "held-out, attack rows excised, USABLE-6-crossfile",
+   "column": "episodes/1000 @1%, reference",
+   "value": 4.98,
+   "record": "adjacency_free_episodes.json :: summary[\"USABLE-6-crossfile\"][\"POT\"][\"free_ep@1pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "episodes",
+   "row": "held-out, attack rows excised, USABLE-6-crossfile",
+   "column": "episodes/1000 @2%, reference",
+   "value": 5.87,
+   "record": "adjacency_free_episodes.json :: summary[\"USABLE-6-crossfile\"][\"POT\"][\"free_ep@2pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "episodes",
+   "row": "held-out, attack rows excised, USABLE-6-crossfile",
+   "column": "episodes/1000 @5%, reference",
+   "value": 10.67,
+   "record": "adjacency_free_episodes.json :: summary[\"USABLE-6-crossfile\"][\"POT\"][\"free_ep@5pct\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "episodes",
+   "row": "oracle, stream-realized, PANEL-23",
+   "column": "episodes/1000 @1%, ours",
+   "value": 6.44,
+   "record": "panel_auc_matrix.json :: mean over per_population[\"PANEL-23\"][*][\"ep1\"][\"Subspace-Q + EWMA (ours)\"]",
+   "derivation": "unweighted scenario mean"
+  },
+  {
+   "table": "episodes",
+   "row": "oracle, stream-realized, PANEL-23",
+   "column": "episodes/1000 @2%, ours",
+   "value": 9.12,
+   "record": "panel_auc_matrix.json :: mean over per_population[\"PANEL-23\"][*][\"ep2\"][\"Subspace-Q + EWMA (ours)\"]",
+   "derivation": "unweighted scenario mean"
+  },
+  {
+   "table": "episodes",
+   "row": "oracle, stream-realized, PANEL-23",
+   "column": "episodes/1000 @5%, ours",
+   "value": 15.22,
+   "record": "panel_auc_matrix.json :: mean over per_population[\"PANEL-23\"][*][\"ep5\"][\"Subspace-Q + EWMA (ours)\"]",
+   "derivation": "unweighted scenario mean"
+  },
+  {
+   "table": "episodes",
+   "row": "oracle, stream-realized, PANEL-23",
+   "column": "episodes/1000 @1%, reference",
+   "value": 5.33,
+   "record": "panel_auc_matrix.json :: mean over per_population[\"PANEL-23\"][*][\"ep1\"][\"POT\"]",
+   "derivation": "unweighted scenario mean"
+  },
+  {
+   "table": "episodes",
+   "row": "oracle, stream-realized, PANEL-23",
+   "column": "episodes/1000 @2%, reference",
+   "value": 8.95,
+   "record": "panel_auc_matrix.json :: mean over per_population[\"PANEL-23\"][*][\"ep2\"][\"POT\"]",
+   "derivation": "unweighted scenario mean"
+  },
+  {
+   "table": "episodes",
+   "row": "oracle, stream-realized, PANEL-23",
+   "column": "episodes/1000 @5%, reference",
+   "value": 11.14,
+   "record": "panel_auc_matrix.json :: mean over per_population[\"PANEL-23\"][*][\"ep5\"][\"POT\"]",
+   "derivation": "unweighted scenario mean"
+  },
+  {
+   "table": "episodes",
+   "row": "oracle, stream-realized, USABLE-strict",
+   "column": "episodes/1000 @1%, ours",
+   "value": 5.7,
+   "record": "panel_auc_matrix.json :: mean over per_population[\"USABLE-strict\"][*][\"ep1\"][\"Subspace-Q + EWMA (ours)\"]",
+   "derivation": "unweighted scenario mean"
+  },
+  {
+   "table": "episodes",
+   "row": "oracle, stream-realized, USABLE-strict",
+   "column": "episodes/1000 @2%, ours",
+   "value": 8.39,
+   "record": "panel_auc_matrix.json :: mean over per_population[\"USABLE-strict\"][*][\"ep2\"][\"Subspace-Q + EWMA (ours)\"]",
+   "derivation": "unweighted scenario mean"
+  },
+  {
+   "table": "episodes",
+   "row": "oracle, stream-realized, USABLE-strict",
+   "column": "episodes/1000 @5%, ours",
+   "value": 12.37,
+   "record": "panel_auc_matrix.json :: mean over per_population[\"USABLE-strict\"][*][\"ep5\"][\"Subspace-Q + EWMA (ours)\"]",
+   "derivation": "unweighted scenario mean"
+  },
+  {
+   "table": "episodes",
+   "row": "oracle, stream-realized, USABLE-strict",
+   "column": "episodes/1000 @1%, reference",
+   "value": 5.22,
+   "record": "panel_auc_matrix.json :: mean over per_population[\"USABLE-strict\"][*][\"ep1\"][\"POT\"]",
+   "derivation": "unweighted scenario mean"
+  },
+  {
+   "table": "episodes",
+   "row": "oracle, stream-realized, USABLE-strict",
+   "column": "episodes/1000 @2%, reference",
+   "value": 8.07,
+   "record": "panel_auc_matrix.json :: mean over per_population[\"USABLE-strict\"][*][\"ep2\"][\"POT\"]",
+   "derivation": "unweighted scenario mean"
+  },
+  {
+   "table": "episodes",
+   "row": "oracle, stream-realized, USABLE-strict",
+   "column": "episodes/1000 @5%, reference",
+   "value": 11.32,
+   "record": "panel_auc_matrix.json :: mean over per_population[\"USABLE-strict\"][*][\"ep5\"][\"POT\"]",
+   "derivation": "unweighted scenario mean"
+  }
+ ]
+}
