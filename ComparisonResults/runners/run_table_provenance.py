@@ -13,7 +13,7 @@ Two things it is deliberately NOT:
     fits nothing. Re-running it after a detector re-run will change the file only if
     the records changed.
   * It is not a second source of truth. Where a record stores a summary cell, this
-    file cites that cell rather than recomputing it. Only 18 of 102 cells are
+    file cites that cell rather than recomputing it. Only 23 of 111 cells are
     aggregated here, and for those it applies the aggregation the source runners
     themselves apply: the unweighted mean of the ALREADY-ROUNDED per-scenario values,
     rounded to two decimals (run_adjacency_free_fpr.py:93-94,
@@ -107,6 +107,30 @@ def main():
                     episodes[pop][arm][f'free_fpr@{t}pct'],
                     f'adjacency_free_episodes.json :: '
                     f'summary["{pop}"]["{arm}"]["free_fpr@{t}pct"]', 'stored summary cell')
+
+    # Mean AUC advantage by stratum. A different quantity from the detection and
+    # false-alarm blocks, and two Limitations sentences depend on it, so it is a cell
+    # of the table rather than prose that a later cut can remove.
+    for pop, rows in strata.items():
+        sk = HELDOUT_KEY.get(pop)
+        for arm, label in ARMS:
+            stored = heldout['summary'].get(sk, {}).get(arm, {}).get('mean_auc') if sk else None
+            if stored is not None:
+                add('heldout_operating_point', pop, f'mean AUC, {label}', stored,
+                    f'scenarios29_corrected_results.json :: summary["{sk}"]["{arm}"]["mean_auc"]',
+                    'stored summary cell')
+            else:
+                add('heldout_operating_point', pop, f'mean AUC, {label}',
+                    round(statistics.mean(r['arms'][arm]['auc'] for r in rows), 4),
+                    f'scenarios29_corrected_results.json :: mean over per_scenario'
+                    f'[verdict=="USABLE" and causal is {pop.endswith("causal")}]["arms"]["{arm}"]["auc"]',
+                    'unweighted scenario mean')
+        add('heldout_operating_point', pop, 'mean AUC advantage over the reference',
+            round(statistics.mean(r['arms'][OURS]['auc'] - r['arms'][REF]['auc'] for r in rows), 4),
+            f'scenarios29_corrected_results.json :: mean over per_scenario'
+            f'[verdict=="USABLE" and causal is {pop.endswith("causal")}] of '
+            f'arms["{OURS}"]["auc"] - arms["{REF}"]["auc"]',
+            'unweighted scenario mean of per-row differences')
 
     # ---- Table: the benign-episode grid (Section 3.7) ----
     for pop in strata:

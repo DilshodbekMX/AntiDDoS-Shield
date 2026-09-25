@@ -1,13 +1,13 @@
 {
- "note": "Emit the per-cell provenance of the two operating-point tables in the main text.\n\nSections 3.6 and 3.7 report their held-out operating point and their benign-episode\ngrid as tables rather than as numeric prose. Every cell of both is either a summary\ncell stored in a deposited record, or an unweighted scenario mean over a deposited\nper_scenario block. This runner writes the mapping from table cell to record key so a\nreader can trace any printed cell without re-deriving it.\n\nTwo things it is deliberately NOT:\n\n  * It is not an analysis. It reads deposited records only, runs no detector and\n    fits nothing. Re-running it after a detector re-run will change the file only if\n    the records changed.\n  * It is not a second source of truth. Where a record stores a summary cell, this\n    file cites that cell rather than recomputing it. Only 18 of 102 cells are\n    aggregated here, and for those it applies the aggregation the source runners\n    themselves apply: the unweighted mean of the ALREADY-ROUNDED per-scenario values,\n    rounded to two decimals (run_adjacency_free_fpr.py:93-94,\n    run_29_scenarios_corrected.py:171). Averaging unrounded values instead would move\n    cells in the last printed digit.\n\nThe fourth episode regime -- oracle thresholds with the attack rows excised -- is\nabsent rather than empty. run_adjacency_free_episodes.py takes both thresholds from\nthe calibration prefix, so every excised figure in this deposit is a held-out figure.\n\nWrites results/table_cell_provenance.json (override with TP_OUTDIR / TP_OUT).",
+ "note": "Emit the per-cell provenance of the two operating-point tables in the main text.\n\nSections 3.6 and 3.7 report their held-out operating point and their benign-episode\ngrid as tables rather than as numeric prose. Every cell of both is either a summary\ncell stored in a deposited record, or an unweighted scenario mean over a deposited\nper_scenario block. This runner writes the mapping from table cell to record key so a\nreader can trace any printed cell without re-deriving it.\n\nTwo things it is deliberately NOT:\n\n  * It is not an analysis. It reads deposited records only, runs no detector and\n    fits nothing. Re-running it after a detector re-run will change the file only if\n    the records changed.\n  * It is not a second source of truth. Where a record stores a summary cell, this\n    file cites that cell rather than recomputing it. Only 23 of 111 cells are\n    aggregated here, and for those it applies the aggregation the source runners\n    themselves apply: the unweighted mean of the ALREADY-ROUNDED per-scenario values,\n    rounded to two decimals (run_adjacency_free_fpr.py:93-94,\n    run_29_scenarios_corrected.py:171). Averaging unrounded values instead would move\n    cells in the last printed digit.\n\nThe fourth episode regime -- oracle thresholds with the attack rows excised -- is\nabsent rather than empty. run_adjacency_free_episodes.py takes both thresholds from\nthe calibration prefix, so every excised figure in this deposit is a held-out figure.\n\nWrites results/table_cell_provenance.json (override with TP_OUTDIR / TP_OUT).",
  "aggregation_rule": "unweighted mean of the already-rounded per-scenario cells, rounded to two decimals, as the source runners do",
  "not_measured": {
   "regime": "oracle thresholds x attack rows excised",
   "reason": "runners/run_adjacency_free_episodes.py takes both thresholds from the calibration prefix (cs_a, ts_a = s_all[:nc], s_all[nc:]), so every excised figure in this deposit is a held-out figure. The regime was not run; its cells are absent rather than estimated."
  },
  "stratum_name_trap": "scenarios29_corrected_results.json summary[\"non-causal-split-only\"] is 13 rows, seven of them ROLE-UNVERIFIED, not the admissible six. Its ours fpr@1pct reads 6.56 against the admissible six-row 10.55. No cell here is taken from it.",
- "n_cells": 102,
- "n_stored": 84,
+ "n_cells": 111,
+ "n_stored": 88,
  "cells": [
   {
    "table": "heldout_operating_point",
@@ -440,6 +440,78 @@
    "value": 2.95,
    "record": "adjacency_free_episodes.json :: summary[\"USABLE-6-crossfile\"][\"POT\"][\"free_fpr@5pct\"]",
    "derivation": "stored summary cell"
+  },
+  {
+   "table": "heldout_operating_point",
+   "row": "USABLE-22",
+   "column": "mean AUC, ours",
+   "value": 0.9935,
+   "record": "scenarios29_corrected_results.json :: summary[\"USABLE-22\"][\"Subspace-Q + EWMA (ours)\"][\"mean_auc\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "heldout_operating_point",
+   "row": "USABLE-22",
+   "column": "mean AUC, reference",
+   "value": 0.974,
+   "record": "scenarios29_corrected_results.json :: summary[\"USABLE-22\"][\"POT\"][\"mean_auc\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "heldout_operating_point",
+   "row": "USABLE-22",
+   "column": "mean AUC advantage over the reference",
+   "value": 0.0195,
+   "record": "scenarios29_corrected_results.json :: mean over per_scenario[verdict==\"USABLE\" and causal is False] of arms[\"Subspace-Q + EWMA (ours)\"][\"auc\"] - arms[\"POT\"][\"auc\"]",
+   "derivation": "unweighted scenario mean of per-row differences"
+  },
+  {
+   "table": "heldout_operating_point",
+   "row": "USABLE-16-causal",
+   "column": "mean AUC, ours",
+   "value": 0.9915,
+   "record": "scenarios29_corrected_results.json :: summary[\"causal-split-only\"][\"Subspace-Q + EWMA (ours)\"][\"mean_auc\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "heldout_operating_point",
+   "row": "USABLE-16-causal",
+   "column": "mean AUC, reference",
+   "value": 0.9667,
+   "record": "scenarios29_corrected_results.json :: summary[\"causal-split-only\"][\"POT\"][\"mean_auc\"]",
+   "derivation": "stored summary cell"
+  },
+  {
+   "table": "heldout_operating_point",
+   "row": "USABLE-16-causal",
+   "column": "mean AUC advantage over the reference",
+   "value": 0.0248,
+   "record": "scenarios29_corrected_results.json :: mean over per_scenario[verdict==\"USABLE\" and causal is True] of arms[\"Subspace-Q + EWMA (ours)\"][\"auc\"] - arms[\"POT\"][\"auc\"]",
+   "derivation": "unweighted scenario mean of per-row differences"
+  },
+  {
+   "table": "heldout_operating_point",
+   "row": "USABLE-6-crossfile",
+   "column": "mean AUC, ours",
+   "value": 0.9989,
+   "record": "scenarios29_corrected_results.json :: mean over per_scenario[verdict==\"USABLE\" and causal is False][\"arms\"][\"Subspace-Q + EWMA (ours)\"][\"auc\"]",
+   "derivation": "unweighted scenario mean"
+  },
+  {
+   "table": "heldout_operating_point",
+   "row": "USABLE-6-crossfile",
+   "column": "mean AUC, reference",
+   "value": 0.9935,
+   "record": "scenarios29_corrected_results.json :: mean over per_scenario[verdict==\"USABLE\" and causal is False][\"arms\"][\"POT\"][\"auc\"]",
+   "derivation": "unweighted scenario mean"
+  },
+  {
+   "table": "heldout_operating_point",
+   "row": "USABLE-6-crossfile",
+   "column": "mean AUC advantage over the reference",
+   "value": 0.0054,
+   "record": "scenarios29_corrected_results.json :: mean over per_scenario[verdict==\"USABLE\" and causal is False] of arms[\"Subspace-Q + EWMA (ours)\"][\"auc\"] - arms[\"POT\"][\"auc\"]",
+   "derivation": "unweighted scenario mean of per-row differences"
   },
   {
    "table": "episodes",
