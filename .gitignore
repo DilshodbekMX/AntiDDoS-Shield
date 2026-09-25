@@ -77,3 +77,6 @@ venv/
 *.db-journal
 *.sqlite
 *.sqlite3
+
+# Re-run outputs staged for audited promotion into ComparisonResults/results/
+ComparisonResults/reproduction/

@@ -17,11 +17,17 @@ for p in (HERE, os.path.abspath(os.path.join(HERE, '..'))):
     sys.path.insert(0, p)
 
 from config import RESULTS_DIR
+import safe_out
 
 OURS = 'Subspace-Q + EWMA (ours)'
 REF = 'POT'
+EXPECTED_PANEL_VICTIMS = 9   # stated in the manuscript and recorded in PANEL.json
 CUTS = (0.94, 0.95)
-SEPARATE_CAPTURE_CORPORA = ('CIC-IoT-2023',)
+# Resolved through corpus_names so both spellings of every corpus map to one name.
+# A single literal here silently flipped all six CIC-IoT rows to False whenever this
+# runner met a filesystem-spelled record, taking the survivor count from two to eight.
+from corpus_names import (is_separate_capture, canon, spelling_census, victim_key,
+                          normalise_victim)
 
 
 def exact_p(x):
@@ -34,10 +40,135 @@ def exact_p(x):
     return p, n, 2.0 / 2 ** n
 
 
+def panel_victims():
+    """Canonical victim set of PANEL-23, from the panel inventory alone.
+
+    This is the independent anchor. It is derived from PANEL.json's own corpus paths and
+    victim addresses, not from any record being checked, so a missed merge (one victim
+    left under two keys) or a wrong merge (two victims collapsed into one) both change
+    its size and both raise. Comparing canonical against raw key counts cannot do that:
+    canon() is a function, so the canonical count is bounded by the raw count by
+    construction and the comparison can never fail.
+    """
+    panel = json.load(open(os.path.join(RESULTS_DIR, 'panel_inventory', 'PANEL.json')))['panel']
+    keys, by_addr = set(), {}
+    for e in panel:
+        corp = os.path.basename(os.path.dirname(str(e['cache'])))
+        k = victim_key(corp, e.get('victim'))
+        keys.add(k)
+        # no address may sit under two canonical keys inside one corpus
+        c, a = k.split('/', 1)
+        by_addr.setdefault((c, a), set()).add(k)
+    bad = {p: v for p, v in by_addr.items() if len(v) > 1}
+    assert not bad, f'an address maps to more than one canonical key: {bad}'
+    assert len(keys) == EXPECTED_PANEL_VICTIMS, (
+        f'panel victim census is {len(keys)}, expected {EXPECTED_PANEL_VICTIMS}; a merge was '
+        f'missed or made wrongly: {sorted(keys)}')
+    return keys
+
+
+def joint_clean_stratum():
+    """Joint-clean statistics under both splits, with the cluster count asserted.
+
+    The stratum is the rows passing both of our own criteria: clock-clean and drawing
+    benign traffic from the attack capture. Detector deltas come from panel_auc_matrix
+    for the deposited split and from split_control_threeway60_matrix for the repaired
+    one; a row the repair leaves untouched keeps its deposited delta, which is stated
+    per row in carried_rows.
+
+    Every victim passes through normalise_victim first, because the two matrices key
+    victims differently, and the runner then asserts that the cluster count equals the
+    number of distinct canonical victims. Without that assertion a raw-string join splits
+    one victim in two, lowers the exact floor and can make 5% look reachable.
+    """
+    csp = os.path.join(RESULTS_DIR, 'clock_split_sensitivity.json')
+    if not os.path.exists(csp):
+        return None
+    cs = {r['label']: r for r in json.load(open(csp))['per_scenario']}
+    PANEL_VICTIMS = panel_victims()
+    dep = {r['scenario']: r for r in json.load(
+        open(os.path.join(RESULTS_DIR, 'panel_auc_matrix.json')))['per_population']['PANEL-23']}
+    repp = os.path.join(RESULTS_DIR, 'split_control_threeway60_matrix.json')
+    rep = {}
+    if os.path.exists(repp):
+        m = json.load(open(repp))['per_population']
+        rep = {r['scenario']: r for r in m.get('PANEL-22', m.get('PANEL-23', []))}
+
+    out = {}
+    for split, src_primary in (('deposited_split', None), ('threeway_split', rep)):
+        labels = [l for l, r in cs.items()
+                  if r[split]['clock_separability'] < 0.95 and not r['separate_benign_capture']]
+        if not labels:
+            continue
+        rows, carried = {}, []
+        for l in labels:
+            if src_primary and l in src_primary:
+                rows[l] = src_primary[l]
+            else:
+                if src_primary is not None:
+                    carried.append(l)
+                rows[l] = dep[l]
+        d = [rows[l]['auc'][OURS] - rows[l]['auc'][REF] for l in labels]
+        raw = [str(rows[l]['victim']) for l in labels]
+        vics = [normalise_victim(rows[l]['victim'], cs[l]['corpus']) for l in labels]
+        groups = sorted(set(vics))
+        n_raw = len(set(raw))            # diagnostic only, see below
+        # The canonical count can never exceed the raw count, because canon() is a
+        # function, so comparing the two guarantees nothing. Check instead against a count
+        # derived independently of these keys: the panel inventory's own victim set.
+        assert set(groups) <= PANEL_VICTIMS, (
+            f'stratum victims outside the panel set: {sorted(set(groups) - PANEL_VICTIMS)}')
+        cmeans = [float(np.mean([d[i] for i, v in enumerate(vics) if v == g])) for g in groups]
+        nz = [x for x in cmeans if abs(x) > 1e-12]
+        p = 1.0 if not nz else float(wilcoxon(cmeans, zero_method='wilcox')[1])
+        out[split] = {'n': len(labels), 'mean_delta_auc': round(float(np.mean(d)), 6),
+                      'n_victim_clusters_raw_keys_diagnostic': n_raw,
+                      'wins': sum(1 for x in d if x > 0),
+                      'n_victim_clusters': len(groups), 'victims': groups,
+                      'cluster_wilcoxon_p': round(p, 5),
+                      'cluster_informative_pairs': len(nz),
+                      'cluster_exact_floor': 2 / 2 ** len(nz) if nz else None,
+                      'carried_rows': carried,
+                      'reachable_at_5pct': bool(nz) and (2 / 2 ** len(nz)) < 0.05}
+    return out or None
+
+
+def repaired_cross():
+    """The same 2x2, recomputed under the repaired split.
+
+    Table 11 needs both panels, and this runner is one of the two that regenerate from the
+    deposit alone, so the repaired counts belong here rather than in a second file the
+    reader has to join by hand. Reads results/clock_split_sensitivity.json, which carries
+    both splits per row; returns None if that record is absent.
+    """
+    p = os.path.join(RESULTS_DIR, 'clock_split_sensitivity.json')
+    if not os.path.exists(p):
+        return None
+    cs = json.load(open(p))['per_scenario']
+    out = {}
+    for split in ('deposited_split', 'threeway_split'):
+        cell = {}
+        for prov, want in (('session_clean', False), ('separate_benign_capture', True)):
+            sel = [r for r in cs if r['separate_benign_capture'] is want]
+            cell[prov] = {'clock_clean': sum(1 for r in sel if r[split]['clock_separability'] < 0.95),
+                          'clock_separates': sum(1 for r in sel if r[split]['clock_separability'] >= 0.95)}
+        cell['n'] = len(cs)
+        out[split] = cell
+    out['note'] = ('The clock reads the test stream labels only, so every row is measurable '
+                   'under both splits. The repair is a no-op on the six CIC-IoT-2023 rows '
+                   '(index-collision order) and on the cross-day row (test stream is the whole '
+                   'attack day, never truncated). Detector re-scoring covers 22 of these 23 '
+                   'rows: the cross-day training cache is not in the deposit.')
+    return out
+
+
 def cluster_means(rows):
+    # Key on corpus AND address. A bare address would merge two victims silently the day
+    # two corpora share a private range; no address currently collides, so this renames
+    # the keys and changes no membership and no statistic.
     by = {}
     for r in rows:
-        by.setdefault(r['victim'], []).append(r['_delta'])
+        by.setdefault(victim_key(r['corpus'], r['victim']), []).append(r['_delta'])
     return {v: float(np.mean(d)) for v, d in sorted(by.items())}
 
 
@@ -86,7 +217,7 @@ def main():
         rows.append({'label': e['label'], 'corpus': m['corpus'], 'victim': m['victim'],
                      'mode': e.get('mode'), 'delta_auc': round(delta, 6), '_delta': delta,
                      'clock_separability': c['clock_separability'], 'label_runs': c['label_runs'],
-                     'separate_benign_capture': m['corpus'] in SEPARATE_CAPTURE_CORPORA})
+                     'separate_benign_capture': is_separate_capture(m['corpus'])})
     if len(rows) != len(auc_rows):
         raise SystemExit(f"joined {len(rows)} rows, PANEL-23 holds {len(auc_rows)}")
 
@@ -122,7 +253,7 @@ def main():
               f"(informative {cc['cluster_informative_pairs']})  cluster p {cc['cluster_wilcoxon_p']} "
               f"floor {cc['cluster_exact_floor']}  separated-stratum mean {cs['mean_delta_auc']:+.6f}")
 
-    dst = os.path.join(RESULTS_DIR, 'joint_filter.json')
+    dst = safe_out.resolve(RESULTS_DIR, 'joint_filter.json', 'JF')
     json.dump({'note': ('Joint filter over PANEL-23: clock-only null (clock_null.json, clock_separability = '
                         'max(AUC, 1-AUC)) crossed with session provenance (benign traffic a separate capture '
                         'from attack traffic: every CIC-IoT-2023 row). delta_auc = ours minus POT, from '
@@ -131,6 +262,9 @@ def main():
                         'over that victim\'s rows; the exact floor is 2/2^n over n informative pairs. '
                         'Label-only and score-only: reads no traffic and scores no detector.'),
                'inputs': ['panel_auc_matrix.json', 'clock_null.json', 'panel_inventory/PANEL.json'],
+               'corpus_spelling_census': spelling_census([r['corpus'] for r in rows]),
+               'repaired_split_cross': repaired_cross(),
+               'joint_clean_stratum': joint_clean_stratum(),
                'arms': {'ours': OURS, 'reference': REF},
                'versions': {'numpy': np.__version__, 'scipy': scipy.__version__},
                'full_panel': {k: full[k] for k in ('n', 'mean_delta_auc', 'wins', 'losses', 'ties',

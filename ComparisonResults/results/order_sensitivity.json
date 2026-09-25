@@ -1,5 +1,22 @@
 {
  "note": "How much of CIC-IoT-2023 depends on an ordering that did not happen?\n\ntkey() sorts on `_id_time`, a per-file window index. On CIC-IoT-2023 the benign traffic\nis a separate capture, so the two index origins are independent and their ranges overlap:\nthe interleaving of the classes is an index collision, not co-occurrence in time.\n\nROC AUC is order-invariant for a memoryless scorer, so this can only move the two arms\nthat carry state. We re-derive every scenario under two orders:\n\n  interleaved : as published -- both classes merged on the shared index\n  appended    : each class sorted on its own index, benign block then attack block.\n                Not a chronology either, but it invents no cross-class co-occurrence,\n                which is the only thing we actually know about two separate captures.\n\nReports AUC and realized FPR for every arm under both. Corpora whose two classes come\nfrom ONE capture are included as controls: there the index IS monotone in time, so the\npublished order is defensible and any movement there is a pure order effect to calibrate\nthe CIC-IoT movement against.\n\nWrites results/order_sensitivity.json.",
+ "corpus_spelling_census": {
+  "CIC-IDS-2017": {
+   "CIC-IDS-2017": 5
+  },
+  "CSE-CIC-IDS2018": {
+   "CIC-IDS2018": 6
+  },
+  "CIC-DDoS2019": {
+   "CICDDoS2019": 4
+  },
+  "CIC-IoT-2023": {
+   "CIC_IOT_Dataset2023": 13
+  },
+  "LITNET-2020": {
+   "LITNET-2020": 1
+  }
+ },
  "summary": {
   "CIC-IoT-2023 (separate capture)": {
    "Subspace-Q + EWMA (ours)": {

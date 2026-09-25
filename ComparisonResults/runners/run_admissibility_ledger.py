@@ -32,6 +32,8 @@ for p in (HERE, os.path.abspath(os.path.join(HERE, '..'))):
     sys.path.insert(0, p)
 
 from config import RESULTS_DIR
+from corpus_names import canon, CANONICAL, spelling_census
+import safe_out
 
 # ---- thresholds -------------------------------------------------------------------------------
 ALPHA_CONF = 0.01           # conformal-floor bar
@@ -59,14 +61,16 @@ DOCUMENTED_VICTIMS = {
 DOCUMENTED_ATTACKERS = {'CICDDoS2019': {'172.16.0.5'}}
 # Corpora on which the flag heuristic is declared invalid: on CIC-IoT-2023, pcap-derived roles
 # show it flagging 15 of 16 confirmed RSTFINFlood targets and 0 of 10 confirmed sources.
-HEURISTIC_INVALID_CORPORA = {'CIC_IOT_Dataset2023'}
+HEURISTIC_INVALID_CORPORA = {'CIC-IoT-2023'}   # canonical names; compare with canon()
 
 # ---- labels -----------------------------------------------------------------------------------
+# One mapping for the whole harness: corpus_names.canon. This file used to carry two of its
+# own, LEDGER_LABEL and CENSUS_LABEL, which disagreed on the 2018 corpus and put both
+# spellings into one record. Both now resolve through canon, so the ledger and the census
+# cannot drift apart again.
 CORPUS_ORDER = ['CIC-IDS-2017', 'CIC-IDS2018', 'CICDDoS2019', 'CIC_IOT_Dataset2023', 'LITNET-2020']
-LEDGER_LABEL = {'CIC-IDS-2017': 'CIC-IDS-2017', 'CIC-IDS2018': 'CIC-IDS-2018',
-                'CICDDoS2019': 'CIC-DDoS2019', 'CIC_IOT_Dataset2023': 'CIC-IoT-2023',
-                'LITNET-2020': 'LITNET-2020'}
-CENSUS_LABEL = dict(LEDGER_LABEL, **{'CIC-IDS2018': 'CSE-CIC-IDS2018'})
+LEDGER_LABEL = {c: canon(c) for c in CORPUS_ORDER}
+CENSUS_LABEL = LEDGER_LABEL
 VERDICT_ORDER = ['USABLE', 'ROLE-UNVERIFIED', 'ATTACKER-SIDE', 'FLOOR-LIMITED', 'NOT-DDOS',
                  'NO-FPR', 'INSEPARABLE']
 CHECK_LABEL = {'USABLE': 'all four pass', 'NOT-DDOS': 'scope filter',
@@ -89,7 +93,7 @@ def assess(c, alpha):
     flag_source = bool(tcp_present and syn < SYN_FLOOR and max(ack, sa, rst) > RESP_BAR)
     doc_victim = victim in DOCUMENTED_VICTIMS.get(corpus, set())
     doc_attacker = victim in DOCUMENTED_ATTACKERS.get(corpus, set())
-    heuristic_valid = corpus not in HEURISTIC_INVALID_CORPORA
+    heuristic_valid = canon(corpus) not in HEURISTIC_INVALID_CORPORA
     attacker_side = doc_attacker or (flag_source and not doc_victim and heuristic_valid)
     role_unverified = (not doc_attacker) and flag_source and not doc_victim and not heuristic_valid
     floor = p_floor(c['n_calib'])
@@ -167,14 +171,25 @@ def main():
     agree_clock = sum(r['verdict'] == r['_clock_stored_verdict'] for r in ledger)
     dis_clock = [(r['corpus'], r['scenario'], r['verdict'], r['_clock_stored_verdict'])
                  for r in ledger if r['verdict'] != r['_clock_stored_verdict']]
-    by_key = {(r['corpus_dir'], r['scenario'], r['victim']): r for r in ledger}
-    dis_29, n29 = [], 0
+    # Join on the CANONICAL corpus, the file stem and the address. Both sides used to be
+    # keyed on whatever spelling their own producer happened to write, so a normalised
+    # record would have missed every row of the three two-spelling corpora -- and a miss
+    # here does not raise, it is counted as a verdict disagreement. Canonicalise both
+    # sides and fail loudly if any row fails to join.
+    by_key = {(canon(r['corpus_dir']), r['scenario'], r['victim']): r for r in ledger}
+    dis_29, n29, unmatched = [], 0, []
     for s in s29:
-        k = (s['corpus'], s['file'].replace('.json', ''), s['victim'].split('/', 1)[-1])
+        k = (canon(s['corpus']), s['file'].replace('.json', ''), s['victim'].split('/', 1)[-1])
         n29 += 1
         r = by_key.get(k)
-        if r is None or r['verdict'] != s['verdict']:
-            dis_29.append((k, s['verdict'], r and r['verdict']))
+        if r is None:
+            unmatched.append(k)
+            continue
+        if r['verdict'] != s['verdict']:
+            dis_29.append((k, s['verdict'], r['verdict']))
+    if unmatched:
+        raise SystemExit(f"scenarios29 join failed for {len(unmatched)} of {n29} rows: "
+                         f"{unmatched[:3]}")
 
     census = {v: {'n': 0, 'corpora': {}} for v in VERDICT_ORDER}
     for r in ledger:
@@ -226,7 +241,7 @@ def main():
     print(f"  candidates failing more than one check: {[(r['scenario'], r['checks_failed']) for r in multi_fail]}")
     print(f"  rounding-sensitive direction calls: {[r['scenario'] for r in ledger if r['direction_rounding_sensitive']]}")
 
-    dst = os.path.join(RESULTS_DIR, 'admissibility_ledger.json')
+    dst = safe_out.resolve(RESULTS_DIR, 'admissibility_ledger.json', 'AL')
     json.dump({'note': ('Admissibility ledger over the extracted candidate scenarios: one verdict each, by the '
                         'precedence NOT-DDOS > ATTACKER-SIDE > ROLE-UNVERIFIED > FLOOR-LIMITED > NO-FPR > '
                         'INSEPARABLE > USABLE, applied to the statistics of admissibility_inputs.json; '

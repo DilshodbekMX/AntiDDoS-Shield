@@ -38,7 +38,7 @@
    ]
   },
   "heuristic_invalid_corpora": [
-   "CIC_IOT_Dataset2023"
+   "CIC-IoT-2023"
   ]
  },
  "census": {
@@ -173,7 +173,7 @@
   }
  ],
  "highest_surviving_floor": {
-  "scenario": "CIC-IDS-2018 Tue-20-02_DDoS-LOIC-HTTP",
+  "scenario": "CSE-CIC-IDS2018 Tue-20-02_DDoS-LOIC-HTTP",
   "p_floor": 0.009346,
   "n_calib": 106
  },
@@ -393,7 +393,7 @@
    "n_test_benign": 1644
   },
   {
-   "corpus": "CIC-IDS-2018",
+   "corpus": "CSE-CIC-IDS2018",
    "corpus_dir": "CIC-IDS2018",
    "scenario": "Fri-16-02_DoS-Hulk",
    "victim": "172.31.69.25",
@@ -417,7 +417,7 @@
    "n_test_benign": 599
   },
   {
-   "corpus": "CIC-IDS-2018",
+   "corpus": "CSE-CIC-IDS2018",
    "corpus_dir": "CIC-IDS2018",
    "scenario": "Fri-16-02_DoS-SlowHTTPTest",
    "victim": "172.31.69.25",
@@ -441,7 +441,7 @@
    "n_test_benign": 1075
   },
   {
-   "corpus": "CIC-IDS-2018",
+   "corpus": "CSE-CIC-IDS2018",
    "corpus_dir": "CIC-IDS2018",
    "scenario": "Thu-15-02_DoS-GoldenEye",
    "victim": "172.31.69.25",
@@ -467,7 +467,7 @@
    "n_test_benign": 1052
   },
   {
-   "corpus": "CIC-IDS-2018",
+   "corpus": "CSE-CIC-IDS2018",
    "corpus_dir": "CIC-IDS2018",
    "scenario": "Thu-15-02_DoS-Slowloris",
    "victim": "172.31.69.25",
@@ -491,7 +491,7 @@
    "n_test_benign": 902
   },
   {
-   "corpus": "CIC-IDS-2018",
+   "corpus": "CSE-CIC-IDS2018",
    "corpus_dir": "CIC-IDS2018",
    "scenario": "Tue-20-02_DDoS-LOIC-HTTP",
    "victim": "172.31.69.25",
@@ -515,7 +515,7 @@
    "n_test_benign": 304
   },
   {
-   "corpus": "CIC-IDS-2018",
+   "corpus": "CSE-CIC-IDS2018",
    "corpus_dir": "CIC-IDS2018",
    "scenario": "Tue-20-02_DDoS-LOIC-UDP",
    "victim": "172.31.69.25",
@@ -541,7 +541,7 @@
    "n_test_benign": 0
   },
   {
-   "corpus": "CIC-IDS-2018",
+   "corpus": "CSE-CIC-IDS2018",
    "corpus_dir": "CIC-IDS2018",
    "scenario": "Wed-21-02_DDoS-HOIC",
    "victim": "172.31.69.28",
@@ -565,7 +565,7 @@
    "n_test_benign": 1401
   },
   {
-   "corpus": "CIC-IDS-2018",
+   "corpus": "CSE-CIC-IDS2018",
    "corpus_dir": "CIC-IDS2018",
    "scenario": "Wed-21-02_DDoS-LOIC-UDP",
    "victim": "172.31.69.28",

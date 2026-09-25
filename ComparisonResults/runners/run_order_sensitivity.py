@@ -28,10 +28,12 @@ for p in (HERE, os.path.abspath(os.path.join(HERE, '..'))):
     sys.path.insert(0, p)
 
 from config import RESULTS_DIR
+import safe_out
 import competitors_fixed as C
 import run_crosscorpus_auc as R
 import run_29_scenarios_corrected as R29
 from run_post2023_benchmark import tkey
+from corpus_names import is_separate_capture, spelling_census
 
 TARGETS = (0.01, 0.02, 0.05)
 
@@ -85,7 +87,7 @@ def main():
 
         rec = {'corpus': corp, 'file': fn, 'label': f"{corp} {fn.replace('.json','')}",
                'verdict': e.get('verdict'), 'split_mode': e.get('split_mode'),
-               'separate_capture': corp == 'CIC_IOT_Dataset2023',
+               'separate_capture': is_separate_capture(corp),
                'median_step_attack': step_a, 'median_step_benign': step_b,
                'step_ratio': round(step_b / step_a, 2) if (step_a and step_b) else None,
                'key_is_numeric': step_a is not None,
@@ -112,8 +114,10 @@ def main():
                         for arm in C.DETECTORS}
         summary[tag]['n'] = len(rows)
 
-    out = {'note': __doc__.strip(), 'summary': summary, 'per_scenario': per}
-    dst = os.path.join(RESULTS_DIR, 'order_sensitivity.json')
+    out = {'note': __doc__.strip(),
+           'corpus_spelling_census': spelling_census([r['corpus'] for r in per]),
+           'summary': summary, 'per_scenario': per}
+    dst = safe_out.resolve(RESULTS_DIR, 'order_sensitivity.json', 'OS')
     json.dump(out, open(dst, 'w'), indent=1)
     for tag, blk in summary.items():
         print(f"\n  == {tag} (n={blk['n']})")

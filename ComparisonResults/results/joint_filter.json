@@ -5,6 +5,87 @@
   "clock_null.json",
   "panel_inventory/PANEL.json"
  ],
+ "corpus_spelling_census": {
+  "CIC-IDS-2017": {
+   "CIC-IDS-2017": 6
+  },
+  "CSE-CIC-IDS2018": {
+   "CIC-IDS-2018": 6
+  },
+  "CIC-DDoS2019": {
+   "CIC-DDoS2019": 4
+  },
+  "CIC-IoT-2023": {
+   "CIC-IoT-2023": 6
+  },
+  "LITNET-2020": {
+   "LITNET-2020": 1
+  }
+ },
+ "repaired_split_cross": {
+  "deposited_split": {
+   "session_clean": {
+    "clock_clean": 2,
+    "clock_separates": 15
+   },
+   "separate_benign_capture": {
+    "clock_clean": 6,
+    "clock_separates": 0
+   },
+   "n": 23
+  },
+  "threeway_split": {
+   "session_clean": {
+    "clock_clean": 14,
+    "clock_separates": 3
+   },
+   "separate_benign_capture": {
+    "clock_clean": 6,
+    "clock_separates": 0
+   },
+   "n": 23
+  },
+  "note": "The clock reads the test stream labels only, so every row is measurable under both splits. The repair is a no-op on the six CIC-IoT-2023 rows (index-collision order) and on the cross-day row (test stream is the whole attack day, never truncated). Detector re-scoring covers 22 of these 23 rows: the cross-day training cache is not in the deposit."
+ },
+ "joint_clean_stratum": {
+  "deposited_split": {
+   "n": 2,
+   "mean_delta_auc": 0.026558,
+   "n_victim_clusters_raw_keys_diagnostic": 2,
+   "wins": 2,
+   "n_victim_clusters": 2,
+   "victims": [
+    "CIC-DDoS2019/192.168.50.4",
+    "CIC-IDS-2017/192.168.10.50"
+   ],
+   "cluster_wilcoxon_p": 0.5,
+   "cluster_informative_pairs": 2,
+   "cluster_exact_floor": 0.5,
+   "carried_rows": [],
+   "reachable_at_5pct": false
+  },
+  "threeway_split": {
+   "n": 14,
+   "mean_delta_auc": 0.013633,
+   "n_victim_clusters_raw_keys_diagnostic": 6,
+   "wins": 11,
+   "n_victim_clusters": 5,
+   "victims": [
+    "CIC-DDoS2019/192.168.50.4",
+    "CIC-IDS-2017/192.168.10.50",
+    "CSE-CIC-IDS2018/172.31.69.25",
+    "CSE-CIC-IDS2018/172.31.69.28",
+    "LITNET-2020/193.219.81.138"
+   ],
+   "cluster_wilcoxon_p": 0.4375,
+   "cluster_informative_pairs": 5,
+   "cluster_exact_floor": 0.0625,
+   "carried_rows": [
+    "CIC-IDS-2017 Fri-07-07_DDoS-LOIT (cross-day Mon->Fri)"
+   ],
+   "reachable_at_5pct": false
+  }
+ },
  "arms": {
   "ours": "Subspace-Q + EWMA (ours)",
   "reference": "POT"
@@ -65,11 +146,11 @@
     "scenario_exact_floor": 0.015625,
     "n_victim_clusters": 5,
     "cluster_mean_delta_auc": {
-     "192.168.137.139": 0.001251,
-     "192.168.137.209": 0.004276,
-     "192.168.137.90": -0.000156,
-     "192.168.137.99": 0.009049,
-     "192.168.50.4": 0.046053
+     "CIC-DDoS2019/192.168.50.4": 0.046053,
+     "CIC-IoT-2023/192.168.137.139": 0.001251,
+     "CIC-IoT-2023/192.168.137.209": 0.004276,
+     "CIC-IoT-2023/192.168.137.90": -0.000156,
+     "CIC-IoT-2023/192.168.137.99": 0.009049
     },
     "victim_cluster_mean": 0.012095,
     "cluster_informative_pairs": 5,
@@ -153,12 +234,12 @@
     "scenario_exact_floor": 0.0078125,
     "n_victim_clusters": 6,
     "cluster_mean_delta_auc": {
-     "192.168.10.50": 0.007064,
-     "192.168.137.139": 0.001251,
-     "192.168.137.209": 0.004276,
-     "192.168.137.90": -0.000156,
-     "192.168.137.99": 0.009049,
-     "192.168.50.4": 0.046053
+     "CIC-DDoS2019/192.168.50.4": 0.046053,
+     "CIC-IDS-2017/192.168.10.50": 0.007064,
+     "CIC-IoT-2023/192.168.137.139": 0.001251,
+     "CIC-IoT-2023/192.168.137.209": 0.004276,
+     "CIC-IoT-2023/192.168.137.90": -0.000156,
+     "CIC-IoT-2023/192.168.137.99": 0.009049
     },
     "victim_cluster_mean": 0.011256,
     "cluster_informative_pairs": 6,

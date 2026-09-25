@@ -113,11 +113,25 @@ def load_case(entry):
         return None, None, None, None
     first = atk_idx[0]
     pre = rows[:first]
-    cut = int(len(pre) * 0.6)
     post = rows[first:]
-    return (pre[:cut], pre[cut:],
-            [r for r in post if not r.get('_is_attack')],
-            [r for r in post if r.get('_is_attack')])
+    post_ben = [r for r in post if not r.get('_is_attack')]
+    post_atk = [r for r in post if r.get('_is_attack')]
+
+    # ANTIDDOS_SPLIT=threeway keeps a pre-attack benign slice in the TEST stream, so the
+    # stream runs benign -> attack -> benign instead of opening on attack. Calibration
+    # stays held out (40/40/20 preserves n_calib at 40% of pre-attack benign). Default is
+    # the deposited two-way split; set the variable to reproduce the referee's control.
+    mode3 = os.environ.get('ANTIDDOS_SPLIT')
+    if mode3 in ('threeway', 'threeway40', 'threeway60'):
+        # threeway40 (default) holds the CALIBRATION size at 40% and shrinks fit to 40%.
+        # threeway60 holds the FIT size at 60% and shrinks calibration to 20%. Running both
+        # separates the effect of the stream order from the effect of training on less data.
+        f = 0.6 if mode3 == 'threeway60' else 0.4
+        a, b = int(len(pre) * f), int(len(pre) * 0.8)
+        return (pre[:a], pre[a:b], sorted(pre[b:] + post_ben, key=tkey), post_atk)
+
+    cut = int(len(pre) * 0.6)
+    return pre[:cut], pre[cut:], post_ben, post_atk
 
 
 def main():
