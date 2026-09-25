@@ -1,5 +1,5 @@
 {
- "note": "Clock-only null under the deposited split and under the three-way split, both signs.\n\nTwo questions in one pass, both label-only: neither reads a detector score.\n\n  1. Is the clock degeneracy a property of the corpora or of the causal split? The\n     deposited split sends every pre-attack benign window into fit and calibration, so\n     each test stream opens on attack and a decreasing index separates the classes. The\n     three-way split returns the last fifth of that benign slice to the test stream.\n  2. Does the two-sided reading max(AUC, 1-AUC) flatter the null relative to the fixed\n     sign s = -i that a causal detector could commit to in advance? Both are reported\n     per row, so the counts can be compared at any cut.\n\nThe test stream here is identical for the 40/40/20 and 60/20/20 three-way variants --\nonly the fit/calibration boundary differs, and the clock reads neither -- so this record\ncovers both.\n\nWrites results/clock_split_sensitivity.json (override with CS_OUTDIR / CS_OUT).",
+ "note": "Clock-only null under the deposited split and under the three-way split, both signs.\n\nTwo questions in one pass, both label-only: neither reads a detector score.\n\n  1. Is the clock degeneracy a property of the corpora or of the causal split? The\n     deposited split sends every pre-attack benign window into fit and calibration, so\n     each test stream opens on attack and a decreasing index separates the classes. The\n     three-way split returns the last fifth of that benign slice to the test stream.\n  2. Does the two-sided reading max(AUC, 1-AUC) flatter the null relative to the fixed\n     sign s = -i that a causal detector could commit to in advance? Both are reported\n     per row, so the counts can be compared at any cut.\n\nThe test stream here is identical for the 40/40/20 and 60/20/20 three-way variants --\nonly the fit/calibration boundary differs, and the clock reads neither -- so this record\ncovers both.\n\nA missing input cache is an error, not a skip: a silently shortened panel would change\nevery count in the summary without changing anything a reader can see. Set\nCS_ALLOW_PARTIAL=1 to run on whatever caches are present; the output then carries\nn_skipped and the reason for each, and the counts are not comparable with the deposit.\n\nWrites results/clock_split_sensitivity.json (override with CS_OUTDIR / CS_OUT).",
  "cuts": [
   0.95,
   0.94
@@ -65,6 +65,10 @@
    "clock_separability": 0.9486
   }
  ],
+ "n_panel": 23,
+ "n_scored": 23,
+ "n_skipped": 0,
+ "allow_partial": false,
  "skipped": [],
  "versions": {
   "numpy": "2.4.2",
@@ -417,5 +421,5 @@
    }
   }
  ],
- "elapsed_sec": 1.1
+ "elapsed_sec": 1.3
 }

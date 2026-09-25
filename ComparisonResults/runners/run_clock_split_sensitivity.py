@@ -15,6 +15,11 @@ The test stream here is identical for the 40/40/20 and 60/20/20 three-way varian
 only the fit/calibration boundary differs, and the clock reads neither -- so this record
 covers both.
 
+A missing input cache is an error, not a skip: a silently shortened panel would change
+every count in the summary without changing anything a reader can see. Set
+CS_ALLOW_PARTIAL=1 to run on whatever caches are present; the output then carries
+n_skipped and the reason for each, and the counts are not comparable with the deposit.
+
 Writes results/clock_split_sensitivity.json (override with CS_OUTDIR / CS_OUT).
 """
 import json, os, sys, time
@@ -71,19 +76,29 @@ def main():
     t0 = time.time()
     base = os.environ.get('ANTIDDOS_BASE', os.path.dirname(os.path.dirname(HERE)))
     panel = json.load(open(os.path.join(RESULTS_DIR, 'panel_inventory', 'PANEL.json')))['panel']
+    allow_partial = os.environ.get('CS_ALLOW_PARTIAL') == '1'
     rows, skipped, raw = [], [], []
     for e in panel:
         cache = os.path.join(base, str(e['cache']).lstrip('./'))
         if not os.path.exists(cache):
+            if not allow_partial:
+                raise SystemExit(
+                    f"missing input cache for {e['label']}: {cache}\n"
+                    "The panel counts in this record are only meaningful over all 23 rows. "
+                    "Set CS_ALLOW_PARTIAL=1 to run on the caches present; the output then "
+                    "records n_skipped and its counts are not comparable with the deposit.")
             skipped.append({'label': e['label'], 'reason': 'input not in this tree'})
             continue
         corp = corpus_of(e)
         d = json.load(open(cache))
         per = d.get('per_ip_windows', d)
         v = e.get('victim')
-        if v not in per and per:
-            v = next(iter(per))
-        rr = sorted(per.get(v, []), key=tkey)
+        if v not in per:
+            raise SystemExit(
+                f"victim {v!r} absent from {cache} (scenario {e['label']}). "
+                "Scoring a different host would silently answer a different question; "
+                "fix PANEL.json or the cache rather than substituting one.")
+        rr = sorted(per[v], key=tkey)
         b, t = streams(rr, e.get('mode', 'within'))
         if b is None:
             skipped.append({'label': e['label'], 'reason': 'no attack window'})
@@ -124,6 +139,10 @@ def main():
            'corpus_spelling_census': spelling_census(raw),
            'summary': summary,
            'sign_oracle_disagreements': sign_disagreements,
+           'n_panel': len(panel),
+           'n_scored': len(rows),
+           'n_skipped': len(skipped),
+           'allow_partial': allow_partial,
            'skipped': skipped,
            'versions': {'numpy': np.__version__, 'sklearn': __import__('sklearn').__version__},
            'per_scenario': rows,
