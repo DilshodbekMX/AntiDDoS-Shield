@@ -2,8 +2,8 @@
 
 > ## CHANGE (2026-09-24): burst_factor and unique_flows excluded from the evaluated schedule
 >
-> **Origin.** The offline extractor (`experiment/pcap_feature_extractor.py`, not
-> deposited) filled two slots of the engine's 39-name export contract as
+> **Origin.** The offline extractor (`extraction/pcap_feature_extractor.py`; the whole
+> chain that builds the feature tree is under `extraction/`, see its README) filled two slots of the engine's 39-name export contract as
 > placeholders: `burst_factor = packets_per_sec` (source comment: "Simplified --
 > compared against baseline later") and `unique_flows = flows_per_sec` (distinct
 > 5-tuples in the 1-s bin). In the scored matrix `burst_factor` was a bit-identical
@@ -406,6 +406,9 @@ filter, one causal split, ours +0.0232 over SPOT at p=0.011.
                                      (and subspace_q.h), which are not deposited: set SUBSPACE_Q_C or
                                      ANTIDDOS_BASE. As first deposited (a7c5cea) it carried two
                                      development-machine absolute paths, so it resolved on that machine only
+      extraction/                    the scripts that build datasets/extracted/ from the official corpus
+                                     releases, in the documented order, with the tree's own index.json,
+                                     SHA256SUMS and READMEs (tree_manifest/); the tree itself is not deposited
       option_b_change_ledger.tsv     per-record leaf counts of the 2026-09-24 regeneration
                                      (run_dif_seed_sensitivity.py writes dif_seed_sensitivity.json)
       results/                       the artifacts; four top-level records have no deposited writer --
