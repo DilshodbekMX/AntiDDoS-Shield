@@ -1,0 +1,3 @@
+option('build_tests', type: 'boolean', value: false, description: 'Build unit tests')
+option('build_benchmarks', type: 'boolean', value: false, description: 'Build benchmarks')
+option('build_fuzz', type: 'boolean', value: false, description: 'Build fuzz tests (requires clang)')

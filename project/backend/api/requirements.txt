@@ -1,0 +1,37 @@
+# Anti-DDoS Management API Requirements (Phase 8.1)
+
+# Web framework
+fastapi>=0.109.0
+uvicorn[standard]>=0.27.0
+
+# Data validation
+pydantic>=2.5.0
+
+# Authentication
+PyJWT>=2.8.0
+python-multipart>=0.0.6
+bcrypt>=4.1.0
+
+# HTTP client (for external integrations)
+httpx>=0.26.0
+
+# Database
+sqlalchemy>=2.0.0
+aiosqlite>=0.19.0
+alembic>=1.13.0
+
+# Redis (for caching and token blacklist)
+redis>=5.0.0
+
+# Metrics (optional - native implementation provided)
+# prometheus-client>=0.19.0  # Optional - we use native implementation
+
+# Testing
+pytest>=7.4.0
+pytest-asyncio>=0.23.0
+httpx>=0.26.0
+
+# Development
+black>=23.12.0
+isort>=5.13.0
+mypy>=1.8.0

@@ -1,0 +1,165 @@
+{
+    "version": 1,
+    "organization": {
+        "name": "Your Organization",
+        "contact_email": "security@example.com",
+        "alert_webhook": ""
+    },
+    "protected_networks": [
+        {
+            "network": "203.0.113.0/24",
+            "description": "Web servers"
+        },
+        {
+            "network": "198.51.100.0/24",
+            "description": "API servers"
+        },
+        {
+            "network": "192.0.2.0/24",
+            "description": "Database servers"
+        }
+    ],
+    "layer1": {
+        "rate_limits": {
+            "global_pps": 10000000,
+            "global_bps": 10000000000,
+            "per_src_pps": 10000,
+            "per_src_bps": 10000000,
+            "syn_pps": 5000,
+            "udp_pps": 50000,
+            "icmp_pps": 1000,
+            "dns_qps": 10000,
+            "ntp_pps": 1000
+        },
+        "connection_limits": {
+            "max_conn_per_src": 1000,
+            "max_half_open_per_src": 100,
+            "max_conn_global": 2000000,
+            "max_new_conn_per_sec": 50000
+        },
+        "syn_proxy": {
+            "enabled": true,
+            "always_on": false,
+            "challenge_threshold_pps": 5000,
+            "max_connections": 2000000,
+            "cookie_ttl_sec": 60,
+            "secret_rotation_sec": 60
+        },
+        "flow_table": {
+            "max_flows": 4000000,
+            "idle_timeout_sec": 60,
+            "established_timeout_sec": 300
+        },
+        "ip_lists": {
+            "whitelist_path": "data/whitelist.json",
+            "blacklist_path": "data/blacklist.json",
+            "max_whitelist_entries": 10000,
+            "max_blacklist_entries": 100000
+        },
+        "validation": {
+            "check_ip_checksum": false,
+            "check_tcp_checksum": false,
+            "check_udp_checksum": false,
+            "min_ttl": 1,
+            "drop_invalid_flags": true
+        },
+        "tcp_abuse_detection": {
+            "enabled": true,
+            "dup_seq_threshold": 150,
+            "random_seq_threshold": 45,
+            "random_ack_threshold": 45,
+            "zero_window_threshold": 5,
+            "tiny_window_bytes": 100,
+            "small_window_bytes": 2000
+        },
+        "udp_gatekeeper": {
+            "enabled": true,
+            "pps_threshold": 10000,
+            "bps_threshold": 10000000,
+            "grace_period_sec": 5
+        },
+        "geo_blocking": {
+            "enabled": false,
+            "mode": "blacklist",
+            "blocked_countries": [],
+            "allowed_countries": []
+        },
+        "signatures": {
+            "enabled": true,
+            "max_signatures": 256,
+            "dynamic_signatures": true
+        }
+    },
+    "layer2": {
+        "enabled": true,
+        "detection_interval_ms": 1000,
+        "thresholds": {
+            "z_score": 4.0,
+            "min_tier_agreement": 2,
+            "jsd_threshold": 0.15,
+            "max_flow_fraction": 0.15,
+            "topk_flow_share": 0.3
+        },
+        "baselines": {
+            "alpha_immediate": 0.2,
+            "alpha_hourly": 0.1,
+            "alpha_weekly": 0.05,
+            "min_samples_immediate": 10,
+            "min_samples_hourly": 20,
+            "min_samples_weekly": 40,
+            "freeze_on_attack": true,
+            "persistence_path": "data/baselines.json",
+            "save_interval_sec": 300
+        },
+        "response": {
+            "cool_down_seconds": 30,
+            "escalation_delay_sec": 5,
+            "deescalation_delay_sec": 30,
+            "auto_mitigation": true
+        },
+        "features": {
+            "cusum_enabled": true,
+            "jsd_enabled": true,
+            "entropy_enabled": false
+        }
+    },
+    "telemetry": {
+        "prometheus": {
+            "enabled": true,
+            "port": 9090,
+            "path": "/metrics"
+        },
+        "stats_socket": {
+            "enabled": true,
+            "path": "/var/run/antiddos/stats.sock"
+        },
+        "logging": {
+            "level": "info",
+            "path": "logs/antiddos.log",
+            "max_size_mb": 100,
+            "max_files": 10
+        },
+        "forwarding": {
+            "enabled": true,
+            "bind_ip": "10.10.101.46",
+            "dest_ip": "10.10.101.15",
+            "dest_port": 9999,
+            "protocol": "tcp",
+            "streams": {
+                "stats": true,
+                "traffic": true,
+                "anomaly": true,
+                "per_ip_features": true,
+                "sysmon": false
+            },
+            "interval_ms": 500
+        }
+    },
+    "alerting": {
+        "enabled": true,
+        "throttle_sec": 60,
+        "attack_start": true,
+        "attack_end": true,
+        "severity_threshold": 2
+    }
+}

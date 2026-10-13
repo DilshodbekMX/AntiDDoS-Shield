@@ -1,0 +1,644 @@
+{
+ "concentration": {
+  "sum_delta": 0.393796,
+  "mean": 0.024612,
+  "cluster_mean": 0.012318,
+  "five_largest": [
+   [
+    "CIC-IDS-2017 Wed-05-07_DoS-Slowhttptest",
+    0.212039
+   ],
+   [
+    "CIC-IDS-2017 Wed-05-07_DoS-Hulk",
+    0.063987
+   ],
+   [
+    "CIC-DDoS2019 cicddos_03-11_192-168-50-4_Syn",
+    0.046053
+   ],
+   [
+    "CIC-DDoS2019 cicddos_03-11_192-168-50-4_UDPLag",
+    0.037619
+   ],
+   [
+    "CIC-IDS-2017 Wed-05-07_DoS-GoldenEye",
+    0.033324
+   ]
+  ],
+  "five_largest_share_pct": 99.8,
+  "others_sum": 0.029917,
+  "n_others": 7,
+  "losses": [
+   [
+    "LITNET-2020 code_red_worm",
+    -0.027374
+   ],
+   [
+    "CIC-IDS-2018 Wed-21-02_DDoS-HOIC",
+    -0.001661
+   ],
+   [
+    "CIC-IDS-2018 Wed-21-02_DDoS-LOIC-UDP",
+    -8.9e-05
+   ],
+   [
+    "CIC-IDS-2018 Thu-15-02_DoS-Slowloris",
+    -2e-05
+   ]
+  ],
+  "wins": 12,
+  "top_share_pct": 53.8,
+  "top_victim_share_pct": 80.7,
+  "mean_without_top": 0.012117,
+  "max_other_deletion_shift": 0.003466,
+  "lovo": {
+   "CIC-DDoS2019/192.168.50.4": 0.02478,
+   "CIC-IDS-2017/192.168.10.50": 0.006906,
+   "CIC-IDS-2018/172.31.69.25": 0.032094,
+   "CIC-IDS-2018/172.31.69.28": 0.028253,
+   "LITNET-2020/193.219.81.138": 0.028078
+  },
+  "cluster_deltas": {
+   "CIC-DDoS2019/192.168.50.4": 0.024108,
+   "CIC-IDS-2017/192.168.10.50": 0.063565,
+   "CIC-IDS-2018/172.31.69.25": 0.002166,
+   "CIC-IDS-2018/172.31.69.28": -0.000875,
+   "LITNET-2020/193.219.81.138": -0.027374
+  },
+  "cluster_sizes": {
+   "CIC-IDS-2017/192.168.10.50": 5,
+   "CIC-IDS-2018/172.31.69.25": 4,
+   "CIC-IDS-2018/172.31.69.28": 2,
+   "CIC-DDoS2019/192.168.50.4": 4,
+   "LITNET-2020/193.219.81.138": 1
+  }
+ },
+ "clock_vs_ours": {
+  "clock_wins": 8,
+  "ties": 0,
+  "scenario_p": 0.5966,
+  "cluster_wins": 3,
+  "cluster_p": 0.8125,
+  "n_ge_095": 15,
+  "n_perfect": 6,
+  "clean_rows": [
+   [
+    "CIC-DDoS2019 cicddos_03-11_192-168-50-4_Syn",
+    0.5247,
+    0.046053
+   ]
+  ],
+  "sum_delta_on_separated": 0.347742,
+  "label_runs_2018": [
+   2,
+   2,
+   2,
+   2,
+   2,
+   2
+  ],
+  "slowhttptest_clock": 0.9927
+ },
+ "clock_census": {
+  "n_scorable": 29,
+  "mean_separability": 0.9401,
+  "n_perfect": 9,
+  "n_ge_095": 23,
+  "files": [
+   "Fri-07-07_DDoS-LOIT.json",
+   "Fri-07-07_PortScan.json",
+   "Wed-05-07_DoS-GoldenEye.json",
+   "Wed-05-07_DoS-Hulk.json",
+   "Wed-05-07_DoS-Slowhttptest.json",
+   "Wed-05-07_DoS-Slowloris.json",
+   "Wed-05-07_Heartbleed.json",
+   "Fri-16-02_DoS-Hulk.json",
+   "Fri-16-02_DoS-SlowHTTPTest.json",
+   "Thu-15-02_DoS-GoldenEye.json",
+   "Thu-15-02_DoS-Slowloris.json",
+   "Tue-20-02_DDoS-LOIC-HTTP.json",
+   "Wed-21-02_DDoS-HOIC.json",
+   "Wed-21-02_DDoS-LOIC-UDP.json",
+   "cicddos_03-11_192-168-50-4_LDAP.json",
+   "cicddos_03-11_192-168-50-4_MSSQL.json",
+   "cicddos_03-11_192-168-50-4_NetBIOS.json",
+   "cicddos_03-11_192-168-50-4_Syn.json",
+   "cicddos_03-11_192-168-50-4_UDP.json",
+   "cicddos_03-11_192-168-50-4_UDPLag.json",
+   "attacker_side/cicddos_03-11_172-16-0-5_LDAP.json",
+   "attacker_side/cicddos_03-11_172-16-0-5_MSSQL.json",
+   "attacker_side/cicddos_03-11_172-16-0-5_NetBIOS.json",
+   "attacker_side/cicddos_03-11_172-16-0-5_Syn.json",
+   "attacker_side/cicddos_03-11_172-16-0-5_UDP.json",
+   "attacker_side/cicddos_03-11_172-16-0-5_UDPLag.json",
+   "code_red_worm.json",
+   "http_flood.json",
+   "udp_f.json"
+  ]
+ },
+ "surviving_rows_share": {
+  "deposited": {
+   "n": 16,
+   "slowhttptest_pct": 53.8,
+   "three_rows_pct": 56.0,
+   "sum_delta": 0.393796,
+   "mean_auc_ours": 0.9913,
+   "margin": 0.0246
+  },
+  "threeway40": {
+   "n": 16,
+   "slowhttptest_pct": 54.5,
+   "three_rows_pct": 56.6,
+   "sum_delta": 0.380154,
+   "mean_auc_ours": 0.9916,
+   "margin": 0.0238
+  },
+  "threeway60": {
+   "n": 16,
+   "slowhttptest_pct": 52.4,
+   "three_rows_pct": 54.5,
+   "sum_delta": 0.404112,
+   "mean_auc_ours": 0.9926,
+   "margin": 0.0253
+  }
+ },
+ "dspot": {
+  "mean": 0.6971,
+  "median": 0.8504,
+  "min": 0.0297,
+  "min_row": "CIC-IDS-2017 Wed-05-07_DoS-Slowloris",
+  "below_05": 5,
+  "wins_vs_ref": 0,
+  "zero_ep2_rows": 5
+ },
+ "zero_ep2_cells": {
+  "Subspace-Q + EWMA (ours)": 0,
+  "POT": 0,
+  "DSPOT": 5,
+  "ECOD": 0,
+  "COPOD": 0,
+  "HBOS": 0,
+  "LODA": 0,
+  "INNE": 1,
+  "IForest": 0,
+  "DIF": 0
+ },
+ "zero_ep2_total": 6,
+ "oracle_episodes": {
+  "ep@1": {
+   "means": {
+    "Subspace-Q + EWMA (ours)": 5.96,
+    "POT": 5.44,
+    "DSPOT": 3.09,
+    "ECOD": 7.67,
+    "COPOD": 8.05,
+    "HBOS": 7.81,
+    "LODA": 7.07,
+    "INNE": 3.83,
+    "IForest": 7.86,
+    "DIF": 7.9
+   },
+   "rank_ours": 4,
+   "rank_ref": 3,
+   "best": "DSPOT",
+   "worst": "COPOD",
+   "ours_fewer": 7,
+   "ours_more": 6,
+   "ties": 3,
+   "scenario_p": 0.6002,
+   "cluster_p": 0.4375,
+   "floor": 0.0625
+  },
+  "ep@2": {
+   "means": {
+    "Subspace-Q + EWMA (ours)": 8.81,
+    "POT": 8.47,
+    "DSPOT": 4.07,
+    "ECOD": 9.09,
+    "COPOD": 9.23,
+    "HBOS": 9.14,
+    "LODA": 10.84,
+    "INNE": 8.75,
+    "IForest": 9.57,
+    "DIF": 10.81
+   },
+   "rank_ours": 4,
+   "rank_ref": 2,
+   "best": "DSPOT",
+   "worst": "LODA",
+   "ours_fewer": 9,
+   "ours_more": 6,
+   "ties": 1,
+   "scenario_p": 1.0,
+   "cluster_p": 0.8125,
+   "floor": 0.0625
+  },
+  "ep@5": {
+   "means": {
+    "Subspace-Q + EWMA (ours)": 12.45,
+    "POT": 11.33,
+    "DSPOT": 4.0,
+    "ECOD": 11.68,
+    "COPOD": 11.69,
+    "HBOS": 12.0,
+    "LODA": 13.0,
+    "INNE": 10.69,
+    "IForest": 11.89,
+    "DIF": 12.7
+   },
+   "rank_ours": 8,
+   "rank_ref": 3,
+   "best": "DSPOT",
+   "worst": "LODA",
+   "ours_fewer": 8,
+   "ours_more": 7,
+   "ties": 1,
+   "scenario_p": 0.7333,
+   "cluster_p": 0.4375,
+   "floor": 0.0625
+  }
+ },
+ "matched_episodes": {
+  "ep@1": {
+   "means": {
+    "Subspace-Q + EWMA (ours)": 5.96,
+    "POT": 4.94,
+    "DSPOT": 3.52,
+    "ECOD": 6.95,
+    "COPOD": 7.05,
+    "HBOS": 6.35,
+    "LODA": 7.98,
+    "INNE": 5.67,
+    "IForest": 6.67,
+    "DIF": 5.01
+   },
+   "rank_ours": 5,
+   "rank_ref": 2,
+   "best": "DSPOT",
+   "worst": "LODA",
+   "ours_fewer": 2,
+   "ours_more": 9,
+   "ties": 5,
+   "scenario_p": 0.0409,
+   "cluster_p": 0.25,
+   "floor": 0.125
+  },
+  "ep@2": {
+   "means": {
+    "Subspace-Q + EWMA (ours)": 8.81,
+    "POT": 7.96,
+    "DSPOT": 5.26,
+    "ECOD": 9.31,
+    "COPOD": 9.38,
+    "HBOS": 9.0,
+    "LODA": 10.82,
+    "INNE": 8.95,
+    "IForest": 8.75,
+    "DIF": 7.32
+   },
+   "rank_ours": 5,
+   "rank_ref": 3,
+   "best": "DSPOT",
+   "worst": "LODA",
+   "ours_fewer": 5,
+   "ours_more": 8,
+   "ties": 3,
+   "scenario_p": 0.2213,
+   "cluster_p": 0.125,
+   "floor": 0.125
+  },
+  "ep@5": {
+   "means": {
+    "Subspace-Q + EWMA (ours)": 12.45,
+    "POT": 11.7,
+    "DSPOT": 7.24,
+    "ECOD": 11.98,
+    "COPOD": 12.04,
+    "HBOS": 11.78,
+    "LODA": 14.02,
+    "INNE": 12.71,
+    "IForest": 12.21,
+    "DIF": 11.71
+   },
+   "rank_ours": 8,
+   "rank_ref": 2,
+   "best": "DSPOT",
+   "worst": "LODA",
+   "ours_fewer": 5,
+   "ours_more": 9,
+   "ties": 2,
+   "scenario_p": 0.4326,
+   "cluster_p": 0.625,
+   "floor": 0.0625
+  }
+ },
+ "matched": {
+  "ref_smoothed_mean": 0.9686,
+  "means": {
+   "Subspace-Q + EWMA (ours)": 0.9913,
+   "POT": 0.9686,
+   "DSPOT": 0.7413,
+   "ECOD": 0.975,
+   "COPOD": 0.9699,
+   "HBOS": 0.9613,
+   "LODA": 0.5352,
+   "INNE": 0.9888,
+   "IForest": 0.9853,
+   "DIF": 0.9909
+  },
+  "ours_iid_ci": [
+   -0.0022,
+   0.0614
+  ],
+  "ours_minus_dif": 0.000448
+ },
+ "leakage": {
+  "Subspace-Q + EWMA (ours)": {
+   "uncorrected": 0.982,
+   "corrected": 0.9913
+  },
+  "POT": {
+   "uncorrected": 0.9667,
+   "corrected": 0.9667
+  },
+  "DSPOT": {
+   "uncorrected": 0.7526,
+   "corrected": 0.6971
+  },
+  "ECOD": {
+   "uncorrected": 0.6692,
+   "corrected": 0.9621
+  },
+  "COPOD": {
+   "uncorrected": 0.6667,
+   "corrected": 0.954
+  },
+  "HBOS": {
+   "uncorrected": 0.9293,
+   "corrected": 0.9293
+  },
+  "LODA": {
+   "uncorrected": 0.5578,
+   "corrected": 0.5255
+  },
+  "INNE": {
+   "uncorrected": 0.9751,
+   "corrected": 0.975
+  },
+  "DIF": {
+   "uncorrected": 0.5314,
+   "corrected": 0.9829
+  }
+ },
+ "band_six_arms": {
+  "low": 0.954,
+  "high": 0.9829,
+  "width": 0.0289
+ },
+ "margin_over_ecod": {
+  "corrected": 0.0292,
+  "counterfactual": 0.3221
+ },
+ "wilcoxon_method": {
+  "Subspace-Q + EWMA (ours)": {
+   "p_auto": 0.00919,
+   "p_exact": 0.00919,
+   "exact_used": true,
+   "n_nonzero": 16,
+   "ties_in_abs": 0
+  },
+  "DSPOT": {
+   "p_auto": 0.00065,
+   "p_exact": 6e-05,
+   "exact_used": false,
+   "n_nonzero": 15,
+   "ties_in_abs": 0
+  },
+  "ECOD": {
+   "p_auto": 0.46375,
+   "p_exact": 0.46375,
+   "exact_used": true,
+   "n_nonzero": 16,
+   "ties_in_abs": 0
+  },
+  "COPOD": {
+   "p_auto": 0.0654,
+   "p_exact": 0.0654,
+   "exact_used": true,
+   "n_nonzero": 16,
+   "ties_in_abs": 0
+  },
+  "HBOS": {
+   "p_auto": 0.01309,
+   "p_exact": 0.01309,
+   "exact_used": true,
+   "n_nonzero": 16,
+   "ties_in_abs": 0
+  },
+  "LODA": {
+   "p_auto": 3e-05,
+   "p_exact": 3e-05,
+   "exact_used": true,
+   "n_nonzero": 16,
+   "ties_in_abs": 0
+  },
+  "INNE": {
+   "p_auto": 0.78195,
+   "p_exact": 0.78195,
+   "exact_used": true,
+   "n_nonzero": 16,
+   "ties_in_abs": 0
+  },
+  "IForest": {
+   "p_auto": 0.56189,
+   "p_exact": 0.56189,
+   "exact_used": true,
+   "n_nonzero": 16,
+   "ties_in_abs": 0
+  },
+  "DIF": {
+   "p_auto": 0.23298,
+   "p_exact": 0.25238,
+   "exact_used": false,
+   "n_nonzero": 15,
+   "ties_in_abs": 0
+  }
+ },
+ "dif_seed_corrected": {
+  "n": 16,
+  "mean_42": 0.982906,
+  "mean_7": 0.983338,
+  "mean_shift": 0.000432,
+  "worst_row": "CIC-IDS-2018 Fri-16-02_DoS-Hulk",
+  "worst_shift": 0.009789
+ },
+ "dif_seed_archived": {
+  "n": 16,
+  "mean_42": 0.53141,
+  "mean_7": 0.526631,
+  "mean_shift": 0.004779,
+  "worst_row": "CIC-DDoS2019 cicddos_03-11_192-168-50-4_Syn",
+  "worst_shift": 0.087297
+ },
+ "dif_correction_seed7": 0.4567,
+ "dif_correction_seed42": 0.4515,
+ "engine": {
+  "n": 16,
+  "min_n_train": 157,
+  "max_d": 32,
+  "max_abs": 2.220446049250313e-16,
+  "max_rel": 2.6386446860332837e-16,
+  "mean_auc": 0.991303,
+  "all_pass": true
+ },
+ "adjacency": {
+  "mean_adjacency_pct": 3.4,
+  "spearman_inflation_vs_adjacency@1": [
+   0.64,
+   0.008
+  ],
+  "spearman_inflation_vs_attackfrac@1": [
+   -0.18,
+   0.514
+  ],
+  "dspot_stream_free@1": [
+   68.67,
+   49.52
+  ],
+  "arms_moved@1": {
+   "Subspace-Q + EWMA (ours)": 11,
+   "DSPOT": 12
+  },
+  "spearman_inflation_vs_adjacency@2": [
+   0.61,
+   0.012
+  ],
+  "spearman_inflation_vs_attackfrac@2": [
+   -0.11,
+   0.69
+  ],
+  "dspot_stream_free@2": [
+   85.29,
+   55.28
+  ],
+  "arms_moved@2": {
+   "Subspace-Q + EWMA (ours)": 12,
+   "DSPOT": 13
+  },
+  "spearman_inflation_vs_adjacency@5": [
+   0.73,
+   0.001
+  ],
+  "spearman_inflation_vs_attackfrac@5": [
+   -0.09,
+   0.731
+  ],
+  "dspot_stream_free@5": [
+   90.33,
+   65.86
+  ],
+  "arms_moved@5": {
+   "Subspace-Q + EWMA (ours)": 12,
+   "DSPOT": 14
+  }
+ },
+ "heldout_ties": {
+  "1": [
+   "CSE-CIC-IDS2018 Fri-16-02_DoS-SlowHTTPTest",
+   "CSE-CIC-IDS2018 Thu-15-02_DoS-Slowloris",
+   "CSE-CIC-IDS2018 Wed-21-02_DDoS-LOIC-UDP"
+  ],
+  "2": [
+   "CSE-CIC-IDS2018 Fri-16-02_DoS-SlowHTTPTest",
+   "CSE-CIC-IDS2018 Thu-15-02_DoS-Slowloris",
+   "CSE-CIC-IDS2018 Tue-20-02_DDoS-LOIC-HTTP",
+   "CSE-CIC-IDS2018 Wed-21-02_DDoS-HOIC",
+   "CSE-CIC-IDS2018 Wed-21-02_DDoS-LOIC-UDP"
+  ],
+  "5": [
+   "CSE-CIC-IDS2018 Thu-15-02_DoS-Slowloris",
+   "CSE-CIC-IDS2018 Tue-20-02_DDoS-LOIC-HTTP",
+   "CSE-CIC-IDS2018 Wed-21-02_DDoS-LOIC-UDP"
+  ]
+ },
+ "heldout_n": {
+  "n_calib_min": 106,
+  "n_benign_test_sum": 27270,
+  "n_attack_sum": 27192
+ },
+ "ep_starts_near_attack@1": {
+  "ours_pct": 33.8,
+  "ref_pct": 10.6
+ },
+ "ep_starts_near_attack@2": {
+  "ours_pct": 30.7,
+  "ref_pct": 19.5
+ },
+ "ep_starts_near_attack@5": {
+  "ours_pct": 37.1,
+  "ref_pct": 19.0
+ },
+ "ledger": {
+  "n": 31,
+  "fail_separability": [
+   [
+    "CIC-DDoS2019",
+    "cicddos_03-11_172-16-0-5_LDAP",
+    "ATTACKER-SIDE"
+   ],
+   [
+    "LITNET-2020",
+    "http_flood",
+    "INSEPARABLE"
+   ]
+  ],
+  "n_fail_separability": 2,
+  "direction_rounding_sensitive": [],
+  "floor_limited": [
+   [
+    "CSE-CIC-IDS2018",
+    "Thu-15-02_DoS-GoldenEye",
+    89,
+    0.011111
+   ],
+   [
+    "CIC-DDoS2019",
+    "cicddos_03-11_192-168-50-4_MSSQL",
+    81,
+    0.012195
+   ],
+   [
+    "CIC-DDoS2019",
+    "cicddos_03-11_192-168-50-4_NetBIOS",
+    94,
+    0.010526
+   ],
+   [
+    "LITNET-2020",
+    "udp_f",
+    0,
+    1.0
+   ]
+  ],
+  "usable_min_calib": 106,
+  "http_flood_best_auc": [
+   0.5701
+  ],
+  "checks_failed_multi": [
+   [
+    "cicddos_03-11_172-16-0-5_LDAP",
+    [
+     "direction",
+     "separability"
+    ]
+   ],
+   [
+    "udp_f",
+    [
+     "conformal floor",
+     "FPR measurability"
+    ]
+   ]
+  ]
+ }
+}

@@ -1,0 +1,179 @@
+// Layer 1 Anti-DDoS Configuration Schema
+// Protocol Buffers v3 - replaces cJSON for memory-safe parsing
+
+syntax = "proto3";
+
+package antiddos;
+
+option optimize_for = SPEED;
+
+// ==================== IP Lists Configuration ====================
+message IpListsConfig {
+    uint32 max_whitelist_entries = 1;    // Maximum exact IP whitelist entries (default: 10000)
+    uint32 max_blacklist_entries = 2;    // Maximum blacklist entries (default: 100000)
+    uint32 max_protected_entries = 3;    // Maximum protected server entries (default: 1000)
+    uint32 max_whitelist_cidrs = 4;      // Maximum CIDR whitelist entries (default: 1000)
+    bool enforce_protected_ips = 5;      // Only allow traffic to protected IPs (default: false)
+}
+
+// ==================== Flow Table Configuration ====================
+message FlowTableConfig {
+    uint32 max_flows = 1;                // Maximum concurrent flows (default: 1000000)
+    uint32 idle_timeout_sec = 2;         // Timeout for established flows (default: 60)
+    uint32 syn_timeout_sec = 3;          // Timeout for half-open connections (default: 5)
+    uint32 default_pps_limit = 4;        // Default packets/sec per flow (0=unlimited)
+    uint32 default_bps_limit = 5;        // Default bytes/sec per flow (0=unlimited)
+    bool enable_syn_protection = 6;      // Enable aggressive SYN timeout (default: true)
+    uint32 aging_scan_limit = 7;         // Max entries to scan per aging cycle (default: 4096)
+    uint32 aging_scan_limit_pressure = 8; // Scan limit when under pressure (default: 8192)
+
+    // Emergency rate limiting when flow table is full
+    uint32 emergency_drop_unknown_pct = 9;    // Drop % for unknown IPs when full (default: 90)
+    uint32 emergency_drop_good_pct = 10;      // Drop % for good reputation IPs (default: 25)
+    uint32 emergency_drop_neutral_pct = 11;   // Drop % for neutral IPs (default: 75)
+    uint32 emergency_drop_suspicious_pct = 12; // Drop % for suspicious IPs (default: 95)
+}
+
+// ==================== SYN Proxy Configuration ====================
+message SynProxyConfig {
+    bool enabled = 1;                    // Enable SYN proxy (default: true)
+    uint32 max_connections = 2;          // Maximum tracked connections (default: 1000000)
+    uint32 connect_timeout_ms = 3;       // Timeout waiting for server (default: 5000)
+    uint32 idle_timeout_sec = 4;         // Connection idle timeout (default: 300)
+    uint32 secret_rotation_sec = 5;      // Secret rotation interval (default: 60)
+}
+
+// ==================== SYN Cookie Configuration ====================
+message SynCookieConfig {
+    bool enabled = 1;                    // Enable SYN cookies (default: true)
+    uint32 challenge_threshold = 2;      // PPS threshold to start challenging (default: 1000)
+}
+
+// ==================== Connection Limits Configuration ====================
+message ConnectionLimitsConfig {
+    uint32 max_ips = 1;                  // Maximum IPs to track (default: 100000)
+    uint32 max_connections_per_ip = 2;   // Max connections per IP (default: 1000)
+    uint32 time_window_sec = 3;          // Time window for limits (default: 60)
+    uint32 cleanup_interval_sec = 4;     // Cleanup interval (default: 30)
+}
+
+// ==================== UDP Gatekeeper Configuration ====================
+message UdpGatekeeperConfig {
+    uint32 pps_threshold = 1;            // UDP packets/sec per IP (default: 10000)
+    uint32 bps_threshold = 2;            // UDP bytes/sec per IP (default: 10485760)
+    uint32 cms_width = 3;                // Count-Min Sketch width (default: 65536)
+    uint32 cms_depth = 4;                // Count-Min Sketch depth (default: 4)
+    uint32 window_sec = 5;               // Time window in seconds (default: 1)
+    bool check_reputation = 6;           // Check reputation before rate check (default: true)
+    uint32 reputation_threshold = 7;     // Block if reputation below this (default: 200)
+    bool check_blacklist = 8;            // Check blacklist (default: true)
+    uint32 attack_pps_divisor = 9;       // Threshold divisor during attack (default: 4)
+    uint32 attack_bps_divisor = 10;      // Threshold divisor during attack (default: 4)
+}
+
+// ==================== Telemetry Configuration ====================
+message TelemetryConfig {
+    string db_path = 1;                  // SQLite database path
+    uint32 export_interval_sec = 2;      // Export interval (default: 5)
+    uint32 max_flow_records = 3;         // Ring buffer size (default: 4096)
+    uint32 flow_sample_rate = 4;         // 1:N sampling (default: 100)
+    bool export_packet_samples = 5;      // Export individual samples (default: false)
+    bool events_enabled = 6;             // Record attack events (default: true)
+}
+
+// ==================== Validation Configuration ====================
+message ValidationConfig {
+    bool validate_ip_checksum = 1;       // Validate IP header checksum (default: true)
+    bool validate_udp_checksum = 2;      // Validate UDP checksum (default: true)
+    bool validate_tcp_checksum = 3;      // Validate TCP checksum (default: false)
+    bool drop_invalid_src_ip = 4;        // Drop packets from invalid source IPs (default: true)
+    bool drop_land_attack = 5;           // Drop LAND attack packets (default: true)
+    bool drop_tcp_null = 6;              // Drop TCP NULL flag packets (default: true)
+    bool drop_tcp_xmas = 7;              // Drop XMAS tree packets (default: true)
+    bool drop_zero_ttl = 8;              // Drop zero TTL packets (default: true)
+    bool drop_fragments = 9;             // Drop fragmented packets (default: false)
+    bool decrement_ttl = 10;             // Decrement TTL on forwarding (default: false)
+}
+
+// ==================== Rate Limiting Configuration ====================
+message RateLimitConfig {
+    uint64 global_pps_limit = 1;         // Global packets/sec limit (0=unlimited)
+    uint64 global_bps_limit = 2;         // Global bytes/sec limit (0=unlimited)
+    uint32 normal_pps_per_ip = 3;        // Normal PPS per IP (default: 10000)
+    uint32 normal_bps_per_ip = 4;        // Normal BPS per IP (default: 100000000)
+    uint32 attack_pps_per_ip = 5;        // Attack mode PPS per IP (default: 1000)
+    uint32 attack_bps_per_ip = 6;        // Attack mode BPS per IP (default: 10000000)
+    bool dynamic_enabled = 7;            // Enable dynamic rate adjustment (default: true)
+    uint32 anomaly_detection_window = 8; // Window for anomaly detection (default: 10)
+
+    // Progressive rate limiting based on anomaly level
+    bool progressive_enabled = 9;        // Enable progressive rate limiting (default: true)
+    uint32 level_low_percent = 10;       // % of normal limit at LOW anomaly (default: 80)
+    uint32 level_medium_percent = 11;    // % of normal limit at MEDIUM anomaly (default: 50)
+    uint32 level_high_percent = 12;      // % of normal limit at HIGH anomaly (default: 25)
+    uint32 level_critical_percent = 13;  // % of normal limit at CRITICAL anomaly (default: 10)
+}
+
+// ==================== Port Configuration ====================
+message PortConfig {
+    uint32 client_facing_port = 1;       // Port facing clients (default: 0)
+    uint32 server_facing_port = 2;       // Port facing servers (default: 1)
+}
+
+// ==================== Maintenance Configuration ====================
+message MaintenanceConfig {
+    uint32 flow_age_interval_sec = 1;    // How often to age flows (default: 1)
+    uint32 secret_rotation_sec = 2;      // Secret rotation interval (default: 60)
+    uint32 stats_print_interval_sec = 3; // Stats print interval, 0=disabled (default: 0)
+}
+
+// ==================== Geo-Blocking Configuration ====================
+message GeoBlockingConfig {
+    bool enabled = 1;                    // Enable geo-blocking (default: false)
+    uint32 mode = 2;                     // 1=blacklist, 2=whitelist (default: 1)
+    string database_path = 3;            // Path to GeoIP database
+    bool log_blocked = 4;                // Log blocked packets (default: true)
+    repeated string countries = 5;       // List of country codes (ISO 3166-1 alpha-2)
+}
+
+// ==================== Other Protocols Configuration ====================
+message OtherProtocolsConfig {
+    bool enabled = 1;                    // Enable other protocols filter (default: true)
+    uint32 default_action = 2;           // 0=drop, 1=accept, 2=rate_limit (default: 0)
+    repeated uint32 allowed_protocols = 3; // List of allowed protocol numbers
+    uint32 rate_limit_pps = 4;           // Rate limit for other protocols (default: 1000)
+    bool log_unknown = 5;                // Log unknown protocols (default: true)
+}
+
+// ==================== Attack Signatures Configuration ====================
+message SignaturesConfig {
+    bool enabled = 1;                    // Enable signature detection (default: true)
+    bool log_matches = 2;                // Log signature matches (default: true)
+    bool block_amplification = 3;        // Block amplification attacks (default: true)
+    bool block_scans = 4;                // Block scan patterns (default: true)
+    bool block_anomalies = 5;            // Block protocol anomalies (default: false)
+    bool block_attack_tools = 6;         // Block attack tool signatures (default: true)
+}
+
+// ==================== Master Configuration ====================
+message Layer1Config {
+    IpListsConfig ip_lists = 1;
+    FlowTableConfig flow_table = 2;
+    SynProxyConfig syn_proxy = 3;
+    SynCookieConfig syn_cookie = 4;
+    ConnectionLimitsConfig connection_limits = 5;
+    UdpGatekeeperConfig udp_gatekeeper = 6;
+    TelemetryConfig telemetry = 7;
+    ValidationConfig validation = 8;
+    RateLimitConfig rate_limits = 9;
+    PortConfig ports = 10;
+    MaintenanceConfig maintenance = 11;
+    GeoBlockingConfig geo_blocking = 12;
+    OtherProtocolsConfig other_protocols = 13;
+    SignaturesConfig signatures = 14;
+
+    // Global settings
+    uint32 log_level = 15;               // DPDK log level (default: 7 = INFO)
+    bool stats_enabled = 16;             // Enable statistics collection (default: true)
+    bool monitor_only = 17;              // Monitor-only mode (default: false)
+}

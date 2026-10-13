@@ -1,0 +1,589 @@
+{
+ "seed": 20260827,
+ "alpha": 0.5,
+ "k": 8,
+ "reference_arm": "POT",
+ "split": {
+  "split_mode": "threeway60",
+  "fit_fraction_of_pre_attack_benign": 0.6,
+  "calibration_fraction": 0.2,
+  "test_pre_attack_fraction": 0.2,
+  "description": "deposited: all pre-attack benign goes to fit and calibration, so the test stream opens on attack. threeway40 / threeway60: the last fifth of pre-attack benign is returned to the test stream, so it runs benign -> attack -> benign. threeway40 holds the calibration size and shrinks fit; threeway60 holds the fit size and shrinks calibration, which separates the effect of stream order from the effect of training on less data."
+ },
+ "corpus_spelling_census": {
+  "CIC-IDS-2017": {
+   "CIC-IDS-2017": 10
+  },
+  "CSE-CIC-IDS2018": {
+   "CIC-IDS2018": 12
+  },
+  "CIC-DDoS2019": {
+   "CICDDoS2019": 8
+  },
+  "LITNET-2020": {
+   "LITNET-2020": 3
+  }
+ },
+ "versions": {
+  "pyod": "3.6.5",
+  "torch": "2.13.0+cpu",
+  "numpy": "2.4.2",
+  "sklearn": "1.8.0",
+  "scipy": "1.17.0"
+ },
+ "results": {
+  "PANEL-17": {
+   "Subspace-Q + EWMA (ours)": {
+    "n": 17,
+    "mean_auc": 0.993,
+    "median_auc": 0.9986,
+    "min_auc": 0.9685,
+    "citation": "Lakhina SIGCOMM 2004 + Li TKDE 2023 (ECOD) rank transform",
+    "dr@1pct": 90.81,
+    "ep@1pct": 4.78,
+    "dr@2pct": 94.47,
+    "ep@2pct": 7.25,
+    "dr@5pct": 97.58,
+    "ep@5pct": 11.13,
+    "vs_ref_auc": 0.0238,
+    "vs_ref_p_raw": 0.00836,
+    "wins": "13/17",
+    "boot_ci": [
+     0.0048,
+     0.0513
+    ],
+    "cluster_boot_ci": [
+     -0.0026,
+     0.0474
+    ],
+    "n_clusters": 6,
+    "cluster_p": 0.4375,
+    "vs_ref_p_bonf": 0.07525,
+    "vs_ref_p_holm": 0.05533,
+    "family_size": 9
+   },
+   "POT": {
+    "n": 17,
+    "mean_auc": 0.9692,
+    "median_auc": 0.9922,
+    "min_auc": 0.7758,
+    "citation": "Hosking & Wallis, Technometrics 29(3), 1987 (MoM GPD); cf. Siffer KDD 2017",
+    "dr@1pct": 80.87,
+    "ep@1pct": 5.34,
+    "dr@2pct": 83.88,
+    "ep@2pct": 8.77,
+    "dr@5pct": 89.39,
+    "ep@5pct": 11.48
+   },
+   "DSPOT": {
+    "n": 17,
+    "mean_auc": 0.741,
+    "median_auc": 0.9182,
+    "min_auc": 0.0601,
+    "citation": "Siffer et al., ACM SIGKDD 2017, Sec. 4.2.2, Algorithm 3",
+    "dr@1pct": 67.26,
+    "ep@1pct": 3.15,
+    "dr@2pct": 67.74,
+    "ep@2pct": 3.5,
+    "dr@5pct": 68.1,
+    "ep@5pct": 3.71,
+    "vs_ref_auc": -0.2282,
+    "vs_ref_p_raw": 0.00065,
+    "wins": "0/17",
+    "boot_ci": [
+     -0.3731,
+     -0.1006
+    ],
+    "cluster_boot_ci": [
+     -0.3852,
+     -0.0221
+    ],
+    "n_clusters": 6,
+    "cluster_p": 0.0625,
+    "vs_ref_p_bonf": 0.00589,
+    "vs_ref_p_holm": 0.00524,
+    "family_size": 9
+   },
+   "ECOD": {
+    "n": 17,
+    "mean_auc": 0.9653,
+    "median_auc": 0.9773,
+    "min_auc": 0.8059,
+    "citation": "Li et al., IEEE TKDE 35(12):12181-12193, 2023",
+    "dr@1pct": 48.64,
+    "ep@1pct": 7.16,
+    "dr@2pct": 63.71,
+    "ep@2pct": 8.47,
+    "dr@5pct": 88.24,
+    "ep@5pct": 10.44,
+    "vs_ref_auc": -0.0039,
+    "vs_ref_p_raw": 0.40804,
+    "wins": "6/17",
+    "boot_ci": [
+     -0.0138,
+     0.0058
+    ],
+    "cluster_boot_ci": [
+     -0.0103,
+     0.005
+    ],
+    "n_clusters": 6,
+    "cluster_p": 0.625,
+    "vs_ref_p_bonf": 1.0,
+    "vs_ref_p_holm": 1.0,
+    "family_size": 9
+   },
+   "COPOD": {
+    "n": 17,
+    "mean_auc": 0.9579,
+    "median_auc": 0.9745,
+    "min_auc": 0.7495,
+    "citation": "Li et al., IEEE ICDM 2020, pp. 1118-1123, doi:10.1109/ICDM50108.2020.00135",
+    "dr@1pct": 45.94,
+    "ep@1pct": 7.47,
+    "dr@2pct": 63.0,
+    "ep@2pct": 8.73,
+    "dr@5pct": 85.15,
+    "ep@5pct": 10.58,
+    "vs_ref_auc": -0.0113,
+    "vs_ref_p_raw": 0.05572,
+    "wins": "4/17",
+    "boot_ci": [
+     -0.0223,
+     -0.0008
+    ],
+    "cluster_boot_ci": [
+     -0.0274,
+     0.0043
+    ],
+    "n_clusters": 6,
+    "cluster_p": 0.625,
+    "vs_ref_p_bonf": 0.50147,
+    "vs_ref_p_holm": 0.2786,
+    "family_size": 9
+   },
+   "HBOS": {
+    "n": 17,
+    "mean_auc": 0.9381,
+    "median_auc": 0.9674,
+    "min_auc": 0.7581,
+    "citation": "Goldstein & Dengel, KI-2012, pp. 59-63 (PyOD)",
+    "dr@1pct": 29.91,
+    "ep@1pct": 6.8,
+    "dr@2pct": 47.01,
+    "ep@2pct": 9.09,
+    "dr@5pct": 60.26,
+    "ep@5pct": 10.91,
+    "vs_ref_auc": -0.0312,
+    "vs_ref_p_raw": 0.0079,
+    "wins": "4/17",
+    "boot_ci": [
+     -0.0526,
+     -0.0113
+    ],
+    "cluster_boot_ci": [
+     -0.059,
+     -0.0014
+    ],
+    "n_clusters": 6,
+    "cluster_p": 0.3125,
+    "vs_ref_p_bonf": 0.07114,
+    "vs_ref_p_holm": 0.05533,
+    "family_size": 9
+   },
+   "LODA": {
+    "n": 17,
+    "mean_auc": 0.5561,
+    "median_auc": 0.5168,
+    "min_auc": 0.0443,
+    "citation": "Pevny, Machine Learning 102(2):275-304, 2016 (PyOD, seeded)",
+    "dr@1pct": 16.01,
+    "ep@1pct": 6.44,
+    "dr@2pct": 21.22,
+    "ep@2pct": 10.73,
+    "dr@5pct": 35.38,
+    "ep@5pct": 12.37,
+    "vs_ref_auc": -0.4132,
+    "vs_ref_p_raw": 2e-05,
+    "wins": "0/17",
+    "boot_ci": [
+     -0.59,
+     -0.2441
+    ],
+    "cluster_boot_ci": [
+     -0.6869,
+     -0.1526
+    ],
+    "n_clusters": 6,
+    "cluster_p": 0.03125,
+    "vs_ref_p_bonf": 0.00014,
+    "vs_ref_p_holm": 0.00014,
+    "family_size": 9
+   },
+   "INNE": {
+    "n": 17,
+    "mean_auc": 0.9811,
+    "median_auc": 0.9894,
+    "min_auc": 0.9424,
+    "citation": "Bandaragoda et al., Comput. Intell. 34(4):968-998, 2018 (PyOD)",
+    "dr@1pct": 59.38,
+    "ep@1pct": 3.79,
+    "dr@2pct": 80.28,
+    "ep@2pct": 8.86,
+    "dr@5pct": 85.53,
+    "ep@5pct": 11.11,
+    "vs_ref_auc": 0.0118,
+    "vs_ref_p_raw": 0.85364,
+    "wins": "7/17",
+    "boot_ci": [
+     -0.0044,
+     0.0347
+    ],
+    "cluster_boot_ci": [
+     -0.0109,
+     0.0315
+    ],
+    "n_clusters": 6,
+    "cluster_p": 1.0,
+    "vs_ref_p_bonf": 1.0,
+    "vs_ref_p_holm": 1.0,
+    "family_size": 9
+   },
+   "IForest": {
+    "n": 17,
+    "mean_auc": 0.9679,
+    "median_auc": 0.971,
+    "min_auc": 0.8571,
+    "citation": "Liu, Ting & Zhou, IEEE ICDM 2008, pp. 413-422 (PyOD)",
+    "dr@1pct": 38.82,
+    "ep@1pct": 7.17,
+    "dr@2pct": 63.88,
+    "ep@2pct": 8.67,
+    "dr@5pct": 86.49,
+    "ep@5pct": 11.35,
+    "vs_ref_auc": -0.0014,
+    "vs_ref_p_raw": 0.45857,
+    "wins": "6/17",
+    "boot_ci": [
+     -0.014,
+     0.0126
+    ],
+    "cluster_boot_ci": [
+     -0.0099,
+     0.0047
+    ],
+    "n_clusters": 6,
+    "cluster_p": 0.84375,
+    "vs_ref_p_bonf": 1.0,
+    "vs_ref_p_holm": 1.0,
+    "family_size": 9
+   },
+   "DIF": {
+    "n": 17,
+    "mean_auc": 0.985,
+    "median_auc": 0.9919,
+    "min_auc": 0.93,
+    "citation": "Xu et al., IEEE TKDE 35(12):12591-12604, 2023 (PyOD, inductive)",
+    "dr@1pct": 76.15,
+    "ep@1pct": 6.87,
+    "dr@2pct": 81.18,
+    "ep@2pct": 10.25,
+    "dr@5pct": 94.71,
+    "ep@5pct": 11.61,
+    "vs_ref_auc": 0.0158,
+    "vs_ref_p_raw": 0.37937,
+    "wins": "7/17",
+    "boot_ci": [
+     0.0009,
+     0.0367
+    ],
+    "cluster_boot_ci": [
+     -0.0048,
+     0.0332
+    ],
+    "n_clusters": 6,
+    "cluster_p": 1.0,
+    "vs_ref_p_bonf": 1.0,
+    "vs_ref_p_holm": 1.0,
+    "family_size": 9
+   }
+  },
+  "USABLE-strict": {
+   "Subspace-Q + EWMA (ours)": {
+    "n": 16,
+    "mean_auc": 0.9926,
+    "median_auc": 0.998,
+    "min_auc": 0.9685,
+    "citation": "Lakhina SIGCOMM 2004 + Li TKDE 2023 (ECOD) rank transform",
+    "dr@1pct": 90.24,
+    "ep@1pct": 4.75,
+    "dr@2pct": 94.13,
+    "ep@2pct": 7.15,
+    "dr@5pct": 97.43,
+    "ep@5pct": 10.94,
+    "vs_ref_auc": 0.0253,
+    "vs_ref_p_raw": 0.00629,
+    "wins": "13/16",
+    "boot_ci": [
+     0.0051,
+     0.0543
+    ],
+    "cluster_boot_ci": [
+     -0.0028,
+     0.0497
+    ],
+    "n_clusters": 5,
+    "cluster_p": 0.4375,
+    "vs_ref_p_bonf": 0.05658,
+    "vs_ref_p_holm": 0.04401,
+    "family_size": 9
+   },
+   "POT": {
+    "n": 16,
+    "mean_auc": 0.9673,
+    "median_auc": 0.9914,
+    "min_auc": 0.7758,
+    "citation": "Hosking & Wallis, Technometrics 29(3), 1987 (MoM GPD); cf. Siffer KDD 2017",
+    "dr@1pct": 79.68,
+    "ep@1pct": 5.02,
+    "dr@2pct": 82.88,
+    "ep@2pct": 8.1,
+    "dr@5pct": 88.73,
+    "ep@5pct": 11.21
+   },
+   "DSPOT": {
+    "n": 16,
+    "mean_auc": 0.7248,
+    "median_auc": 0.9089,
+    "min_auc": 0.0601,
+    "citation": "Siffer et al., ACM SIGKDD 2017, Sec. 4.2.2, Algorithm 3",
+    "dr@1pct": 65.22,
+    "ep@1pct": 2.68,
+    "dr@2pct": 65.73,
+    "ep@2pct": 3.17,
+    "dr@5pct": 66.11,
+    "ep@5pct": 3.17,
+    "vs_ref_auc": -0.2425,
+    "vs_ref_p_raw": 0.00065,
+    "wins": "0/16",
+    "boot_ci": [
+     -0.3926,
+     -0.1072
+    ],
+    "cluster_boot_ci": [
+     -0.4024,
+     -0.0287
+    ],
+    "n_clusters": 5,
+    "cluster_p": 0.0625,
+    "vs_ref_p_bonf": 0.00589,
+    "vs_ref_p_holm": 0.00524,
+    "family_size": 9
+   },
+   "ECOD": {
+    "n": 16,
+    "mean_auc": 0.9631,
+    "median_auc": 0.9739,
+    "min_auc": 0.8059,
+    "citation": "Li et al., IEEE TKDE 35(12):12181-12193, 2023",
+    "dr@1pct": 45.43,
+    "ep@1pct": 7.17,
+    "dr@2pct": 61.45,
+    "ep@2pct": 8.56,
+    "dr@5pct": 87.5,
+    "ep@5pct": 10.32,
+    "vs_ref_auc": -0.0042,
+    "vs_ref_p_raw": 0.4332,
+    "wins": "6/16",
+    "boot_ci": [
+     -0.015,
+     0.0065
+    ],
+    "cluster_boot_ci": [
+     -0.0109,
+     0.0054
+    ],
+    "n_clusters": 5,
+    "cluster_p": 0.625,
+    "vs_ref_p_bonf": 1.0,
+    "vs_ref_p_holm": 1.0,
+    "family_size": 9
+   },
+   "COPOD": {
+    "n": 16,
+    "mean_auc": 0.9553,
+    "median_auc": 0.9724,
+    "min_auc": 0.7495,
+    "citation": "Li et al., IEEE ICDM 2020, pp. 1118-1123, doi:10.1109/ICDM50108.2020.00135",
+    "dr@1pct": 42.56,
+    "ep@1pct": 7.49,
+    "dr@2pct": 60.69,
+    "ep@2pct": 8.83,
+    "dr@5pct": 84.22,
+    "ep@5pct": 10.69,
+    "vs_ref_auc": -0.012,
+    "vs_ref_p_raw": 0.05768,
+    "wins": "4/16",
+    "boot_ci": [
+     -0.0237,
+     -0.0005
+    ],
+    "cluster_boot_ci": [
+     -0.029,
+     0.0047
+    ],
+    "n_clusters": 5,
+    "cluster_p": 0.625,
+    "vs_ref_p_bonf": 0.5191,
+    "vs_ref_p_holm": 0.28839,
+    "family_size": 9
+   },
+   "HBOS": {
+    "n": 16,
+    "mean_auc": 0.9342,
+    "median_auc": 0.963,
+    "min_auc": 0.7581,
+    "citation": "Goldstein & Dengel, KI-2012, pp. 59-63 (PyOD)",
+    "dr@1pct": 25.53,
+    "ep@1pct": 6.9,
+    "dr@2pct": 43.7,
+    "ep@2pct": 9.1,
+    "dr@5pct": 57.77,
+    "ep@5pct": 11.15,
+    "vs_ref_auc": -0.0331,
+    "vs_ref_p_raw": 0.00763,
+    "wins": "4/16",
+    "boot_ci": [
+     -0.0551,
+     -0.0124
+    ],
+    "cluster_boot_ci": [
+     -0.0623,
+     -0.0015
+    ],
+    "n_clusters": 5,
+    "cluster_p": 0.3125,
+    "vs_ref_p_bonf": 0.06866,
+    "vs_ref_p_holm": 0.04578,
+    "family_size": 9
+   },
+   "LODA": {
+    "n": 16,
+    "mean_auc": 0.5284,
+    "median_auc": 0.5094,
+    "min_auc": 0.0443,
+    "citation": "Pevny, Machine Learning 102(2):275-304, 2016 (PyOD, seeded)",
+    "dr@1pct": 10.76,
+    "ep@1pct": 6.4,
+    "dr@2pct": 16.3,
+    "ep@2pct": 10.73,
+    "dr@5pct": 31.34,
+    "ep@5pct": 12.15,
+    "vs_ref_auc": -0.4389,
+    "vs_ref_p_raw": 3e-05,
+    "wins": "0/16",
+    "boot_ci": [
+     -0.6157,
+     -0.265
+    ],
+    "cluster_boot_ci": [
+     -0.7096,
+     -0.1659
+    ],
+    "n_clusters": 5,
+    "cluster_p": 0.0625,
+    "vs_ref_p_bonf": 0.00027,
+    "vs_ref_p_holm": 0.00027,
+    "family_size": 9
+   },
+   "INNE": {
+    "n": 16,
+    "mean_auc": 0.9799,
+    "median_auc": 0.9888,
+    "min_auc": 0.9424,
+    "citation": "Bandaragoda et al., Comput. Intell. 34(4):968-998, 2018 (PyOD)",
+    "dr@1pct": 56.84,
+    "ep@1pct": 3.36,
+    "dr@2pct": 79.05,
+    "ep@2pct": 8.31,
+    "dr@5pct": 84.62,
+    "ep@5pct": 11.03,
+    "vs_ref_auc": 0.0126,
+    "vs_ref_p_raw": 0.78195,
+    "wins": "7/16",
+    "boot_ci": [
+     -0.0048,
+     0.0368
+    ],
+    "cluster_boot_ci": [
+     -0.0115,
+     0.0342
+    ],
+    "n_clusters": 5,
+    "cluster_p": 1.0,
+    "vs_ref_p_bonf": 1.0,
+    "vs_ref_p_holm": 1.0,
+    "family_size": 9
+   },
+   "IForest": {
+    "n": 16,
+    "mean_auc": 0.9659,
+    "median_auc": 0.9689,
+    "min_auc": 0.8571,
+    "citation": "Liu, Ting & Zhou, IEEE ICDM 2008, pp. 413-422 (PyOD)",
+    "dr@1pct": 35.0,
+    "ep@1pct": 7.28,
+    "dr@2pct": 61.62,
+    "ep@2pct": 8.88,
+    "dr@5pct": 85.65,
+    "ep@5pct": 11.18,
+    "vs_ref_auc": -0.0015,
+    "vs_ref_p_raw": 0.49542,
+    "wins": "6/16",
+    "boot_ci": [
+     -0.0147,
+     0.0135
+    ],
+    "cluster_boot_ci": [
+     -0.0108,
+     0.005
+    ],
+    "n_clusters": 5,
+    "cluster_p": 1.0,
+    "vs_ref_p_bonf": 1.0,
+    "vs_ref_p_holm": 1.0,
+    "family_size": 9
+   },
+   "DIF": {
+    "n": 16,
+    "mean_auc": 0.9841,
+    "median_auc": 0.9907,
+    "min_auc": 0.93,
+    "citation": "Xu et al., IEEE TKDE 35(12):12591-12604, 2023 (PyOD, inductive)",
+    "dr@1pct": 74.66,
+    "ep@1pct": 6.74,
+    "dr@2pct": 80.0,
+    "ep@2pct": 10.01,
+    "dr@5pct": 94.38,
+    "ep@5pct": 11.56,
+    "vs_ref_auc": 0.0168,
+    "vs_ref_p_raw": 0.30662,
+    "wins": "7/16",
+    "boot_ci": [
+     0.001,
+     0.0386
+    ],
+    "cluster_boot_ci": [
+     -0.0052,
+     0.0351
+    ],
+    "n_clusters": 5,
+    "cluster_p": 0.8125,
+    "vs_ref_p_bonf": 1.0,
+    "vs_ref_p_holm": 1.0,
+    "family_size": 9
+   }
+  }
+ },
+ "elapsed_sec": 138.1
+}

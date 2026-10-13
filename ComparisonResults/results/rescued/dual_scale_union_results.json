@@ -1,0 +1,139 @@
+{
+  "metadata": {
+    "timestamp": "2026-08-18T07:00:30.312823+00:00",
+    "theta": 4.0,
+    "cooldown_sec": 30.0,
+    "runtime_sec": 189.7,
+    "note": "Formal dual-scale union audit dumping full TP/FP/DR/FPR/Precision/F1 and Episode metrics for all arms including shipped engine rule."
+  },
+  "cicids2017_per_host_and_episodes": {
+    "shipped_OR_K1": {
+      "victim_tp": 1417,
+      "victim_fn": 10,
+      "uninv_fp": 104107,
+      "uninv_tn": 40923,
+      "victim_dr_pct": 99.3,
+      "uninvolved_fpr_pct": 71.78,
+      "precision_pct": 1.34,
+      "f1_score_pct": 2.65,
+      "total_episodes": 9487,
+      "observed_ip_days": 77.89,
+      "episodes_per_ip_day": 121.79
+    },
+    "shipped_OR_K3": {
+      "victim_tp": 1379,
+      "victim_fn": 48,
+      "uninv_fp": 81641,
+      "uninv_tn": 63389,
+      "victim_dr_pct": 96.64,
+      "uninvolved_fpr_pct": 56.29,
+      "precision_pct": 1.66,
+      "f1_score_pct": 3.27,
+      "total_episodes": 6797,
+      "observed_ip_days": 77.89,
+      "episodes_per_ip_day": 87.26
+    },
+    "innov_alone_K1": {
+      "victim_tp": 1327,
+      "victim_fn": 100,
+      "uninv_fp": 1809,
+      "uninv_tn": 143221,
+      "victim_dr_pct": 92.99,
+      "uninvolved_fpr_pct": 1.25,
+      "precision_pct": 42.32,
+      "f1_score_pct": 58.16,
+      "total_episodes": 849,
+      "observed_ip_days": 77.89,
+      "episodes_per_ip_day": 10.9
+    },
+    "innov_alone_K3": {
+      "victim_tp": 1323,
+      "victim_fn": 104,
+      "uninv_fp": 779,
+      "uninv_tn": 144251,
+      "victim_dr_pct": 92.71,
+      "uninvolved_fpr_pct": 0.54,
+      "precision_pct": 62.94,
+      "f1_score_pct": 74.98,
+      "total_episodes": 97,
+      "observed_ip_days": 77.89,
+      "episodes_per_ip_day": 1.25
+    },
+    "engine_gated_K1": {
+      "victim_tp": 1417,
+      "victim_fn": 10,
+      "uninv_fp": 93034,
+      "uninv_tn": 51996,
+      "victim_dr_pct": 99.3,
+      "uninvolved_fpr_pct": 64.15,
+      "precision_pct": 1.5,
+      "f1_score_pct": 2.96,
+      "total_episodes": 9146,
+      "observed_ip_days": 77.89,
+      "episodes_per_ip_day": 117.42
+    },
+    "engine_gated_K3": {
+      "victim_tp": 1379,
+      "victim_fn": 48,
+      "uninv_fp": 67718,
+      "uninv_tn": 77312,
+      "victim_dr_pct": 96.64,
+      "uninvolved_fpr_pct": 46.69,
+      "precision_pct": 2.0,
+      "f1_score_pct": 3.91,
+      "total_episodes": 5847,
+      "observed_ip_days": 77.89,
+      "episodes_per_ip_day": 75.06
+    }
+  },
+  "litnet_per_host_subnet_and_union": {
+    "host_shipped_OR": {
+      "tp": 19857,
+      "fn": 52458,
+      "fp": 160690,
+      "tn": 204903,
+      "dr_pct": 27.46,
+      "fpr_pct": 43.95
+    },
+    "host_innov_alone": {
+      "tp": 776,
+      "fn": 71539,
+      "fp": 18352,
+      "tn": 347241,
+      "dr_pct": 1.07,
+      "fpr_pct": 5.02
+    },
+    "host_engine_gated": {
+      "tp": 18302,
+      "fn": 54013,
+      "fp": 150565,
+      "tn": 215028,
+      "dr_pct": 25.31,
+      "fpr_pct": 41.18
+    },
+    "dual_scale_union": {
+      "tp": 71448,
+      "fn": 867,
+      "fp": 210054,
+      "tn": 155539,
+      "dr_pct": 98.8,
+      "fpr_pct": 57.46
+    },
+    "dual_scale_engine_union": {
+      "tp": 71703,
+      "fn": 612,
+      "fp": 251667,
+      "tn": 113926,
+      "dr_pct": 99.15,
+      "fpr_pct": 68.84
+    },
+    "subnet_alone": {
+      "dr_pct": 84.65,
+      "fpr_pct": 63.48,
+      "tp": 37590,
+      "fn": 6817,
+      "fp": 57592,
+      "tn": 33139
+    }
+  }
+}

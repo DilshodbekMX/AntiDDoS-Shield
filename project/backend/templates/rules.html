@@ -1,0 +1,3017 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Anti-DDoS DPDK Rules and Configuration Management">
+    <meta name="theme-color" content="#0f172a">
+    <title>Rules & Configuration - Anti-DDoS Dashboard</title>
+    <link rel="stylesheet" href="/static/css/design-system.css">
+    <style>
+        /* Page-specific styles */
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .logo {
+            color: var(--color-accent);
+            font-size: 24px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--color-accent);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--color-bg-primary);
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .nav {
+            display: flex;
+            gap: 8px;
+        }
+
+        .nav a {
+            color: var(--color-text-secondary);
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .nav a:hover, .nav a:focus {
+            background: var(--color-bg-secondary);
+            color: var(--color-text-primary);
+        }
+
+        .nav a.active {
+            background: var(--color-accent);
+            color: var(--color-bg-primary);
+        }
+
+        /* Category Navigation */
+        .category-nav {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .category-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 24px;
+            background: var(--color-bg-secondary);
+            border: 2px solid transparent;
+            border-radius: 12px;
+            color: var(--color-text-secondary);
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 500;
+            transition: all 0.2s;
+            flex: 1;
+            min-width: 200px;
+            max-width: 350px;
+        }
+
+        .category-btn:hover {
+            background: var(--color-bg-tertiary);
+            color: var(--color-text-primary);
+        }
+
+        .category-btn.active {
+            background: var(--color-bg-tertiary);
+            border-color: var(--color-accent);
+            color: var(--color-text-primary);
+        }
+
+        .category-btn:focus-visible {
+            outline: 2px solid var(--color-accent);
+            outline-offset: 2px;
+        }
+
+        .category-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .category-icon.access { background: rgba(34, 197, 94, 0.2); }
+        .category-icon.protection { background: rgba(239, 68, 68, 0.2); }
+        .category-icon.settings { background: rgba(56, 189, 248, 0.2); }
+
+        .category-info {
+            text-align: left;
+        }
+
+        .category-title {
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .category-desc {
+            font-size: 12px;
+            color: var(--color-text-muted);
+            font-weight: 400;
+        }
+
+        /* Sub Navigation */
+        .sub-nav {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--color-bg-tertiary);
+            flex-wrap: wrap;
+        }
+
+        .sub-nav-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            background: var(--color-bg-secondary);
+            border: none;
+            border-radius: 8px;
+            color: var(--color-text-secondary);
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .sub-nav-btn:hover {
+            background: var(--color-bg-tertiary);
+            color: var(--color-text-primary);
+        }
+
+        .sub-nav-btn.active {
+            background: var(--color-accent);
+            color: var(--color-bg-primary);
+        }
+
+        .sub-nav-btn .icon {
+            font-size: 16px;
+        }
+
+        /* Section Header with Help */
+        .section-header-with-help {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .section-title-main {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--color-text-primary);
+        }
+
+        .section-description {
+            color: var(--color-text-muted);
+            font-size: 14px;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        /* Help Tooltip */
+        .help-tooltip {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            background: var(--color-bg-tertiary);
+            border-radius: 50%;
+            cursor: help;
+            font-size: 12px;
+            color: var(--color-text-muted);
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .help-tooltip:hover {
+            background: var(--color-accent);
+            color: var(--color-bg-primary);
+        }
+
+        .help-tooltip .tooltip-text {
+            visibility: hidden;
+            opacity: 0;
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--color-bg-primary);
+            color: var(--color-text-primary);
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 400;
+            width: 280px;
+            max-width: 90vw;
+            text-align: left;
+            line-height: 1.5;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--color-bg-tertiary);
+            z-index: 100;
+            transition: opacity 0.2s, visibility 0.2s;
+        }
+
+        .help-tooltip .tooltip-text::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 6px solid transparent;
+            border-top-color: var(--color-bg-primary);
+        }
+
+        .help-tooltip:hover .tooltip-text,
+        .help-tooltip:focus .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* Inline help for form fields */
+        .field-help {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 16px;
+            height: 16px;
+            background: var(--color-bg-tertiary);
+            border-radius: 50%;
+            cursor: help;
+            font-size: 10px;
+            color: var(--color-text-muted);
+            font-weight: 600;
+            margin-left: 6px;
+            position: relative;
+        }
+
+        .field-help:hover {
+            background: var(--color-accent);
+            color: var(--color-bg-primary);
+        }
+
+        .field-help .tooltip-text {
+            visibility: hidden;
+            opacity: 0;
+            position: absolute;
+            bottom: calc(100% + 6px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--color-bg-primary);
+            color: var(--color-text-primary);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 400;
+            width: 220px;
+            text-align: left;
+            line-height: 1.4;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--color-bg-tertiary);
+            z-index: 100;
+            transition: opacity 0.2s, visibility 0.2s;
+        }
+
+        .field-help:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* Card */
+        .card {
+            background: var(--color-bg-secondary);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--color-text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Quick Stats */
+        .quick-stats {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .quick-stat {
+            background: var(--color-bg-secondary);
+            padding: 16px 20px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 140px;
+        }
+
+        .quick-stat-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .quick-stat-icon.success { background: rgba(34, 197, 94, 0.2); }
+        .quick-stat-icon.danger { background: rgba(239, 68, 68, 0.2); }
+        .quick-stat-icon.warning { background: rgba(245, 158, 11, 0.2); }
+        .quick-stat-icon.info { background: rgba(56, 189, 248, 0.2); }
+
+        .quick-stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--color-text-primary);
+        }
+
+        .quick-stat-label {
+            font-size: 12px;
+            color: var(--color-text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Forms */
+        .add-form {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group label {
+            font-size: 12px;
+            color: var(--color-text-secondary);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+        }
+
+        .input, input[type="text"], input[type="number"], select {
+            padding: 10px 14px;
+            background: var(--color-bg-primary);
+            border: 1px solid var(--color-bg-tertiary);
+            border-radius: 6px;
+            color: var(--color-text-primary);
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        .input:focus, input:focus, select:focus {
+            outline: none;
+            border-color: var(--color-accent);
+        }
+
+        /* Search */
+        .search-container {
+            position: relative;
+            flex: 1;
+            max-width: 300px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 10px 14px 10px 38px;
+            background: var(--color-bg-primary);
+            border: 1px solid var(--color-bg-tertiary);
+            border-radius: 6px;
+            color: var(--color-text-primary);
+            font-size: 14px;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--color-text-muted);
+            pointer-events: none;
+        }
+
+        /* Tables */
+        .table-wrapper {
+            max-height: 400px;
+            overflow-y: auto;
+            border-radius: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--color-bg-tertiary);
+        }
+
+        th {
+            position: sticky;
+            top: 0;
+            background: var(--color-bg-primary);
+            color: var(--color-text-secondary);
+            font-weight: 500;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+            z-index: 10;
+        }
+
+        tbody tr:hover {
+            background: var(--color-bg-tertiary);
+        }
+
+        .ip-badge {
+            font-family: var(--font-mono);
+            background: var(--color-bg-primary);
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 48px 24px;
+            color: var(--color-text-muted);
+        }
+
+        .empty-state__icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-state__title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--color-text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .hidden { display: none !important; }
+
+        /* Check IP Tool */
+        .check-form {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .check-form input {
+            flex: 1;
+            max-width: 300px;
+        }
+
+        .check-result {
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 12px;
+        }
+
+        .check-result.whitelisted {
+            background: rgba(34, 197, 94, 0.15);
+            border: 1px solid var(--color-success);
+        }
+
+        .check-result.blacklisted {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid var(--color-danger);
+        }
+
+        .check-result.protected {
+            background: rgba(245, 158, 11, 0.15);
+            border: 1px solid var(--color-warning);
+        }
+
+        .check-result.clean {
+            background: rgba(148, 163, 184, 0.1);
+            border: 1px solid var(--color-bg-tertiary);
+        }
+
+        /* Tags */
+        .tag {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-right: 6px;
+            text-transform: uppercase;
+        }
+
+        .tag.whitelist { background: var(--color-success); color: white; }
+        .tag.blacklist { background: var(--color-danger); color: white; }
+        .tag.protected { background: var(--color-warning); color: var(--color-bg-primary); }
+
+        /* Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 26px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+            position: absolute;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--color-bg-tertiary);
+            transition: 0.3s;
+            border-radius: 26px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: var(--color-success);
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(24px);
+        }
+
+        /* Toggle Option (labeled toggle with description) */
+        .toggle-option {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            background: var(--color-bg-primary);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+            gap: 12px;
+        }
+
+        .toggle-option:hover {
+            background: var(--color-bg-tertiary);
+        }
+
+        .toggle-option input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .toggle-option-label {
+            flex: 1;
+        }
+
+        .toggle-option-title {
+            display: block;
+            font-weight: 500;
+            color: var(--color-text-primary);
+            margin-bottom: 2px;
+        }
+
+        .toggle-option-desc {
+            display: block;
+            font-size: 12px;
+            color: var(--color-text-muted);
+        }
+
+        .toggle-option .toggle-switch {
+            flex-shrink: 0;
+        }
+
+        .toggle-option input:checked ~ .toggle-switch .toggle-slider {
+            background-color: var(--color-success);
+        }
+
+        .toggle-option input:checked ~ .toggle-switch .toggle-slider:before {
+            transform: translateX(24px);
+        }
+
+        /* Stage Grid */
+        .stage-category {
+            margin-bottom: 24px;
+        }
+
+        .category-header {
+            font-size: 13px;
+            color: var(--color-text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--color-bg-tertiary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .stage-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 12px;
+        }
+
+        .stage-item {
+            background: var(--color-bg-primary);
+            border-radius: 8px;
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .stage-item:hover {
+            border-color: var(--color-bg-tertiary);
+        }
+
+        .stage-info { flex: 1; margin-right: 16px; }
+        .stage-name { font-weight: 500; margin-bottom: 4px; }
+        .stage-desc { font-size: 12px; color: var(--color-text-muted); }
+
+        /* Config Sections */
+        .config-section { margin-bottom: 16px; }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            padding: 16px;
+            background: var(--color-bg-primary);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            transition: background 0.2s;
+        }
+
+        .section-header:hover { background: var(--color-bg-hover); }
+
+        .section-title {
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-arrow {
+            transition: transform 0.3s;
+            color: var(--color-text-muted);
+        }
+
+        .section-arrow.open { transform: rotate(180deg); }
+
+        .section-content {
+            display: none;
+            padding: 16px;
+            background: var(--color-bg-primary);
+            border-radius: 8px;
+        }
+
+        .section-content.open { display: block; }
+
+        .config-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 16px;
+            background: var(--color-bg-secondary);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            gap: 16px;
+            transition: background 0.2s;
+        }
+
+        .config-row:hover {
+            background: var(--color-bg-tertiary);
+        }
+
+        .config-row:last-of-type { margin-bottom: 0; }
+
+        .config-row--toggle {
+            cursor: pointer;
+        }
+
+        .config-label { flex: 1; min-width: 0; }
+
+        .config-key {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--color-text-primary);
+            text-transform: capitalize;
+        }
+
+        .config-desc {
+            font-size: 12px;
+            color: var(--color-text-muted);
+            margin-top: 4px;
+            line-height: 1.4;
+        }
+
+        .config-input {
+            flex-shrink: 0;
+        }
+
+        .config-number-input {
+            width: 120px;
+            padding: 8px 12px;
+            text-align: right;
+            background: var(--color-bg-primary);
+            border: 1px solid var(--color-bg-tertiary);
+            border-radius: 6px;
+            color: var(--color-text-primary);
+            font-size: 14px;
+            font-family: var(--font-mono);
+        }
+
+        .config-number-input:focus {
+            outline: none;
+            border-color: var(--color-accent);
+        }
+
+        /* Config Toggle Switch */
+        .config-toggle {
+            position: relative;
+            display: inline-block;
+            width: 48px;
+            height: 26px;
+            cursor: pointer;
+        }
+
+        .config-toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+            position: absolute;
+        }
+
+        .config-toggle-track {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--color-bg-tertiary);
+            border-radius: 26px;
+            transition: background 0.3s;
+        }
+
+        .config-toggle-thumb {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .config-toggle input:checked + .config-toggle-track {
+            background: var(--color-success);
+        }
+
+        .config-toggle input:checked + .config-toggle-track .config-toggle-thumb {
+            transform: translateX(22px);
+        }
+
+        .config-section-footer {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--color-bg-secondary);
+            text-align: right;
+        }
+
+        /* Category Colors */
+        .category-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .cat-mode { background: var(--color-danger); }
+        .cat-tcp_protection { background: var(--color-accent); }
+        .cat-udp_protection { background: #f472b6; }
+        .cat-validation { background: var(--color-warning); }
+        .cat-rate_limiting { background: #a78bfa; }
+        .cat-telemetry { background: var(--color-success); }
+        .cat-access_control { background: #fb7185; }
+        .cat-forwarding { background: #60a5fa; }
+        .cat-monitoring { background: #c084fc; }
+
+        /* Toast Container */
+        .toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 1100;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .toast {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            background: var(--color-bg-secondary);
+            border-radius: 8px;
+            border-left: 4px solid;
+            box-shadow: var(--shadow-lg);
+            animation: slideIn 0.3s ease;
+            max-width: 360px;
+        }
+
+        .toast.success { border-color: var(--color-success); }
+        .toast.error { border-color: var(--color-danger); }
+        .toast.warning { border-color: var(--color-warning); }
+        .toast.info { border-color: var(--color-info); }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Modal */
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.25s, visibility 0.25s;
+        }
+
+        .modal-backdrop.open {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background: var(--color-bg-secondary);
+            border-radius: 12px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 90vh;
+            overflow: hidden;
+            transform: scale(0.95);
+            transition: transform 0.25s;
+        }
+
+        .modal-backdrop.open .modal { transform: scale(1); }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--color-bg-tertiary);
+        }
+
+        .modal-title { font-size: 18px; font-weight: 600; }
+
+        .modal-close {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: none;
+            color: var(--color-text-secondary);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 20px;
+        }
+
+        .modal-close:hover { background: var(--color-bg-tertiary); }
+
+        .modal-body { padding: 24px; }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            padding: 16px 24px;
+            border-top: 1px solid var(--color-bg-tertiary);
+        }
+
+        /* Skip Link */
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 0;
+            background: var(--color-accent);
+            color: var(--color-bg-primary);
+            padding: 8px 16px;
+            z-index: 9999;
+            transition: top 0.2s;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .skip-link:focus { top: 0; }
+
+        /* Countries Grid */
+        .countries-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 12px;
+        }
+
+        .country-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            background: var(--color-bg-secondary);
+            border-radius: 6px;
+            cursor: pointer;
+            border: 1px solid var(--color-bg-tertiary);
+            transition: all 0.2s;
+        }
+
+        .country-checkbox:hover { background: var(--color-bg-hover); }
+
+        .country-checkbox.selected {
+            background: rgba(56, 189, 248, 0.15);
+            border-color: var(--color-accent);
+        }
+
+        .country-checkbox input {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--color-accent);
+        }
+
+        .country-name { font-size: 14px; flex: 1; }
+
+        .country-code {
+            font-size: 12px;
+            color: var(--color-text-muted);
+            font-family: var(--font-mono);
+        }
+
+        .selected-countries {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            min-height: 40px;
+            padding: 12px;
+        }
+
+        .selected-country-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .selected-country-tag.blacklist { background: var(--color-danger); color: white; }
+        .selected-country-tag.whitelist { background: var(--color-success); color: white; }
+
+        .selected-country-tag button {
+            background: none;
+            border: none;
+            color: inherit;
+            cursor: pointer;
+            padding: 0;
+            font-size: 14px;
+            opacity: 0.7;
+        }
+
+        .selected-country-tag button:hover { opacity: 1; }
+
+        /* Protocol list */
+        .protocol-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 8px;
+        }
+
+        .protocol-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 14px;
+            background: var(--color-bg-secondary);
+            border-radius: 6px;
+            border: 1px solid var(--color-bg-tertiary);
+        }
+
+        .protocol-name { font-weight: 500; }
+
+        .protocol-number {
+            font-size: 12px;
+            color: var(--color-text-muted);
+            font-family: var(--font-mono);
+        }
+
+        /* Signature categories */
+        .sig-category { margin-bottom: 20px; }
+
+        .sig-category-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            background: var(--color-bg-primary);
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+
+        .sig-category-title {
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sig-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 10px;
+        }
+
+        .sig-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            background: var(--color-bg-primary);
+            border-radius: 6px;
+            border: 1px solid var(--color-bg-tertiary);
+        }
+
+        .sig-info { flex: 1; }
+        .sig-name { font-weight: 500; font-size: 13px; }
+        .sig-desc { font-size: 11px; color: var(--color-text-muted); margin-top: 2px; }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            .category-nav {
+                flex-direction: column;
+            }
+
+            .category-btn {
+                max-width: none;
+            }
+
+            .add-form {
+                flex-direction: column;
+            }
+
+            .add-form .form-group {
+                width: 100%;
+            }
+
+            .stage-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .table-wrapper {
+                overflow-x: auto;
+            }
+
+            table {
+                min-width: 500px;
+            }
+        }
+
+        /* Info Banner */
+        .info-banner {
+            background: rgba(56, 189, 248, 0.1);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            font-size: 13px;
+            color: var(--color-text-secondary);
+        }
+
+        .info-banner-icon {
+            color: var(--color-accent);
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        /* Feature card for sub-sections */
+        .feature-card {
+            background: var(--color-bg-primary);
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border: 1px solid var(--color-bg-tertiary);
+        }
+
+        .feature-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .feature-card-title {
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Skip Link -->
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="toast-container" role="alert" aria-live="polite"></div>
+
+    <!-- Main Content -->
+    <main id="main-content" class="container" role="main">
+        <!-- Header -->
+        <header class="dashboard-header">
+            <div class="header-left">
+                <div class="logo">
+                    <div class="logo-icon" aria-hidden="true">DD</div>
+                    <span>Anti-DDoS Monitor</span>
+                </div>
+                <nav class="nav" role="navigation" aria-label="Main navigation">
+                    <a href="/">Dashboard</a>
+                    <a href="/rules" class="active" aria-current="page">Rules</a>
+                </nav>
+            </div>
+        </header>
+
+        <!-- Category Navigation - 3 Main Groups -->
+        <nav class="category-nav" role="navigation" aria-label="Configuration categories">
+            <button class="category-btn active" onclick="switchCategory('access')" id="cat-access" aria-selected="true">
+                <div class="category-icon access"></div>
+                <div class="category-info">
+                    <div class="category-title">Access Control</div>
+                    <div class="category-desc">IP lists, geo-blocking, who can connect</div>
+                </div>
+            </button>
+            <button class="category-btn" onclick="switchCategory('protection')" id="cat-protection" aria-selected="false">
+                <div class="category-icon protection"></div>
+                <div class="category-info">
+                    <div class="category-title">Attack Protection</div>
+                    <div class="category-desc">Signatures, protocols, defense stages</div>
+                </div>
+            </button>
+            <button class="category-btn" onclick="switchCategory('settings')" id="cat-settings" aria-selected="false">
+                <div class="category-icon settings"></div>
+                <div class="category-info">
+                    <div class="category-title">Advanced Settings</div>
+                    <div class="category-desc">Fine-tune system parameters</div>
+                </div>
+            </button>
+        </nav>
+
+        <!-- ============================================================ -->
+        <!-- ACCESS CONTROL CATEGORY -->
+        <!-- ============================================================ -->
+        <section id="access-panel" class="category-panel">
+            <!-- Sub Navigation -->
+            <div class="sub-nav">
+                <button class="sub-nav-btn active" onclick="switchAccessTab('ip-lists')" id="access-tab-ip-lists">
+                    <span class="icon"></span> IP Lists
+                </button>
+                <button class="sub-nav-btn" onclick="switchAccessTab('geo')" id="access-tab-geo">
+                    <span class="icon"></span> Geo-Blocking
+                </button>
+            </div>
+
+            <!-- IP Lists Section -->
+            <div id="ip-lists-section">
+                <div class="section-header-with-help">
+                    <h2 class="section-title-main">IP Access Lists</h2>
+                    <span class="help-tooltip" tabindex="0" aria-label="Help">
+                        ?
+                        <span class="tooltip-text">
+                            <strong>Whitelist:</strong> IPs that always get through without checks<br><br>
+                            <strong>Blacklist:</strong> IPs that are always blocked<br><br>
+                            <strong>Protected:</strong> Your servers that receive DDoS protection
+                        </span>
+                    </span>
+                </div>
+
+                <p class="section-description">
+                    Control which IP addresses can access your network. Whitelisted IPs bypass all security checks,
+                    blacklisted IPs are blocked immediately, and protected servers receive full DDoS mitigation.
+                </p>
+
+                <!-- Quick Stats -->
+                <div class="quick-stats">
+                    <div class="quick-stat">
+                        <div class="quick-stat-icon success"></div>
+                        <div>
+                            <div class="quick-stat-value" id="whitelistCount">0</div>
+                            <div class="quick-stat-label">Whitelisted</div>
+                        </div>
+                    </div>
+                    <div class="quick-stat">
+                        <div class="quick-stat-icon danger"></div>
+                        <div>
+                            <div class="quick-stat-value" id="blacklistCount">0</div>
+                            <div class="quick-stat-label">Blacklisted</div>
+                        </div>
+                    </div>
+                    <div class="quick-stat">
+                        <div class="quick-stat-icon warning"></div>
+                        <div>
+                            <div class="quick-stat-value" id="protectedCount">0</div>
+                            <div class="quick-stat-label">Protected</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- IP Check Tool -->
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">
+                            Check IP Status
+                            <span class="help-tooltip" tabindex="0">
+                                ?
+                                <span class="tooltip-text">Enter any IP address to see if it's in your whitelist, blacklist, or protected servers list.</span>
+                            </span>
+                        </span>
+                    </div>
+                    <form class="check-form" onsubmit="checkIp(); return false;">
+                        <input type="text" id="checkIp" placeholder="Enter IP address (e.g., 192.168.1.1)" aria-label="IP address to check">
+                        <button type="submit" class="btn btn--primary">Check</button>
+                    </form>
+                    <div id="checkResult" class="hidden" role="status"></div>
+                </div>
+
+                <!-- IP List Tabs -->
+                <div class="sub-nav" style="border-bottom: none; margin-bottom: 12px;">
+                    <button class="sub-nav-btn active" onclick="switchIpTab('whitelist')" id="ip-tab-whitelist" style="background: var(--color-success); color: white;">
+                        Whitelist
+                    </button>
+                    <button class="sub-nav-btn" onclick="switchIpTab('blacklist')" id="ip-tab-blacklist">
+                        Blacklist
+                    </button>
+                    <button class="sub-nav-btn" onclick="switchIpTab('protected')" id="ip-tab-protected">
+                        Protected Servers
+                    </button>
+                </div>
+
+                <!-- Whitelist Panel -->
+                <div id="whitelist-panel" class="card">
+                    <div class="card-header">
+                        <span class="card-title" style="color: var(--color-success);">
+                            Trusted IPs (Whitelist)
+                            <span class="help-tooltip" tabindex="0">
+                                ?
+                                <span class="tooltip-text">These IPs bypass ALL security checks. Use for trusted partners, payment gateways, or monitoring services.</span>
+                            </span>
+                        </span>
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <div class="search-container">
+                                <span class="search-icon"></span>
+                                <input type="search" id="whitelist-search" class="search-input" placeholder="Filter..." onkeyup="filterTable('whitelist')">
+                            </div>
+                            <button class="btn btn--danger btn--sm" onclick="confirmClearList('whitelist')">Clear All</button>
+                        </div>
+                    </div>
+                    <form class="add-form" onsubmit="addRule('whitelist'); return false;">
+                        <div class="form-group">
+                            <label for="whitelist-ip">
+                                IP Address / CIDR
+                                <span class="field-help">?<span class="tooltip-text">Single IP (192.168.1.1) or range (10.0.0.0/24)</span></span>
+                            </label>
+                            <input type="text" id="whitelist-ip" placeholder="192.168.1.1 or 10.0.0.0/24" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="whitelist-desc">Description</label>
+                            <input type="text" id="whitelist-desc" placeholder="e.g., Payment gateway">
+                        </div>
+                        <div class="form-group">
+                            <label for="whitelist-expires">
+                                Auto-expire
+                                <span class="field-help">?<span class="tooltip-text">Automatically remove after this time. Use "Never" for permanent entries.</span></span>
+                            </label>
+                            <select id="whitelist-expires">
+                                <option value="">Never</option>
+                                <option value="1">1 hour</option>
+                                <option value="24">24 hours</option>
+                                <option value="168">7 days</option>
+                                <option value="720">30 days</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn--success">+ Add to Whitelist</button>
+                    </form>
+                    <div class="table-wrapper" style="margin-top: 20px;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>IP Address</th>
+                                    <th>Description</th>
+                                    <th>Created</th>
+                                    <th>Expires</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="whitelist-body">
+                                <tr><td colspan="5" class="empty-state">No whitelist entries yet</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Blacklist Panel -->
+                <div id="blacklist-panel" class="card hidden">
+                    <div class="card-header">
+                        <span class="card-title" style="color: var(--color-danger);">
+                            Blocked IPs (Blacklist)
+                            <span class="help-tooltip" tabindex="0">
+                                ?
+                                <span class="tooltip-text">These IPs are immediately dropped. Use for known attackers or malicious sources.</span>
+                            </span>
+                        </span>
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <div class="search-container">
+                                <span class="search-icon"></span>
+                                <input type="search" id="blacklist-search" class="search-input" placeholder="Filter..." onkeyup="filterTable('blacklist')">
+                            </div>
+                            <button class="btn btn--danger btn--sm" onclick="confirmClearList('blacklist')">Clear All</button>
+                        </div>
+                    </div>
+                    <form class="add-form" onsubmit="addRule('blacklist'); return false;">
+                        <div class="form-group">
+                            <label for="blacklist-ip">
+                                IP Address / CIDR
+                                <span class="field-help">?<span class="tooltip-text">Single IP or CIDR range to block</span></span>
+                            </label>
+                            <input type="text" id="blacklist-ip" placeholder="192.168.1.1 or 10.0.0.0/24" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="blacklist-desc">Reason</label>
+                            <input type="text" id="blacklist-desc" placeholder="e.g., Repeated attacks">
+                        </div>
+                        <div class="form-group">
+                            <label for="blacklist-expires">
+                                Auto-expire
+                                <span class="field-help">?<span class="tooltip-text">Temporary blocks auto-remove. Use for rate-limited IPs.</span></span>
+                            </label>
+                            <select id="blacklist-expires">
+                                <option value="">Never (permanent)</option>
+                                <option value="1">1 hour</option>
+                                <option value="24">24 hours</option>
+                                <option value="168">7 days</option>
+                                <option value="720">30 days</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn--danger">+ Block IP</button>
+                    </form>
+                    <div class="table-wrapper" style="margin-top: 20px;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>IP Address</th>
+                                    <th>Reason</th>
+                                    <th>Blocked</th>
+                                    <th>Expires</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="blacklist-body">
+                                <tr><td colspan="5" class="empty-state">No blocked IPs</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Protected Panel -->
+                <div id="protected-panel" class="card hidden">
+                    <div class="card-header">
+                        <span class="card-title" style="color: var(--color-warning);">
+                            Protected Servers
+                            <span class="help-tooltip" tabindex="0">
+                                ?
+                                <span class="tooltip-text">Your servers that receive DDoS protection. Traffic to these IPs is analyzed and filtered by the system.</span>
+                            </span>
+                        </span>
+                        <div class="search-container">
+                            <span class="search-icon"></span>
+                            <input type="search" id="protected-search" class="search-input" placeholder="Filter..." onkeyup="filterTable('protected')">
+                        </div>
+                    </div>
+                    <div class="info-banner">
+                        <span class="info-banner-icon"></span>
+                        <span>Add your server IPs here to enable DDoS protection. Each protected IP gets individual traffic monitoring and anomaly detection.</span>
+                    </div>
+                    <form class="add-form" onsubmit="addRule('protected'); return false;">
+                        <div class="form-group">
+                            <label for="protected-ip">Server IP Address</label>
+                            <input type="text" id="protected-ip" placeholder="192.168.1.100" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="protected-desc">Server Name/Description</label>
+                            <input type="text" id="protected-desc" placeholder="e.g., Web Server #1">
+                        </div>
+                        <button type="submit" class="btn btn--warning">+ Add Protected Server</button>
+                    </form>
+                    <div class="table-wrapper" style="margin-top: 20px;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Server IP</th>
+                                    <th>Name</th>
+                                    <th>Added</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="protected-body">
+                                <tr><td colspan="4" class="empty-state">No protected servers configured</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Geo-Blocking Section -->
+            <div id="geo-section" class="hidden">
+                <div class="section-header-with-help">
+                    <h2 class="section-title-main">Geographic Blocking</h2>
+                    <span class="help-tooltip" tabindex="0">
+                        ?
+                        <span class="tooltip-text">Block or allow traffic based on the country of origin. Uses IP geolocation to determine source country.</span>
+                    </span>
+                </div>
+
+                <p class="section-description">
+                    Control access based on geographic location. You can either block specific countries (blacklist mode)
+                    or only allow specific countries (whitelist mode).
+                </p>
+
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Geo-Blocking Settings</span>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="geoEnabled" onchange="toggleGeoEnabled(this.checked)">
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <span>Enable Geo-Blocking</span>
+                        </div>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-card-header">
+                            <span class="feature-card-title">
+                                Mode
+                                <span class="help-tooltip" tabindex="0">
+                                    ?
+                                    <span class="tooltip-text"><strong>Blacklist:</strong> Block selected countries, allow all others<br><br><strong>Whitelist:</strong> Only allow selected countries, block all others</span>
+                                </span>
+                            </span>
+                        </div>
+                        <select id="geoMode" onchange="setGeoMode(this.value)" style="width: 100%; max-width: 350px;">
+                            <option value="blacklist">Blacklist Mode - Block selected countries</option>
+                            <option value="whitelist">Whitelist Mode - Allow only selected countries</option>
+                        </select>
+                        <p id="geoModeDesc" style="margin-top: 8px; font-size: 13px; color: var(--color-text-muted);"></p>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-card-header">
+                            <span class="feature-card-title" id="geoCountriesTitle">Select Countries</span>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="btn btn--secondary btn--sm" onclick="selectAllCountries()">Select All</button>
+                                <button class="btn btn--secondary btn--sm" onclick="clearAllCountries()">Clear</button>
+                            </div>
+                        </div>
+                        <div id="countriesGrid" class="countries-grid"></div>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-card-header">
+                            <span class="feature-card-title">Currently Selected</span>
+                            <span id="selectedCount" style="color: var(--color-accent);">0 countries</span>
+                        </div>
+                        <div id="selectedCountries" class="selected-countries">
+                            <span style="color: var(--color-text-muted);">No countries selected</span>
+                        </div>
+                    </div>
+
+                    <div class="feature-card" style="margin-top: 16px;">
+                        <div class="feature-card-header">
+                            <span class="feature-card-title">
+                                Logging Options
+                                <span class="help-tooltip" tabindex="0">
+                                    ?
+                                    <span class="tooltip-text">Enable logging to track which connections are blocked by geo-filtering. Useful for auditing and troubleshooting.</span>
+                                </span>
+                            </span>
+                        </div>
+                        <label class="toggle-option">
+                            <input type="checkbox" id="geoLogBlocked" onchange="updateGeoOption('log_blocked', this.checked)">
+                            <span class="toggle-option-label">
+                                <span class="toggle-option-title">Log Blocked Connections</span>
+                                <span class="toggle-option-desc">Record blocked geo-filtered traffic in logs</span>
+                            </span>
+                            <span class="toggle-switch">
+                                <span class="toggle-slider"></span>
+                            </span>
+                        </label>
+                    </div>
+
+                    <div style="margin-top: 16px;">
+                        <button class="btn btn--primary" onclick="saveGeoCountries()">Save Geo Settings</button>
+                        <span id="geoSaveStatus" style="margin-left: 12px; color: var(--color-text-muted);"></span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- ATTACK PROTECTION CATEGORY -->
+        <!-- ============================================================ -->
+        <section id="protection-panel" class="category-panel hidden">
+            <div class="sub-nav">
+                <button class="sub-nav-btn active" onclick="switchProtectionTab('signatures')" id="prot-tab-signatures">
+                    <span class="icon"></span> Attack Signatures
+                </button>
+                <button class="sub-nav-btn" onclick="switchProtectionTab('protocols')" id="prot-tab-protocols">
+                    <span class="icon"></span> Protocol Filter
+                </button>
+                <button class="sub-nav-btn" onclick="switchProtectionTab('stages')" id="prot-tab-stages">
+                    <span class="icon"></span> Protection Stages
+                </button>
+            </div>
+
+            <!-- Attack Signatures Section -->
+            <div id="signatures-section">
+                <div class="section-header-with-help">
+                    <h2 class="section-title-main">Attack Signatures</h2>
+                    <span class="help-tooltip" tabindex="0">
+                        ?
+                        <span class="tooltip-text">Detect and block known attack patterns like DNS amplification, NTP reflection, and other common DDoS techniques.</span>
+                    </span>
+                </div>
+
+                <p class="section-description">
+                    Enable detection of known attack patterns. When an attack signature is detected,
+                    the traffic is automatically dropped before reaching your servers.
+                </p>
+
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Signature Detection</span>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="signaturesEnabled" onchange="toggleSignaturesEnabled(this.checked)">
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <span>Enable Attack Detection</span>
+                        </div>
+                    </div>
+
+                    <div id="sig-categories-container">
+                        <!-- Categories loaded dynamically -->
+                    </div>
+
+                    <div class="feature-card" style="margin-top: 16px;">
+                        <div class="feature-card-header">
+                            <span class="feature-card-title">
+                                Detection Options
+                                <span class="help-tooltip" tabindex="0">
+                                    ?
+                                    <span class="tooltip-text">Control which attack types to detect and whether to log matches for analysis.</span>
+                                </span>
+                            </span>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            <label class="toggle-option">
+                                <input type="checkbox" id="sigLogMatches" onchange="updateSignatureOption('log_matches', this.checked)">
+                                <span class="toggle-option-label">
+                                    <span class="toggle-option-title">Log Signature Matches</span>
+                                    <span class="toggle-option-desc">Record when attack signatures are detected (recommended for analysis)</span>
+                                </span>
+                                <span class="toggle-switch">
+                                    <span class="toggle-slider"></span>
+                                </span>
+                            </label>
+                            <label class="toggle-option">
+                                <input type="checkbox" id="sigBlockAmplification" onchange="updateSignatureOption('block_amplification', this.checked)">
+                                <span class="toggle-option-label">
+                                    <span class="toggle-option-title">Block Amplification Attacks</span>
+                                    <span class="toggle-option-desc">Drop DNS, NTP, SSDP and other reflection/amplification attacks</span>
+                                </span>
+                                <span class="toggle-switch">
+                                    <span class="toggle-slider"></span>
+                                </span>
+                            </label>
+                            <label class="toggle-option">
+                                <input type="checkbox" id="sigBlockScans" onchange="updateSignatureOption('block_scans', this.checked)">
+                                <span class="toggle-option-label">
+                                    <span class="toggle-option-title">Block Port Scans</span>
+                                    <span class="toggle-option-desc">Detect and block TCP/UDP port scanning patterns</span>
+                                </span>
+                                <span class="toggle-switch">
+                                    <span class="toggle-slider"></span>
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">
+                            Add Custom Signature
+                            <span class="help-tooltip" tabindex="0">
+                                ?
+                                <span class="tooltip-text">Create custom rules to detect specific UDP amplification attacks based on source port.</span>
+                            </span>
+                        </span>
+                    </div>
+                    <form class="add-form" onsubmit="addCustomSignature(); return false;">
+                        <div class="form-group">
+                            <label for="custom-sig-port">UDP Source Port</label>
+                            <input type="number" id="custom-sig-port" placeholder="e.g., 53" min="1" max="65535" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="custom-sig-name">Attack Name</label>
+                            <input type="text" id="custom-sig-name" placeholder="e.g., Custom DNS" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="custom-sig-amp">
+                                Amplification Factor
+                                <span class="field-help">?<span class="tooltip-text">How many times larger the response is vs request. Higher = more dangerous.</span></span>
+                            </label>
+                            <input type="number" id="custom-sig-amp" placeholder="10" min="1" value="1">
+                        </div>
+                        <button type="submit" class="btn btn--primary">+ Add Signature</button>
+                    </form>
+                    <div id="custom-signatures-list" style="margin-top: 16px;"></div>
+                </div>
+            </div>
+
+            <!-- Protocols Section -->
+            <div id="protocols-section" class="hidden">
+                <div class="section-header-with-help">
+                    <h2 class="section-title-main">Protocol Filter</h2>
+                    <span class="help-tooltip" tabindex="0">
+                        ?
+                        <span class="tooltip-text">Control which network protocols are allowed. Block unusual protocols that your servers don't need.</span>
+                    </span>
+                </div>
+
+                <p class="section-description">
+                    Filter traffic by IP protocol. Block protocols you don't use (like GRE, SCTP) to reduce attack surface.
+                    Most servers only need TCP, UDP, and ICMP.
+                </p>
+
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Protocol Filtering</span>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="protocolsEnabled" onchange="toggleProtocolsEnabled(this.checked)">
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <span>Enable Protocol Filter</span>
+                        </div>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-card-header">
+                            <span class="feature-card-title">
+                                Default Action
+                                <span class="help-tooltip" tabindex="0">
+                                    ?
+                                    <span class="tooltip-text">What to do with protocols not in your allowed list. "Drop" is safest.</span>
+                                </span>
+                            </span>
+                        </div>
+                        <div style="display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end;">
+                            <div class="form-group">
+                                <select id="protocolAction" onchange="setProtocolAction(this.value)" style="min-width: 280px;">
+                                    <option value="drop">Drop - Block unknown protocols</option>
+                                    <option value="accept">Accept - Allow all protocols</option>
+                                    <option value="rate_limit">Rate Limit - Throttle unknown</option>
+                                </select>
+                            </div>
+                            <div id="rateLimitContainer" class="form-group" style="display: none;">
+                                <label>Rate limit (packets/sec)</label>
+                                <div style="display: flex; gap: 8px;">
+                                    <input type="number" id="protocolRateLimit" placeholder="1000" min="1" style="width: 120px;">
+                                    <button class="btn btn--primary btn--sm" onclick="setProtocolRateLimit()">Set</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-card-header">
+                            <span class="feature-card-title">Allowed Protocols</span>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <span id="allowedProtocolsCount" style="color: var(--color-accent);">0</span>
+                                <button class="btn btn--danger btn--sm" onclick="confirmClearProtocols()">Clear All</button>
+                            </div>
+                        </div>
+                        <form class="add-form" onsubmit="addProtocol(); return false;" style="margin-bottom: 16px;">
+                            <div class="form-group">
+                                <label>Add Protocol</label>
+                                <input type="text" id="addProtocolInput" placeholder="e.g., GRE, OSPF, or 47" list="protocolSuggestions" style="min-width: 200px;">
+                                <datalist id="protocolSuggestions"></datalist>
+                            </div>
+                            <button type="submit" class="btn btn--success">+ Add</button>
+                        </form>
+                        <div id="allowedProtocolsList" class="protocol-list"></div>
+                    </div>
+
+                    <div class="feature-card" style="margin-top: 16px;">
+                        <div class="feature-card-header">
+                            <span class="feature-card-title">
+                                Logging Options
+                                <span class="help-tooltip" tabindex="0">
+                                    ?
+                                    <span class="tooltip-text">Enable logging for unknown protocols to track unusual traffic and potential attacks.</span>
+                                </span>
+                            </span>
+                        </div>
+                        <label class="toggle-option">
+                            <input type="checkbox" id="protocolLogUnknown" onchange="updateProtocolOption('log_unknown', this.checked)">
+                            <span class="toggle-option-label">
+                                <span class="toggle-option-title">Log Unknown Protocols</span>
+                                <span class="toggle-option-desc">Record packets using protocols not in the allowed list</span>
+                            </span>
+                            <span class="toggle-switch">
+                                <span class="toggle-slider"></span>
+                            </span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stages Section -->
+            <div id="stages-section" class="hidden">
+                <div class="section-header-with-help">
+                    <h2 class="section-title-main">Protection Stages</h2>
+                    <span class="help-tooltip" tabindex="0">
+                        ?
+                        <span class="tooltip-text">Enable or disable individual protection features. Each stage handles a specific type of attack or validation.</span>
+                    </span>
+                </div>
+
+                <p class="section-description">
+                    Toggle individual protection features. Disabling a stage will skip that check for all traffic.
+                    <strong>Warning:</strong> Disabling protections may expose your servers to attacks.
+                </p>
+
+                <div class="quick-stats">
+                    <div class="quick-stat">
+                        <div class="quick-stat-icon info"></div>
+                        <div>
+                            <div class="quick-stat-value" id="activeStages">0</div>
+                            <div class="quick-stat-label">Active Stages</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div id="stages-container"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- ADVANCED SETTINGS CATEGORY -->
+        <!-- ============================================================ -->
+        <section id="settings-panel" class="category-panel hidden">
+            <div class="sub-nav">
+                <button class="sub-nav-btn active" onclick="switchSettingsTab('layer1')" id="set-tab-layer1">
+                    <span class="icon"></span> Packet Processing
+                </button>
+                <button class="sub-nav-btn" onclick="switchSettingsTab('layer2')" id="set-tab-layer2">
+                    <span class="icon"></span> Anomaly Detection
+                </button>
+            </div>
+
+            <!-- Layer1 Config Section -->
+            <div id="layer1-section">
+                <div class="section-header-with-help">
+                    <h2 class="section-title-main">Packet Processing Settings</h2>
+                    <span class="help-tooltip" tabindex="0">
+                        ?
+                        <span class="tooltip-text">Low-level DPDK packet processing parameters. Only change if you understand the implications.</span>
+                    </span>
+                </div>
+
+                <p class="section-description">
+                    Configure the high-speed packet processing engine. These settings affect how packets are validated,
+                    rate-limited, and forwarded. Changes take effect immediately.
+                </p>
+
+                <div class="info-banner">
+                    <span class="info-banner-icon"></span>
+                    <span><strong>Advanced users only.</strong> Incorrect settings may cause packet loss or reduced protection. Use "Reset to Defaults" if unsure.</span>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">
+                            System Mode
+                            <span class="help-tooltip" tabindex="0">
+                                ?
+                                <span class="tooltip-text">Control how the system operates. Monitor-only mode observes traffic without blocking anything.</span>
+                            </span>
+                        </span>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <label class="toggle-option" style="background: rgba(245, 158, 11, 0.1); border: 1px solid var(--color-warning);">
+                            <input type="checkbox" id="cfgMonitorOnly" onchange="updateTopLevelConfig('monitor_only', this.checked)">
+                            <span class="toggle-option-label">
+                                <span class="toggle-option-title" style="color: var(--color-warning);">Monitor Only Mode</span>
+                                <span class="toggle-option-desc">Traffic flows through without blocking. Use for testing or passive monitoring.</span>
+                            </span>
+                            <span class="toggle-switch">
+                                <span class="toggle-slider"></span>
+                            </span>
+                        </label>
+                        <label class="toggle-option">
+                            <input type="checkbox" id="cfgStatsEnabled" onchange="updateTopLevelConfig('stats_enabled', this.checked)">
+                            <span class="toggle-option-label">
+                                <span class="toggle-option-title">Enable Statistics Collection</span>
+                                <span class="toggle-option-desc">Collect detailed traffic statistics and metrics</span>
+                            </span>
+                            <span class="toggle-switch">
+                                <span class="toggle-slider"></span>
+                            </span>
+                        </label>
+                        <div style="display: flex; gap: 16px; align-items: center; padding: 12px 16px; background: var(--color-bg-primary); border-radius: 8px;">
+                            <div style="flex: 1;">
+                                <div style="font-weight: 500; color: var(--color-text-primary); margin-bottom: 2px;">
+                                    Log Level
+                                    <span class="field-help">?<span class="tooltip-text">0=Emergency, 1=Alert, 2=Critical, 3=Error, 4=Warning, 5=Notice, 6=Info, 7=Debug, 8=Debug+</span></span>
+                                </div>
+                                <div style="font-size: 12px; color: var(--color-text-muted);">Controls DPDK logging verbosity (higher = more output)</div>
+                            </div>
+                            <select id="cfgLogLevel" onchange="updateTopLevelConfig('log_level', parseInt(this.value))" style="width: 180px;">
+                                <option value="0">0 - Emergency</option>
+                                <option value="1">1 - Alert</option>
+                                <option value="2">2 - Critical</option>
+                                <option value="3">3 - Error</option>
+                                <option value="4">4 - Warning</option>
+                                <option value="5">5 - Notice</option>
+                                <option value="6">6 - Info</option>
+                                <option value="7">7 - Debug</option>
+                                <option value="8">8 - Debug+</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Configuration</span>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn btn--secondary btn--sm" onclick="reloadConfig()">Reload</button>
+                            <button class="btn btn--danger btn--sm" onclick="confirmResetConfig()">Reset to Defaults</button>
+                        </div>
+                    </div>
+                    <div id="config-container"></div>
+                </div>
+            </div>
+
+            <!-- Layer2 Config Section -->
+            <div id="layer2-section" class="hidden">
+                <div class="section-header-with-help">
+                    <h2 class="section-title-main">Anomaly Detection Settings</h2>
+                    <span class="help-tooltip" tabindex="0">
+                        ?
+                        <span class="tooltip-text">Configure the behavioral analysis engine that detects unusual traffic patterns indicating DDoS attacks.</span>
+                    </span>
+                </div>
+
+                <p class="section-description">
+                    Fine-tune the machine learning-based anomaly detection. The system learns normal traffic patterns
+                    and alerts when traffic deviates significantly (potential attack).
+                </p>
+
+                <div class="info-banner">
+                    <span class="info-banner-icon"></span>
+                    <span>The anomaly detector uses baseline learning. Changes to sensitivity affect how quickly attacks are detected vs false positives.</span>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Detection Parameters</span>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn btn--secondary btn--sm" onclick="reloadLayer2Config()">Reload</button>
+                            <button class="btn btn--danger btn--sm" onclick="confirmResetLayer2Config()">Reset to Defaults</button>
+                        </div>
+                    </div>
+                    <div id="layer2-config-container">
+                        <div class="empty-state">Loading configuration...</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmModal" class="modal-backdrop" role="dialog" aria-modal="true">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="confirmModalTitle" class="modal-title">Confirm</h3>
+                <button class="modal-close" onclick="closeConfirmModal()">&times;</button>
+            </div>
+            <div id="confirmModalBody" class="modal-body"></div>
+            <div class="modal-footer">
+                <button class="btn btn--secondary" onclick="closeConfirmModal()">Cancel</button>
+                <button id="confirmModalAction" class="btn btn--danger">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/ui-components.js"></script>
+    <script>
+        // ============================================================================
+        // State
+        // ============================================================================
+        let currentCategory = 'access';
+        let currentAccessTab = 'ip-lists';
+        let currentProtectionTab = 'signatures';
+        let currentSettingsTab = 'layer1';
+        let currentIpTab = 'whitelist';
+        let configSchema = {};
+        let pendingConfirmAction = null;
+
+        // ============================================================================
+        // Category Navigation
+        // ============================================================================
+        function switchCategory(category) {
+            currentCategory = category;
+
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.classList.remove('active');
+                btn.setAttribute('aria-selected', 'false');
+            });
+            document.getElementById(`cat-${category}`).classList.add('active');
+            document.getElementById(`cat-${category}`).setAttribute('aria-selected', 'true');
+
+            document.querySelectorAll('.category-panel').forEach(p => p.classList.add('hidden'));
+            document.getElementById(`${category}-panel`).classList.remove('hidden');
+
+            // Load data for the category
+            if (category === 'access') {
+                fetchStats();
+                fetchList('whitelist');
+                fetchList('blacklist');
+                fetchList('protected');
+            } else if (category === 'protection') {
+                fetchSignatures();
+                fetchStages();
+            } else if (category === 'settings') {
+                fetchConfig();
+            }
+        }
+
+        // ============================================================================
+        // Sub-Navigation
+        // ============================================================================
+        function switchAccessTab(tab) {
+            currentAccessTab = tab;
+            document.querySelectorAll('#access-panel > .sub-nav:first-of-type .sub-nav-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`access-tab-${tab}`).classList.add('active');
+
+            document.getElementById('ip-lists-section').classList.add('hidden');
+            document.getElementById('geo-section').classList.add('hidden');
+            document.getElementById(`${tab === 'ip-lists' ? 'ip-lists' : 'geo'}-section`).classList.remove('hidden');
+
+            if (tab === 'geo') fetchGeoBlocking();
+        }
+
+        function switchProtectionTab(tab) {
+            currentProtectionTab = tab;
+            document.querySelectorAll('#protection-panel .sub-nav .sub-nav-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`prot-tab-${tab}`).classList.add('active');
+
+            document.getElementById('signatures-section').classList.add('hidden');
+            document.getElementById('protocols-section').classList.add('hidden');
+            document.getElementById('stages-section').classList.add('hidden');
+            document.getElementById(`${tab}-section`).classList.remove('hidden');
+
+            if (tab === 'protocols') fetchProtocols();
+            if (tab === 'stages') fetchStages();
+            if (tab === 'signatures') fetchSignatures();
+        }
+
+        function switchSettingsTab(tab) {
+            currentSettingsTab = tab;
+            document.querySelectorAll('#settings-panel .sub-nav .sub-nav-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`set-tab-${tab}`).classList.add('active');
+
+            document.getElementById('layer1-section').classList.add('hidden');
+            document.getElementById('layer2-section').classList.add('hidden');
+            document.getElementById(`${tab}-section`).classList.remove('hidden');
+
+            if (tab === 'layer1') fetchConfig();
+            if (tab === 'layer2') fetchLayer2Config();
+        }
+
+        function switchIpTab(tab) {
+            currentIpTab = tab;
+
+            // Update button styles
+            document.querySelectorAll('#ip-lists-section .sub-nav .sub-nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+                btn.style.background = '';
+                btn.style.color = '';
+            });
+
+            const activeBtn = document.getElementById(`ip-tab-${tab}`);
+            activeBtn.classList.add('active');
+
+            if (tab === 'whitelist') {
+                activeBtn.style.background = 'var(--color-success)';
+                activeBtn.style.color = 'white';
+            } else if (tab === 'blacklist') {
+                activeBtn.style.background = 'var(--color-danger)';
+                activeBtn.style.color = 'white';
+            } else {
+                activeBtn.style.background = 'var(--color-warning)';
+                activeBtn.style.color = 'var(--color-bg-primary)';
+            }
+
+            document.getElementById('whitelist-panel').classList.add('hidden');
+            document.getElementById('blacklist-panel').classList.add('hidden');
+            document.getElementById('protected-panel').classList.add('hidden');
+            document.getElementById(`${tab}-panel`).classList.remove('hidden');
+        }
+
+        // ============================================================================
+        // Toast & Modal
+        // ============================================================================
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<span>${escapeHtml(message)}</span><button onclick="this.parentElement.remove()" style="background:none;border:none;color:inherit;cursor:pointer;margin-left:8px;">&times;</button>`;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 5000);
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function showConfirmModal(title, message, actionText, onConfirm) {
+            document.getElementById('confirmModalTitle').textContent = title;
+            document.getElementById('confirmModalBody').innerHTML = `<p>${escapeHtml(message)}</p>`;
+            document.getElementById('confirmModalAction').textContent = actionText;
+            pendingConfirmAction = onConfirm;
+            document.getElementById('confirmModal').classList.add('open');
+        }
+
+        function closeConfirmModal() {
+            document.getElementById('confirmModal').classList.remove('open');
+            pendingConfirmAction = null;
+        }
+
+        document.getElementById('confirmModalAction').addEventListener('click', () => {
+            if (pendingConfirmAction) pendingConfirmAction();
+            closeConfirmModal();
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeConfirmModal();
+        });
+
+        // ============================================================================
+        // Utility
+        // ============================================================================
+        function formatDate(isoString) {
+            if (!isoString) return 'Never';
+            return new Date(isoString).toLocaleString();
+        }
+
+        function filterTable(listType) {
+            const searchValue = document.getElementById(`${listType}-search`).value.toLowerCase();
+            const tbody = document.getElementById(`${listType}-body`);
+            tbody.querySelectorAll('tr').forEach(row => {
+                row.style.display = row.textContent.toLowerCase().includes(searchValue) ? '' : 'none';
+            });
+        }
+
+        // ============================================================================
+        // API: Stats & IP Lists
+        // ============================================================================
+        async function fetchStats() {
+            try {
+                const res = await fetch('/api/rules/stats');
+                const data = await res.json();
+                document.getElementById('whitelistCount').textContent = data.whitelist_count || 0;
+                document.getElementById('blacklistCount').textContent = data.blacklist_count || 0;
+                document.getElementById('protectedCount').textContent = data.protected_count || 0;
+            } catch (e) {
+                console.error('Error fetching stats:', e);
+            }
+        }
+
+        async function fetchList(listType) {
+            try {
+                const res = await fetch(`/api/rules/${listType}`);
+                const data = await res.json();
+                const tbody = document.getElementById(`${listType}-body`);
+
+                if (!data.entries || data.entries.length === 0) {
+                    const colSpan = listType === 'protected' ? 4 : 5;
+                    const emptyMsg = {
+                        whitelist: 'No trusted IPs configured',
+                        blacklist: 'No blocked IPs',
+                        protected: 'No servers under protection'
+                    };
+                    tbody.innerHTML = `<tr><td colspan="${colSpan}" class="empty-state">${emptyMsg[listType]}</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = data.entries.map(entry => {
+                    const expiresCol = listType !== 'protected' ? `<td>${formatDate(entry.expires)}</td>` : '';
+                    return `
+                        <tr>
+                            <td><span class="ip-badge">${escapeHtml(entry.ip)}</span></td>
+                            <td>${escapeHtml(entry.description || '-')}</td>
+                            <td>${formatDate(entry.created)}</td>
+                            ${expiresCol}
+                            <td><button class="btn btn--danger btn--sm" onclick="confirmRemoveRule('${listType}', '${escapeHtml(entry.ip)}')">Remove</button></td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (e) {
+                console.error(`Error fetching ${listType}:`, e);
+            }
+        }
+
+        async function addRule(listType) {
+            const ip = document.getElementById(`${listType}-ip`).value.trim();
+            const description = document.getElementById(`${listType}-desc`).value.trim();
+            if (!ip) { showToast('Please enter an IP address', 'error'); return; }
+
+            const body = { ip, description };
+            if (listType !== 'protected') {
+                const expires = document.getElementById(`${listType}-expires`).value;
+                if (expires) body.expires_hours = parseInt(expires);
+            }
+
+            try {
+                const res = await fetch(`/api/rules/${listType}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                if (res.ok) {
+                    showToast(`Added ${ip} to ${listType}`, 'success');
+                    document.getElementById(`${listType}-ip`).value = '';
+                    document.getElementById(`${listType}-desc`).value = '';
+                    if (listType !== 'protected') document.getElementById(`${listType}-expires`).value = '';
+                    fetchList(listType);
+                    fetchStats();
+                } else {
+                    const data = await res.json();
+                    showToast(data.error || 'Failed to add', 'error');
+                }
+            } catch (e) {
+                showToast('Error adding rule', 'error');
+            }
+        }
+
+        function confirmRemoveRule(listType, ip) {
+            showConfirmModal('Remove Entry', `Remove ${ip} from ${listType}?`, 'Remove', () => removeRule(listType, ip));
+        }
+
+        async function removeRule(listType, ip) {
+            try {
+                const res = await fetch(`/api/rules/${listType}/${encodeURIComponent(ip)}`, { method: 'DELETE' });
+                if (res.ok) {
+                    showToast(`Removed ${ip}`, 'success');
+                    fetchList(listType);
+                    fetchStats();
+                } else {
+                    showToast('Failed to remove', 'error');
+                }
+            } catch (e) {
+                showToast('Error removing rule', 'error');
+            }
+        }
+
+        function confirmClearList(listType) {
+            showConfirmModal('Clear All', `Clear all ${listType} entries? This cannot be undone.`, 'Clear All', () => clearList(listType));
+        }
+
+        async function clearList(listType) {
+            try {
+                const res = await fetch(`/api/rules/${listType}/clear`, { method: 'POST' });
+                if (res.ok) {
+                    const data = await res.json();
+                    showToast(`Cleared ${data.count} entries`, 'success');
+                    fetchList(listType);
+                    fetchStats();
+                }
+            } catch (e) {
+                showToast('Error clearing list', 'error');
+            }
+        }
+
+        async function checkIp() {
+            const ip = document.getElementById('checkIp').value.trim();
+            if (!ip) { showToast('Enter an IP address', 'error'); return; }
+
+            try {
+                const res = await fetch(`/api/rules/check/${encodeURIComponent(ip)}`);
+                const data = await res.json();
+                const resultDiv = document.getElementById('checkResult');
+                resultDiv.classList.remove('hidden', 'whitelisted', 'blacklisted', 'protected', 'clean');
+
+                let tags = [];
+                let className = 'clean';
+                if (data.whitelisted) { tags.push('<span class="tag whitelist">WHITELISTED</span>'); className = 'whitelisted'; }
+                if (data.blacklisted) { tags.push('<span class="tag blacklist">BLACKLISTED</span>'); className = 'blacklisted'; }
+                if (data.protected) { tags.push('<span class="tag protected">PROTECTED</span>'); if (className === 'clean') className = 'protected'; }
+
+                if (tags.length === 0) {
+                    resultDiv.innerHTML = `<strong>${escapeHtml(ip)}</strong> is not in any list — traffic will be processed normally`;
+                } else {
+                    resultDiv.innerHTML = `<strong>${escapeHtml(ip)}</strong>: ${tags.join(' ')}`;
+                }
+                resultDiv.classList.add(className);
+            } catch (e) {
+                showToast('Error checking IP', 'error');
+            }
+        }
+
+        // ============================================================================
+        // API: Geo-Blocking
+        // ============================================================================
+        let geoData = { enabled: false, mode: 'blacklist', selectedCountries: [], allCountries: [] };
+
+        async function fetchGeoBlocking() {
+            try {
+                const res = await fetch('/api/geo');
+                const data = await res.json();
+                geoData.enabled = data.enabled || false;
+                geoData.mode = data.mode || 'blacklist';
+                geoData.log_blocked = data.log_blocked !== false;
+                geoData.allCountries = data.all_countries || [];
+                geoData.selectedCountries = data.mode === 'blacklist' ? (data.blocked_countries || []) : (data.allowed_countries || []);
+                renderGeoBlocking();
+            } catch (e) {
+                console.error('Error fetching geo config:', e);
+            }
+        }
+
+        function renderGeoBlocking() {
+            document.getElementById('geoEnabled').checked = geoData.enabled;
+            document.getElementById('geoMode').value = geoData.mode;
+            document.getElementById('geoLogBlocked').checked = geoData.log_blocked;
+            document.getElementById('geoModeDesc').textContent = geoData.mode === 'blacklist'
+                ? 'Selected countries will be BLOCKED'
+                : 'ONLY selected countries will be ALLOWED';
+            document.getElementById('geoCountriesTitle').textContent = geoData.mode === 'blacklist' ? 'Countries to Block' : 'Countries to Allow';
+
+            const grid = document.getElementById('countriesGrid');
+            grid.innerHTML = geoData.allCountries.map(c => {
+                const sel = geoData.selectedCountries.includes(c.code);
+                return `<label class="country-checkbox ${sel ? 'selected' : ''}">
+                    <input type="checkbox" ${sel ? 'checked' : ''} onchange="toggleCountry('${c.code}', this.checked)">
+                    <span class="country-name">${escapeHtml(c.name)}</span>
+                    <span class="country-code">${c.code}</span>
+                </label>`;
+            }).join('');
+
+            updateSelectedDisplay();
+        }
+
+        function toggleCountry(code, selected) {
+            if (selected && !geoData.selectedCountries.includes(code)) geoData.selectedCountries.push(code);
+            else geoData.selectedCountries = geoData.selectedCountries.filter(c => c !== code);
+            updateSelectedDisplay();
+            renderGeoBlocking();
+        }
+
+        function updateSelectedDisplay() {
+            const container = document.getElementById('selectedCountries');
+            document.getElementById('selectedCount').textContent = `${geoData.selectedCountries.length} countries`;
+            if (geoData.selectedCountries.length === 0) {
+                container.innerHTML = '<span style="color: var(--color-text-muted);">No countries selected</span>';
+            } else {
+                container.innerHTML = geoData.selectedCountries.map(code => {
+                    const c = geoData.allCountries.find(x => x.code === code);
+                    return `<span class="selected-country-tag ${geoData.mode}">${escapeHtml(c ? c.name : code)} <button onclick="toggleCountry('${code}', false)">&times;</button></span>`;
+                }).join('');
+            }
+        }
+
+        async function toggleGeoEnabled(enabled) {
+            try {
+                const res = await fetch('/api/geo/enabled', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ enabled }) });
+                if (res.ok) showToast(`Geo-blocking ${enabled ? 'enabled' : 'disabled'}`, 'success');
+                else { showToast('Failed', 'error'); document.getElementById('geoEnabled').checked = !enabled; }
+            } catch (e) { showToast('Error', 'error'); }
+        }
+
+        async function setGeoMode(mode) {
+            try {
+                const res = await fetch('/api/geo/mode', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mode }) });
+                if (res.ok) { geoData.mode = mode; geoData.selectedCountries = []; showToast(`Switched to ${mode} mode`, 'success'); fetchGeoBlocking(); }
+                else showToast('Failed', 'error');
+            } catch (e) { showToast('Error', 'error'); }
+        }
+
+        function selectAllCountries() { geoData.selectedCountries = geoData.allCountries.map(c => c.code); renderGeoBlocking(); }
+        function clearAllCountries() { geoData.selectedCountries = []; renderGeoBlocking(); }
+
+        async function updateGeoOption(key, value) {
+            try {
+                const res = await fetch(`/api/config/value/geo_blocking/${key}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ value })
+                });
+                if (res.ok) {
+                    geoData[key] = value;
+                    showToast('Setting updated', 'success');
+                } else {
+                    showToast('Failed to update', 'error');
+                    fetchGeoBlocking();
+                }
+            } catch (e) {
+                showToast('Error', 'error');
+                fetchGeoBlocking();
+            }
+        }
+
+        async function saveGeoCountries() {
+            document.getElementById('geoSaveStatus').textContent = 'Saving...';
+            try {
+                const res = await fetch('/api/geo/countries', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ countries: geoData.selectedCountries }) });
+                if (res.ok) { showToast('Geo settings saved', 'success'); document.getElementById('geoSaveStatus').textContent = 'Saved'; setTimeout(() => document.getElementById('geoSaveStatus').textContent = '', 2000); }
+                else { showToast('Failed to save', 'error'); document.getElementById('geoSaveStatus').textContent = 'Failed'; }
+            } catch (e) { showToast('Error', 'error'); document.getElementById('geoSaveStatus').textContent = 'Error'; }
+        }
+
+        // ============================================================================
+        // API: Signatures
+        // ============================================================================
+        async function fetchSignatures() {
+            try {
+                const res = await fetch('/api/signatures');
+                const data = await res.json();
+                const config = data.config || {};
+                document.getElementById('signaturesEnabled').checked = config.enabled || false;
+                document.getElementById('sigLogMatches').checked = config.log_matches !== false;
+                document.getElementById('sigBlockAmplification').checked = config.block_amplification !== false;
+                document.getElementById('sigBlockScans').checked = config.block_scans !== false;
+                const container = document.getElementById('sig-categories-container');
+
+                // Map category IDs to their metadata and signatures
+                const categoryMeta = {};
+                for (const cat of (data.categories || [])) {
+                    categoryMeta[cat.id] = cat;
+                }
+
+                // Build categorized signatures using actual signature arrays
+                const signatureGroups = [
+                    { id: 'amplification', sigs: data.amplification || [] },
+                    { id: 'scans', sigs: data.scans || [] },
+                    { id: 'anomalies', sigs: data.anomalies || [] },
+                    { id: 'attack_tools', sigs: data.attack_tools || [] }
+                ];
+
+                let html = '';
+                for (const group of signatureGroups) {
+                    const meta = categoryMeta[group.id] || { name: group.id, description: '' };
+                    const sigs = group.sigs;
+                    if (sigs.length === 0) continue;
+
+                    html += `<div class="sig-category">
+                        <div class="sig-category-header">
+                            <div>
+                                <span class="sig-category-title">${escapeHtml(meta.name)}</span>
+                                <div style="color:var(--color-text-muted);font-size:12px;margin-top:4px;">${escapeHtml(meta.description || '')}</div>
+                            </div>
+                            <span style="color:var(--color-text-muted);font-size:12px;">${sigs.length} signatures</span>
+                        </div>
+                        <div class="sig-grid">`;
+                    for (const sig of sigs) {
+                        html += `<div class="sig-item">
+                            <div class="sig-info">
+                                <div class="sig-name">${escapeHtml(sig.name)}</div>
+                                <div class="sig-desc">${escapeHtml(sig.description || '')}</div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" ${sig.enabled ? 'checked' : ''} onchange="toggleSignature('${sig.id}', this.checked)">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>`;
+                    }
+                    html += '</div></div>';
+                }
+                container.innerHTML = html || '<div class="empty-state"><div class="empty-state-icon"></div><div class="empty-state-title">No signatures available</div><div class="empty-state-desc">Signature detection helps identify known attack patterns</div></div>';
+            } catch (e) { console.error('Error fetching signatures:', e); }
+        }
+
+        async function toggleSignaturesEnabled(enabled) {
+            try {
+                const res = await fetch('/api/signatures/enabled', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ enabled }) });
+                if (res.ok) showToast(`Signature detection ${enabled ? 'enabled' : 'disabled'}`, 'success');
+                else { showToast('Failed', 'error'); document.getElementById('signaturesEnabled').checked = !enabled; }
+            } catch (e) { showToast('Error', 'error'); }
+        }
+
+        async function updateSignatureOption(key, value) {
+            try {
+                const res = await fetch(`/api/config/value/signatures/${key}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ value })
+                });
+                if (res.ok) {
+                    showToast('Setting updated', 'success');
+                } else {
+                    showToast('Failed to update', 'error');
+                    fetchSignatures();
+                }
+            } catch (e) {
+                showToast('Error', 'error');
+                fetchSignatures();
+            }
+        }
+
+        async function toggleSignature(sigId, enabled) {
+            try {
+                const res = await fetch(`/api/signatures/${sigId}/${enabled ? 'enable' : 'disable'}`, { method: 'POST' });
+                if (res.ok) showToast(`Signature ${enabled ? 'enabled' : 'disabled'}`, 'success');
+                else { showToast('Failed', 'error'); fetchSignatures(); }
+            } catch (e) { showToast('Error', 'error'); fetchSignatures(); }
+        }
+
+        async function addCustomSignature() {
+            const port = document.getElementById('custom-sig-port').value;
+            const name = document.getElementById('custom-sig-name').value.trim();
+            const amp = document.getElementById('custom-sig-amp').value || 1;
+            if (!port || !name) { showToast('Fill required fields', 'error'); return; }
+            try {
+                const res = await fetch('/api/signatures/custom', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ port: parseInt(port), name, amplification_factor: parseInt(amp) }) });
+                if (res.ok) { showToast('Signature added', 'success'); document.getElementById('custom-sig-port').value = ''; document.getElementById('custom-sig-name').value = ''; fetchSignatures(); }
+                else { const d = await res.json(); showToast(d.error || 'Failed', 'error'); }
+            } catch (e) { showToast('Error', 'error'); }
+        }
+
+        // ============================================================================
+        // API: Protocols
+        // ============================================================================
+        let protocolsData = { enabled: false, default_action: 'drop', allowed_protocols: [], all_protocols: [] };
+
+        async function fetchProtocols() {
+            try {
+                const res = await fetch('/api/protocols');
+                protocolsData = await res.json();
+                renderProtocols();
+            } catch (e) { console.error('Error fetching protocols:', e); }
+        }
+
+        function renderProtocols() {
+            document.getElementById('protocolsEnabled').checked = protocolsData.enabled || false;
+            document.getElementById('protocolAction').value = protocolsData.default_action || 'drop';
+            document.getElementById('rateLimitContainer').style.display = protocolsData.default_action === 'rate_limit' ? 'block' : 'none';
+            document.getElementById('protocolRateLimit').value = protocolsData.rate_limit_pps || 1000;
+            document.getElementById('protocolLogUnknown').checked = protocolsData.log_unknown !== false;
+            document.getElementById('allowedProtocolsCount').textContent = `${(protocolsData.allowed_protocols || []).length} protocols`;
+            const list = document.getElementById('allowedProtocolsList');
+            if (!protocolsData.allowed_protocols || protocolsData.allowed_protocols.length === 0) {
+                list.innerHTML = '<div class="empty-state">No protocols in allowed list. Add TCP, UDP, ICMP as needed.</div>';
+            } else {
+                list.innerHTML = protocolsData.allowed_protocols.map(p => `<div class="protocol-item"><div><span class="protocol-name">${escapeHtml(p.name)}</span> <span class="protocol-number">(${p.number})</span></div><button class="btn btn--danger btn--sm" onclick="removeProtocol(${p.number})">Remove</button></div>`).join('');
+            }
+            const datalist = document.getElementById('protocolSuggestions');
+            datalist.innerHTML = (protocolsData.all_protocols || []).map(p => `<option value="${escapeHtml(p.name)}">${p.name} (${p.number})</option>`).join('');
+        }
+
+        async function toggleProtocolsEnabled(enabled) {
+            try {
+                const res = await fetch('/api/protocols/enabled', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ enabled }) });
+                if (res.ok) showToast(`Protocol filtering ${enabled ? 'enabled' : 'disabled'}`, 'success');
+                else { showToast('Failed', 'error'); document.getElementById('protocolsEnabled').checked = !enabled; }
+            } catch (e) { showToast('Error', 'error'); }
+        }
+
+        async function setProtocolAction(action) {
+            document.getElementById('rateLimitContainer').style.display = action === 'rate_limit' ? 'block' : 'none';
+            try {
+                const res = await fetch('/api/protocols/action', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action }) });
+                if (res.ok) showToast(`Default action: ${action}`, 'success');
+                else showToast('Failed', 'error');
+            } catch (e) { showToast('Error', 'error'); }
+        }
+
+        async function setProtocolRateLimit() {
+            const pps = parseInt(document.getElementById('protocolRateLimit').value);
+            if (isNaN(pps) || pps < 1) { showToast('Enter valid rate', 'error'); return; }
+            try {
+                const res = await fetch('/api/protocols/rate-limit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pps }) });
+                if (res.ok) showToast(`Rate limit: ${pps} pps`, 'success');
+                else showToast('Failed', 'error');
+            } catch (e) { showToast('Error', 'error'); }
+        }
+
+        async function updateProtocolOption(key, value) {
+            try {
+                const res = await fetch(`/api/config/value/other_protocols/${key}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ value })
+                });
+                if (res.ok) {
+                    protocolsData[key] = value;
+                    showToast('Setting updated', 'success');
+                } else {
+                    showToast('Failed to update', 'error');
+                    fetchProtocols();
+                }
+            } catch (e) {
+                showToast('Error', 'error');
+                fetchProtocols();
+            }
+        }
+
+        async function addProtocol() {
+            const input = document.getElementById('addProtocolInput').value.trim();
+            if (!input) { showToast('Enter protocol', 'error'); return; }
+            try {
+                const res = await fetch('/api/protocols/allowed', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ protocol: input }) });
+                if (res.ok) { showToast(`Added ${input}`, 'success'); document.getElementById('addProtocolInput').value = ''; fetchProtocols(); }
+                else { const d = await res.json(); showToast(d.error || 'Failed', 'error'); }
+            } catch (e) { showToast('Error', 'error'); }
+        }
+
+        async function removeProtocol(number) {
+            try {
+                const res = await fetch(`/api/protocols/allowed/${number}`, { method: 'DELETE' });
+                if (res.ok) { showToast('Removed', 'success'); fetchProtocols(); }
+                else showToast('Failed', 'error');
+            } catch (e) { showToast('Error', 'error'); }
+        }
+
+        function confirmClearProtocols() {
+            showConfirmModal('Clear Protocols', 'Clear all allowed protocols?', 'Clear', async () => {
+                try {
+                    const res = await fetch('/api/protocols/allowed/clear', { method: 'POST' });
+                    if (res.ok) { showToast('Cleared', 'success'); fetchProtocols(); }
+                    else showToast('Failed', 'error');
+                } catch (e) { showToast('Error', 'error'); }
+            });
+        }
+
+        // ============================================================================
+        // API: Stages
+        // ============================================================================
+        async function fetchStages() {
+            try {
+                const res = await fetch('/api/stages/categories');
+                const categories = await res.json();
+                const container = document.getElementById('stages-container');
+                let html = '';
+                let activeCount = 0;
+                const categoryNames = { 'mode': 'Operating Mode', 'tcp_protection': 'TCP Protection', 'udp_protection': 'UDP Protection', 'validation': 'Packet Validation', 'rate_limiting': 'Rate Limiting', 'access_control': 'Access Control', 'forwarding': 'Forwarding', 'telemetry': 'Telemetry', 'monitoring': 'Monitoring' };
+                const order = ['mode', 'tcp_protection', 'udp_protection', 'validation', 'rate_limiting', 'access_control', 'forwarding', 'telemetry', 'monitoring'];
+                for (const cat of order) {
+                    if (!categories[cat]) continue;
+                    html += `<div class="stage-category"><div class="category-header"><span class="category-dot cat-${cat}"></span>${categoryNames[cat] || cat}</div><div class="stage-grid">`;
+                    for (const stage of categories[cat]) {
+                        if (stage.enabled) activeCount++;
+                        html += `<div class="stage-item"><div class="stage-info"><div class="stage-name">${escapeHtml(stage.name)}</div><div class="stage-desc">${escapeHtml(stage.description)}</div></div><label class="toggle-switch"><input type="checkbox" ${stage.enabled ? 'checked' : ''} onchange="toggleStage('${stage.id}', this.checked)"><span class="toggle-slider"></span></label></div>`;
+                    }
+                    html += '</div></div>';
+                }
+                container.innerHTML = html;
+                document.getElementById('activeStages').textContent = activeCount;
+            } catch (e) { console.error('Error fetching stages:', e); }
+        }
+
+        async function toggleStage(stageId, enabled) {
+            try {
+                const res = await fetch(`/api/stages/${stageId}/${enabled ? 'enable' : 'disable'}`, { method: 'POST' });
+                if (res.ok) { showToast(`Stage ${enabled ? 'enabled' : 'disabled'}`, 'success'); fetchStages(); }
+                else { showToast('Failed', 'error'); fetchStages(); }
+            } catch (e) { showToast('Error', 'error'); fetchStages(); }
+        }
+
+        // ============================================================================
+        // API: Config
+        // ============================================================================
+        async function fetchConfig() {
+            try {
+                const [configRes, schemaRes] = await Promise.all([fetch('/api/config'), fetch('/api/config/schema')]);
+                const config = await configRes.json();
+                configSchema = await schemaRes.json();
+
+                // Populate top-level config options
+                document.getElementById('cfgMonitorOnly').checked = config.monitor_only || false;
+                document.getElementById('cfgStatsEnabled').checked = config.stats_enabled !== false;
+                document.getElementById('cfgLogLevel').value = config.log_level ?? 7;
+
+                renderConfig(config);
+            } catch (e) { console.error('Error fetching config:', e); }
+        }
+
+        async function updateTopLevelConfig(key, value) {
+            try {
+                // Top-level config values need a special endpoint or go through the raw update
+                const res = await fetch('/api/config/top-level', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ key, value })
+                });
+                if (res.ok) {
+                    showToast('Setting updated', 'success');
+                } else {
+                    showToast('Failed to update', 'error');
+                    fetchConfig();
+                }
+            } catch (e) {
+                showToast('Error', 'error');
+                fetchConfig();
+            }
+        }
+
+        function renderConfig(config) {
+            const container = document.getElementById('config-container');
+            const sectionNames = {
+                'ip_lists': 'IP Lists',
+                'flow_table': 'Flow Table',
+                'syn_proxy': 'SYN Proxy',
+                'syn_cookie': 'SYN Cookie',
+                'connection_limits': 'Connection Limits',
+                'udp_gatekeeper': 'UDP Gatekeeper',
+                'telemetry': 'Telemetry',
+                'validation': 'Packet Validation',
+                'rate_limits': 'Rate Limits',
+                'ports': 'Network Ports',
+                'maintenance': 'Maintenance'
+            };
+            // Sections with dedicated UI elsewhere - skip them here
+            const excludedSections = ['geo_blocking', 'signatures', 'other_protocols'];
+            let html = '';
+
+            for (const [section, values] of Object.entries(config)) {
+                // Skip non-objects (top-level values) and excluded sections
+                if (typeof values !== 'object' || values === null || Array.isArray(values)) continue;
+                if (excludedSections.includes(section)) continue;
+                if (!sectionNames[section]) continue; // Only show known sections
+
+                const sectionSchema = configSchema[section] || {};
+                html += `<div class="config-section">
+                    <div class="section-header" onclick="toggleSection('${section}')" tabindex="0" role="button" aria-expanded="false">
+                        <div class="section-title">${sectionNames[section]}</div>
+                        <span class="section-arrow" id="arrow-${section}">▼</span>
+                    </div>
+                    <div class="section-content" id="content-${section}">`;
+
+                for (const [key, value] of Object.entries(values)) {
+                    const schema = sectionSchema[key] || {};
+                    const type = schema.type || (typeof value === 'boolean' ? 'bool' : 'int');
+
+                    // Skip list/array types and strings (paths, etc.)
+                    if (type === 'list' || Array.isArray(value)) continue;
+                    if (type === 'str' || typeof value === 'string') continue;
+
+                    // Format key name: replace underscores and capitalize
+                    const keyDisplay = key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+
+                    let inputHtml = '';
+                    if (type === 'bool') {
+                        inputHtml = `
+                            <label class="config-toggle">
+                                <input type="checkbox" ${value ? 'checked' : ''} onchange="updateConfigValue('${section}', '${key}', this.checked)">
+                                <span class="config-toggle-track">
+                                    <span class="config-toggle-thumb"></span>
+                                </span>
+                            </label>`;
+                    } else {
+                        inputHtml = `<input type="number" class="config-number-input" value="${value}" ${schema.min !== undefined ? `min="${schema.min}"` : ''} ${schema.max !== undefined ? `max="${schema.max}"` : ''} onchange="updateConfigValue('${section}', '${key}', parseInt(this.value))">`;
+                    }
+                    html += `
+                        <div class="config-row ${type === 'bool' ? 'config-row--toggle' : ''}">
+                            <div class="config-label">
+                                <div class="config-key">${escapeHtml(keyDisplay)}</div>
+                                <div class="config-desc">${escapeHtml(schema.desc || '')}</div>
+                            </div>
+                            <div class="config-input">${inputHtml}</div>
+                        </div>`;
+                }
+                html += `
+                        <div class="config-section-footer">
+                            <button class="btn btn--secondary btn--sm" onclick="resetSection('${section}')">Reset Section</button>
+                        </div>
+                    </div>
+                </div>`;
+            }
+            container.innerHTML = html || '<div class="empty-state">No configuration available</div>';
+        }
+
+        function toggleSection(section) {
+            const content = document.getElementById(`content-${section}`);
+            const arrow = document.getElementById(`arrow-${section}`);
+            content.classList.toggle('open');
+            arrow.classList.toggle('open');
+        }
+
+        async function updateConfigValue(section, key, value) {
+            try {
+                const res = await fetch(`/api/config/value/${section}/${key}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ value }) });
+                if (res.ok) showToast('Updated', 'success');
+                else { showToast('Failed', 'error'); fetchConfig(); }
+            } catch (e) { showToast('Error', 'error'); fetchConfig(); }
+        }
+
+        async function resetSection(section) {
+            showConfirmModal('Reset Section', `Reset ${section} to defaults?`, 'Reset', async () => {
+                try {
+                    const res = await fetch(`/api/config/section/${section}/reset`, { method: 'POST' });
+                    if (res.ok) { showToast('Reset done', 'success'); fetchConfig(); }
+                    else showToast('Failed', 'error');
+                } catch (e) { showToast('Error', 'error'); }
+            });
+        }
+
+        async function reloadConfig() {
+            try {
+                const res = await fetch('/api/config/reload', { method: 'POST' });
+                if (res.ok) { showToast('Reloaded', 'success'); fetchConfig(); }
+                else showToast('Failed', 'error');
+            } catch (e) { showToast('Error', 'error'); }
+        }
+
+        function confirmResetConfig() {
+            showConfirmModal('Reset All', 'Reset ALL settings to defaults?', 'Reset All', async () => {
+                try {
+                    const res = await fetch('/api/config/reset', { method: 'POST' });
+                    if (res.ok) { showToast('All reset', 'success'); fetchConfig(); }
+                    else showToast('Failed', 'error');
+                } catch (e) { showToast('Error', 'error'); }
+            });
+        }
+
+        // ============================================================================
+        // API: Layer2 Config
+        // ============================================================================
+        async function fetchLayer2Config() {
+            try {
+                const [configRes, schemaRes, adaptiveRes] = await Promise.all([
+                    fetch('/api/layer2/config'),
+                    fetch('/api/layer2/config/schema'),
+                    fetch('/api/layer2/adaptive')
+                ]);
+                const config = await configRes.json();
+                const schema = await schemaRes.json();
+                const adaptive = await adaptiveRes.json();
+                renderLayer2Config(config, schema, adaptive);
+            } catch (e) { console.error('Error:', e); }
+        }
+
+        function renderLayer2Config(config, schema, adaptive) {
+            const container = document.getElementById('layer2-config-container');
+
+            // Helper to render a config row (same pattern as Layer1)
+            function row(label, desc, value, type, onChange, extra = {}) {
+                let inputHtml = '';
+                if (type === 'bool') {
+                    inputHtml = `
+                        <label class="config-toggle">
+                            <input type="checkbox" ${value ? 'checked' : ''} onchange="${onChange}">
+                            <span class="config-toggle-track">
+                                <span class="config-toggle-thumb"></span>
+                            </span>
+                        </label>`;
+                } else {
+                    const step = extra.step || 1;
+                    const min = extra.min !== undefined ? `min="${extra.min}"` : '';
+                    const max = extra.max !== undefined ? `max="${extra.max}"` : '';
+                    inputHtml = `<input type="number" class="config-number-input" value="${value}" step="${step}" ${min} ${max} onchange="${onChange}">`;
+                }
+                return `
+                    <div class="config-row ${type === 'bool' ? 'config-row--toggle' : ''}">
+                        <div class="config-label">
+                            <div class="config-key">${label}</div>
+                            <div class="config-desc">${desc}</div>
+                        </div>
+                        <div class="config-input">${inputHtml}</div>
+                    </div>`;
+            }
+
+            let html = '';
+
+            // Adaptive Threshold Tuning Section
+            html += `<div class="config-section">
+                <div class="section-header" onclick="toggleL2Section('l2-adaptive')" tabindex="0" role="button" aria-expanded="true">
+                    <div class="section-title">Adaptive Threshold Tuning</div>
+                    <span class="section-arrow open" id="arrow-l2-adaptive">▼</span>
+                </div>
+                <div class="section-content open" id="content-l2-adaptive">`;
+            html += row('Enable Adaptive Tuning', 'Auto-adjust threshold based on detection outcomes', adaptive.enabled, 'bool', "updateLayer2Value('adaptive_enabled', this.checked)");
+            html += row('Min Threshold (Z-score)', 'Minimum sensitivity bound (lower = more sensitive)', adaptive.min_threshold, 'number', "updateLayer2Value('adaptive_min_threshold', parseFloat(this.value))", {step: 0.5, min: 3.0, max: 8.0});
+            html += row('Max Threshold (Z-score)', 'Maximum sensitivity bound (higher = less sensitive)', adaptive.max_threshold, 'number', "updateLayer2Value('adaptive_max_threshold', parseFloat(this.value))", {step: 0.5, min: 6.0, max: 15.0});
+            html += row('Adjustment Step', 'Step size for threshold adjustments', adaptive.step, 'number', "updateLayer2Value('adaptive_step', parseFloat(this.value))", {step: 0.05, min: 0.1, max: 1.0});
+            html += row('FP Rate Trigger (%)', 'Increase threshold if FP rate exceeds this', Math.round(adaptive.fp_threshold * 100), 'number', "updateLayer2Value('adaptive_fp_threshold', parseFloat(this.value) / 100)", {step: 5, min: 10, max: 80});
+            html += row('FP Duration (sec)', 'Detection < this duration = False Positive', adaptive.fp_duration_threshold_sec, 'number', "updateLayer2Value('fp_duration_threshold_sec', parseFloat(this.value))", {step: 1, min: 1, max: 60});
+            html += row('TP Duration (sec)', 'Detection > this duration = True Positive', adaptive.tp_duration_threshold_sec, 'number', "updateLayer2Value('tp_duration_threshold_sec', parseFloat(this.value))", {step: 5, min: 10, max: 300});
+            html += row('Eval Interval (sec)', 'How often to evaluate and adjust threshold', adaptive.eval_interval_sec, 'number', "updateLayer2Value('adaptive_eval_interval_sec', parseInt(this.value))", {step: 60, min: 60, max: 3600});
+            html += row('Min Samples', 'Minimum detection events before adjusting', adaptive.min_samples, 'number', "updateLayer2Value('adaptive_min_samples', parseInt(this.value))", {step: 5, min: 5, max: 100});
+            html += `</div></div>`;
+
+            // Detection Parameters Section
+            html += `<div class="config-section">
+                <div class="section-header" onclick="toggleL2Section('l2-detection')" tabindex="0" role="button" aria-expanded="false">
+                    <div class="section-title">Detection Parameters</div>
+                    <span class="section-arrow" id="arrow-l2-detection">▼</span>
+                </div>
+                <div class="section-content" id="content-l2-detection">`;
+            html += row('Z-Score Threshold', 'Base threshold for anomaly detection', config.z_score_threshold, 'number', "updateLayer2Value('z_score_threshold', parseFloat(this.value))", {step: 0.5, min: 3.0, max: 12.0});
+            html += row('Min Tier Agreement', 'Number of tiers that must agree (1-3)', config.min_tier_agreement, 'number', "updateLayer2Value('min_tier_agreement', parseInt(this.value))", {step: 1, min: 1, max: 3});
+            html += row('JSD Threshold', 'Protocol mix divergence threshold', config.jsd_threshold, 'number', "updateLayer2Value('jsd_threshold', parseFloat(this.value))", {step: 0.01, min: 0.05, max: 0.5});
+            html += row('Detection Interval (ms)', 'How often to check for anomalies', config.detection_interval_ms, 'number', "updateLayer2Value('detection_interval_ms', parseInt(this.value))", {step: 100, min: 100, max: 10000});
+            html += row('Min PPS for Detection', 'Skip detection if traffic below this PPS', config.min_pps_for_detection, 'number', "updateLayer2Value('min_pps_for_detection', parseInt(this.value))", {step: 100, min: 0, max: 100000});
+            html += row('Cool Down (sec)', 'Seconds after anomaly before clearing', config.cool_down_seconds, 'number', "updateLayer2Value('cool_down_seconds', parseFloat(this.value))", {step: 5, min: 0, max: 300});
+            html += `</div></div>`;
+
+            // Baseline Learning Section
+            html += `<div class="config-section">
+                <div class="section-header" onclick="toggleL2Section('l2-baseline')" tabindex="0" role="button" aria-expanded="false">
+                    <div class="section-title">Baseline Learning</div>
+                    <span class="section-arrow" id="arrow-l2-baseline">▼</span>
+                </div>
+                <div class="section-content" id="content-l2-baseline">`;
+            html += row('Freeze During Attack', 'Pause learning during detected attacks', config.baseline_freeze_enabled, 'bool', "updateLayer2Value('baseline_freeze_enabled', this.checked)");
+            html += row('Alpha Immediate (Tier 1)', 'EWMA smoothing for fast baseline', config.alpha_immediate, 'number', "updateLayer2Value('alpha_immediate', parseFloat(this.value))", {step: 0.01, min: 0.01, max: 1.0});
+            html += row('Alpha Hourly (Tier 2)', 'EWMA smoothing for medium baseline', config.alpha_hourly, 'number', "updateLayer2Value('alpha_hourly', parseFloat(this.value))", {step: 0.01, min: 0.01, max: 1.0});
+            html += row('Alpha Weekly (Tier 3)', 'EWMA smoothing for slow baseline', config.alpha_weekly, 'number', "updateLayer2Value('alpha_weekly', parseFloat(this.value))", {step: 0.01, min: 0.01, max: 1.0});
+            html += row('Min Samples Tier 1', 'Samples before Tier 1 is ready', config.min_samples_immediate, 'number', "updateLayer2Value('min_samples_immediate', parseInt(this.value))", {step: 1, min: 1, max: 100});
+            html += row('Min Samples Tier 2', 'Samples before Tier 2 is ready', config.min_samples_hourly, 'number', "updateLayer2Value('min_samples_hourly', parseInt(this.value))", {step: 5, min: 1, max: 1000});
+            html += row('Min Samples Tier 3', 'Samples before Tier 3 is ready', config.min_samples_weekly, 'number', "updateLayer2Value('min_samples_weekly', parseInt(this.value))", {step: 10, min: 1, max: 10000});
+            html += `</div></div>`;
+
+            // Logging Section
+            html += `<div class="config-section">
+                <div class="section-header" onclick="toggleL2Section('l2-logging')" tabindex="0" role="button" aria-expanded="false">
+                    <div class="section-title">Logging</div>
+                    <span class="section-arrow" id="arrow-l2-logging">▼</span>
+                </div>
+                <div class="section-content" id="content-l2-logging">`;
+            html += row('Log Detections', 'Log each anomaly detection event', config.log_detections, 'bool', "updateLayer2Value('log_detections', this.checked)");
+            html += row('Log Baseline Updates', 'Verbose baseline update logging', config.log_baseline_updates, 'bool', "updateLayer2Value('log_baseline_updates', this.checked)");
+            html += row('Log Interval (sec)', 'Periodic status log interval (0=disabled)', config.log_interval_sec, 'number', "updateLayer2Value('log_interval_sec', parseInt(this.value))", {step: 10, min: 0, max: 3600});
+            html += `</div></div>`;
+
+            container.innerHTML = html;
+        }
+
+        function toggleL2Section(section) {
+            const content = document.getElementById(`content-${section}`);
+            const arrow = document.getElementById(`arrow-${section}`);
+            content.classList.toggle('open');
+            arrow.classList.toggle('open');
+        }
+
+        async function updateLayer2Value(key, value) {
+            try {
+                const res = await fetch('/api/layer2/config', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ [key]: value })
+                });
+                if (res.ok) showToast('Updated', 'success');
+                else { showToast('Failed', 'error'); fetchLayer2Config(); }
+            } catch (e) { showToast('Error', 'error'); fetchLayer2Config(); }
+        }
+
+        async function reloadLayer2Config() { showToast('Reloading...', 'info'); await fetchLayer2Config(); }
+
+        function confirmResetLayer2Config() {
+            showConfirmModal('Reset Layer2', 'Reset anomaly detection settings?', 'Reset', async () => {
+                try {
+                    const res = await fetch('/api/layer2/config/reset', { method: 'POST' });
+                    if (res.ok) { showToast('Reset done', 'success'); fetchLayer2Config(); }
+                    else showToast('Failed', 'error');
+                } catch (e) { showToast('Error', 'error'); }
+            });
+        }
+
+        // ============================================================================
+        // Keyboard Shortcuts
+        // ============================================================================
+        document.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
+            if (e.key === 'r' || e.key === 'R') { fetchStats(); showToast('Refreshed', 'info'); }
+        });
+
+        // ============================================================================
+        // Initialize
+        // ============================================================================
+        fetchStats();
+        fetchList('whitelist');
+        fetchList('blacklist');
+        fetchList('protected');
+    </script>
+</body>
+</html>

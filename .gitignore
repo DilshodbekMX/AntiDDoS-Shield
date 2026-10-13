@@ -1,0 +1,81 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# DENY BY DEFAULT.
+#
+# This repository accompanies a manuscript. It publishes the
+# evaluation harness, its result records, and the engine source — and nothing
+# else. Everything is excluded by rule, then re-admitted explicitly, because
+# the working tree also holds the derived per-window corpus feature tree, which
+# the paper's Data Availability statement says is NOT redistributed.
+#
+# To publish something new, add an explicit un-ignore. Do not relax `/*`.
+# ─────────────────────────────────────────────────────────────────────────────
+
+/*
+
+# ── Published ────────────────────────────────────────────────────────────────
+!/.gitignore
+!/LICENSE
+!/README.md
+!/INSTALL.md
+!/ComparisonResults
+!/layer2
+!/project
+!/tests
+!/.clang-format
+!/.clang-tidy
+!/.editorconfig
+!/.pre-commit-config.yaml
+
+# ── assets/: README artwork only — three SVG diagrams. No data, no caches.
+!/assets
+
+# ── datasets/: the README only; never the derived feature tree ───────────────
+!/datasets
+/datasets/*
+!/datasets/README.md
+
+# ── project/: source only; build/ is a regenerable Meson dir whose
+#    compile_commands.json embeds absolute developer paths.
+#    `make` recreates it from meson.build.
+/project/build/
+
+# ── Never published, and why ─────────────────────────────────────────────────
+# academic-research-skills/  vendored tooling, unrelated to this study
+# manuscript directories     sources, build artefacts, backups
+# local tool state          editor and tool caches, unrelated to this study
+# datasets/extracted/        derived per-window corpus features (see above)
+
+# ── Regenerable / local noise ────────────────────────────────────────────────
+**/__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+.venv/
+venv/
+*.log
+*.aux
+*.out
+*.bak
+*.pre_*
+*.tmp
+.DS_Store
+
+# build artifacts must never reach the deposit
+*.so
+*.o
+**/__pycache__/
+
+# ── Secrets and runtime databases: never tracked ────────────────────────────
+.env
+.env.*
+!.env.example
+*.db
+*.db-shm
+*.db-wal
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# Re-run outputs staged for audited promotion into ComparisonResults/results/
+ComparisonResults/reproduction/

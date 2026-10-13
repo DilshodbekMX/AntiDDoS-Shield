@@ -1,0 +1,644 @@
+{
+ "note": "Score OUR arm with the SHIPPED C Layer 2 engine, directly.\n\nNo detection logic lives in Python here: project/layer2/{detection,baselines,\nadvanced_detection}.c are compiled into a shared library and driven through ctypes.\nEvery score is the engine's own struct detection_result.\n\nScope: this runner produces OUR arm only. The nine competitor baselines (POT, DSPOT,\nECOD, COPOD, HBOS, LODA, INNE, IForest, DIF) are PyOD and hand-written Python with no C\nimplementation, and are produced by run_corrected_benchmark.py as before.\n\nTwo protocols are reported because they answer different questions:\n  frozen  -- baseline fitted on the benign train split then held fixed; the inductive\n             protocol every competitor arm uses, so its AUC is comparable to that table.\n  closed  -- baseline tracks while normal, frozen while alarming, with the 30 s\n             cool-down and K=3 persistence gate; mirrors layer2.c. NOT comparable to\n             the competitor table: on short-warmup corpora it is dominated by the\n             attack duty cycle rather than by detector quality.\n\nWrites results/c_engine_ours.json.",
+ "arm": "C engine Layer 2 (shipped rule set)",
+ "config": {
+  "alpha": [
+   0.15,
+   0.05,
+   0.01
+  ],
+  "min_samples": [
+   10,
+   20,
+   40
+  ],
+  "theta": 4.0,
+  "min_tier_agreement": 2,
+  "jsd_threshold": 0.15,
+  "cool_down_s": 30.0,
+  "persistence_k": 3
+ },
+ "engine_sources": [
+  "project/layer2/detection.c",
+  "project/layer2/baselines.c",
+  "project/layer2/advanced_detection.c"
+ ],
+ "competitor_arms": "NOT produced here -- Python only, see run_corrected_benchmark.py",
+ "skipped_rows": [],
+ "PANEL-16": {
+  "n": 16,
+  "frozen": {
+   "auc_max_z": 0.9317,
+   "z_dr": 0.8423,
+   "z_fpr": 0.1827,
+   "cusum_fpr": 0.9998,
+   "jsd_fpr": 0.261,
+   "or_dr": 0.9994,
+   "or_fpr": 0.9998
+  },
+  "closed_loop": {
+   "or_dr": 0.9194,
+   "or_fpr": 0.9902,
+   "active_fpr": 0.9896,
+   "benign_episodes_per_1000": 1.9118
+  },
+  "per_scenario": {
+   "CIC-IDS-2017 Fri-07-07_DDoS-LOIT": {
+    "victim": "192.168.10.50",
+    "frozen": {
+     "auc_max_z": 0.9813230799893702,
+     "z_dr": 0.9049295774647887,
+     "z_fpr": 0.009433962264150943,
+     "cusum_fpr": 1.0,
+     "jsd_fpr": 0.25471698113207547,
+     "or_dr": 0.9947183098591549,
+     "or_fpr": 1.0
+    },
+    "closed_loop": {
+     "or_dr": 0.9903169014084507,
+     "or_fpr": 1.0,
+     "active_fpr": 0.9952830188679245,
+     "benign_episodes_per_1000": 9.433962264150944
+    }
+   },
+   "CIC-IDS-2017 Wed-05-07_DoS-GoldenEye": {
+    "victim": "192.168.10.50",
+    "frozen": {
+     "auc_max_z": 0.8920460086205215,
+     "z_dr": 0.6469194312796208,
+     "z_fpr": 0.028395061728395062,
+     "cusum_fpr": 1.0,
+     "jsd_fpr": 0.11275720164609053,
+     "or_dr": 1.0,
+     "or_fpr": 1.0
+    },
+    "closed_loop": {
+     "or_dr": 0.8104265402843602,
+     "or_fpr": 1.0,
+     "active_fpr": 1.0,
+     "benign_episodes_per_1000": 0.411522633744856
+    }
+   },
+   "CIC-IDS-2017 Wed-05-07_DoS-Hulk": {
+    "victim": "192.168.10.50",
+    "frozen": {
+     "auc_max_z": 0.847674761836304,
+     "z_dr": 0.6954643628509719,
+     "z_fpr": 0.08979913351713273,
+     "cusum_fpr": 1.0,
+     "jsd_fpr": 0.11382434029145333,
+     "or_dr": 1.0,
+     "or_fpr": 1.0
+    },
+    "closed_loop": {
+     "or_dr": 0.17926565874730022,
+     "or_fpr": 0.8530917684127609,
+     "active_fpr": 0.8530917684127609,
+     "benign_episodes_per_1000": 1.9692792437967703
+    }
+   },
+   "CIC-IDS-2017 Wed-05-07_DoS-Slowhttptest": {
+    "victim": "192.168.10.50",
+    "frozen": {
+     "auc_max_z": 0.6098117758747628,
+     "z_dr": 0.16878172588832488,
+     "z_fpr": 0.03969465648854962,
+     "cusum_fpr": 1.0,
+     "jsd_fpr": 0.1133587786259542,
+     "or_dr": 1.0,
+     "or_fpr": 1.0
+    },
+    "closed_loop": {
+     "or_dr": 1.0,
+     "or_fpr": 1.0,
+     "active_fpr": 1.0,
+     "benign_episodes_per_1000": 0.3816793893129771
+    }
+   },
+   "CIC-IDS-2017 Wed-05-07_DoS-Slowloris": {
+    "victim": "192.168.10.50",
+    "frozen": {
+     "auc_max_z": 0.9172714716223005,
+     "z_dr": 0.632991318074191,
+     "z_fpr": 0.05757575757575758,
+     "cusum_fpr": 1.0,
+     "jsd_fpr": 0.1125,
+     "or_dr": 1.0,
+     "or_fpr": 1.0
+    },
+    "closed_loop": {
+     "or_dr": 0.8902920284135754,
+     "or_fpr": 0.9984848484848485,
+     "active_fpr": 0.9984848484848485,
+     "benign_episodes_per_1000": 0.3787878787878788
+    }
+   },
+   "CIC-IDS-2018 Fri-16-02_DoS-Hulk": {
+    "victim": "172.31.69.25",
+    "frozen": {
+     "auc_max_z": 0.971162442934116,
+     "z_dr": 0.9561611374407583,
+     "z_fpr": 0.20701168614357263,
+     "cusum_fpr": 1.0,
+     "jsd_fpr": 0.06343906510851419,
+     "or_dr": 0.9988151658767772,
+     "or_fpr": 1.0
+    },
+    "closed_loop": {
+     "or_dr": 0.9976303317535545,
+     "or_fpr": 1.0,
+     "active_fpr": 1.0,
+     "benign_episodes_per_1000": 1.669449081803005
+    }
+   },
+   "CIC-IDS-2018 Fri-16-02_DoS-SlowHTTPTest": {
+    "victim": "172.31.69.25",
+    "frozen": {
+     "auc_max_z": 0.9969897977787014,
+     "z_dr": 0.9974913766070869,
+     "z_fpr": 0.024186046511627906,
+     "cusum_fpr": 1.0,
+     "jsd_fpr": 0.061395348837209304,
+     "or_dr": 0.9996864220758859,
+     "or_fpr": 1.0
+    },
+    "closed_loop": {
+     "or_dr": 0.9993728441517717,
+     "or_fpr": 1.0,
+     "active_fpr": 1.0,
+     "benign_episodes_per_1000": 0.9302325581395349
+    }
+   },
+   "CIC-IDS-2018 Thu-15-02_DoS-Slowloris": {
+    "victim": "172.31.69.25",
+    "frozen": {
+     "auc_max_z": 0.9985238118191457,
+     "z_dr": 0.9983277591973244,
+     "z_fpr": 0.1352549889135255,
+     "cusum_fpr": 1.0,
+     "jsd_fpr": 0.1352549889135255,
+     "or_dr": 0.9983277591973244,
+     "or_fpr": 1.0
+    },
+    "closed_loop": {
+     "or_dr": 0.9954013377926422,
+     "or_fpr": 1.0,
+     "active_fpr": 1.0,
+     "benign_episodes_per_1000": 1.1086474501108647
+    }
+   },
+   "CIC-IDS-2018 Tue-20-02_DDoS-LOIC-HTTP": {
+    "victim": "172.31.69.25",
+    "frozen": {
+     "auc_max_z": 0.9993040660993581,
+     "z_dr": 0.999206139190262,
+     "z_fpr": 0.19407894736842105,
+     "cusum_fpr": 1.0,
+     "jsd_fpr": 0.11842105263157894,
+     "or_dr": 1.0,
+     "or_fpr": 1.0
+    },
+    "closed_loop": {
+     "or_dr": 0.8504895474993385,
+     "or_fpr": 1.0,
+     "active_fpr": 1.0,
+     "benign_episodes_per_1000": 3.289473684210526
+    }
+   },
+   "CIC-IDS-2018 Wed-21-02_DDoS-HOIC": {
+    "victim": "172.31.69.28",
+    "frozen": {
+     "auc_max_z": 0.9897776170447429,
+     "z_dr": 0.9872650090964221,
+     "z_fpr": 0.40185581727337616,
+     "cusum_fpr": 1.0,
+     "jsd_fpr": 0.7394718058529621,
+     "or_dr": 0.998483929654336,
+     "or_fpr": 1.0
+    },
+    "closed_loop": {
+     "or_dr": 0.9978775015160704,
+     "or_fpr": 1.0,
+     "active_fpr": 0.9992862241256245,
+     "benign_episodes_per_1000": 1.4275517487508922
+    }
+   },
+   "CIC-IDS-2018 Wed-21-02_DDoS-LOIC-UDP": {
+    "victim": "172.31.69.28",
+    "frozen": {
+     "auc_max_z": 1.0,
+     "z_dr": 1.0,
+     "z_fpr": 0.2759322033898305,
+     "cusum_fpr": 1.0,
+     "jsd_fpr": 0.7457627118644068,
+     "or_dr": 1.0,
+     "or_fpr": 1.0
+    },
+    "closed_loop": {
+     "or_dr": 1.0,
+     "or_fpr": 1.0,
+     "active_fpr": 0.9993220338983051,
+     "benign_episodes_per_1000": 1.3559322033898304
+    }
+   },
+   "CIC-DDoS2019 cicddos_03-11_192-168-50-4_LDAP": {
+    "victim": "192.168.50.4",
+    "frozen": {
+     "auc_max_z": 0.9932361324598188,
+     "z_dr": 0.9898819561551433,
+     "z_fpr": 0.0552212389380531,
+     "cusum_fpr": 0.9964601769911504,
+     "jsd_fpr": 0.1384070796460177,
+     "or_dr": 1.0,
+     "or_fpr": 0.9964601769911504
+    },
+    "closed_loop": {
+     "or_dr": 1.0,
+     "or_fpr": 0.9936283185840707,
+     "active_fpr": 0.9950442477876106,
+     "benign_episodes_per_1000": 0.7079646017699115
+    }
+   },
+   "CIC-DDoS2019 cicddos_03-11_192-168-50-4_Syn": {
+    "victim": "192.168.50.4",
+    "frozen": {
+     "auc_max_z": 0.8931736847591774,
+     "z_dr": 0.5274234693877551,
+     "z_fpr": 0.1056283731688512,
+     "cusum_fpr": 1.0,
+     "jsd_fpr": 0.9626060138781805,
+     "or_dr": 1.0,
+     "or_fpr": 1.0
+    },
+    "closed_loop": {
+     "or_dr": 1.0,
+     "or_fpr": 0.9980724749421742,
+     "active_fpr": 1.0,
+     "benign_episodes_per_1000": 0.3855050115651503
+    }
+   },
+   "CIC-DDoS2019 cicddos_03-11_192-168-50-4_UDP": {
+    "victim": "192.168.50.4",
+    "frozen": {
+     "auc_max_z": 0.9880521328963296,
+     "z_dr": 0.9879663056558363,
+     "z_fpr": 0.10549777117384844,
+     "cusum_fpr": 1.0,
+     "jsd_fpr": 0.13818722139673106,
+     "or_dr": 1.0,
+     "or_fpr": 1.0
+    },
+    "closed_loop": {
+     "or_dr": 1.0,
+     "or_fpr": 1.0,
+     "active_fpr": 1.0,
+     "benign_episodes_per_1000": 0.37147102526002973
+    }
+   },
+   "CIC-DDoS2019 cicddos_03-11_192-168-50-4_UDPLag": {
+    "victim": "192.168.50.4",
+    "frozen": {
+     "auc_max_z": 0.9821470846049998,
+     "z_dr": 0.989406779661017,
+     "z_fpr": 0.20045300113250283,
+     "cusum_fpr": 1.0,
+     "jsd_fpr": 0.13967534918837296,
+     "or_dr": 1.0,
+     "or_fpr": 1.0
+    },
+    "closed_loop": {
+     "or_dr": 1.0,
+     "or_fpr": 1.0,
+     "active_fpr": 1.0,
+     "benign_episodes_per_1000": 0.3775009437523594
+    }
+   },
+   "LITNET-2020 code_red_worm": {
+    "victim": "193.219.81.138",
+    "frozen": {
+     "auc_max_z": 0.8471824790480159,
+     "z_dr": 0.9942028985507246,
+     "z_fpr": 0.9936102236421726,
+     "cusum_fpr": 1.0,
+     "jsd_fpr": 0.2268370607028754,
+     "or_dr": 1.0,
+     "or_fpr": 1.0
+    },
+    "closed_loop": {
+     "or_dr": 1.0,
+     "or_fpr": 1.0,
+     "active_fpr": 0.9936102236421726,
+     "benign_episodes_per_1000": 6.389776357827476
+    }
+   }
+  }
+ },
+ "USABLE-strict": {
+  "n": 16,
+  "frozen": {
+   "auc_max_z": 0.9317,
+   "z_dr": 0.8423,
+   "z_fpr": 0.1827,
+   "cusum_fpr": 0.9998,
+   "jsd_fpr": 0.261,
+   "or_dr": 0.9994,
+   "or_fpr": 0.9998
+  },
+  "closed_loop": {
+   "or_dr": 0.9194,
+   "or_fpr": 0.9902,
+   "active_fpr": 0.9896,
+   "benign_episodes_per_1000": 1.9118
+  },
+  "per_scenario": {
+   "Fri-07-07_DDoS-LOIT.json": {
+    "victim": "CIC-IDS-2017/192.168.10.50",
+    "frozen": {
+     "auc_max_z": 0.9813230799893702,
+     "z_dr": 0.9049295774647887,
+     "z_fpr": 0.009433962264150943,
+     "cusum_fpr": 1.0,
+     "jsd_fpr": 0.25471698113207547,
+     "or_dr": 0.9947183098591549,
+     "or_fpr": 1.0
+    },
+    "closed_loop": {
+     "or_dr": 0.9903169014084507,
+     "or_fpr": 1.0,
+     "active_fpr": 0.9952830188679245,
+     "benign_episodes_per_1000": 9.433962264150944
+    }
+   },
+   "Wed-05-07_DoS-GoldenEye.json": {
+    "victim": "CIC-IDS-2017/192.168.10.50",
+    "frozen": {
+     "auc_max_z": 0.8920460086205215,
+     "z_dr": 0.6469194312796208,
+     "z_fpr": 0.028395061728395062,
+     "cusum_fpr": 1.0,
+     "jsd_fpr": 0.11275720164609053,
+     "or_dr": 1.0,
+     "or_fpr": 1.0
+    },
+    "closed_loop": {
+     "or_dr": 0.8104265402843602,
+     "or_fpr": 1.0,
+     "active_fpr": 1.0,
+     "benign_episodes_per_1000": 0.411522633744856
+    }
+   },
+   "Wed-05-07_DoS-Hulk.json": {
+    "victim": "CIC-IDS-2017/192.168.10.50",
+    "frozen": {
+     "auc_max_z": 0.847674761836304,
+     "z_dr": 0.6954643628509719,
+     "z_fpr": 0.08979913351713273,
+     "cusum_fpr": 1.0,
+     "jsd_fpr": 0.11382434029145333,
+     "or_dr": 1.0,
+     "or_fpr": 1.0
+    },
+    "closed_loop": {
+     "or_dr": 0.17926565874730022,
+     "or_fpr": 0.8530917684127609,
+     "active_fpr": 0.8530917684127609,
+     "benign_episodes_per_1000": 1.9692792437967703
+    }
+   },
+   "Wed-05-07_DoS-Slowhttptest.json": {
+    "victim": "CIC-IDS-2017/192.168.10.50",
+    "frozen": {
+     "auc_max_z": 0.6098117758747628,
+     "z_dr": 0.16878172588832488,
+     "z_fpr": 0.03969465648854962,
+     "cusum_fpr": 1.0,
+     "jsd_fpr": 0.1133587786259542,
+     "or_dr": 1.0,
+     "or_fpr": 1.0
+    },
+    "closed_loop": {
+     "or_dr": 1.0,
+     "or_fpr": 1.0,
+     "active_fpr": 1.0,
+     "benign_episodes_per_1000": 0.3816793893129771
+    }
+   },
+   "Wed-05-07_DoS-Slowloris.json": {
+    "victim": "CIC-IDS-2017/192.168.10.50",
+    "frozen": {
+     "auc_max_z": 0.9172714716223005,
+     "z_dr": 0.632991318074191,
+     "z_fpr": 0.05757575757575758,
+     "cusum_fpr": 1.0,
+     "jsd_fpr": 0.1125,
+     "or_dr": 1.0,
+     "or_fpr": 1.0
+    },
+    "closed_loop": {
+     "or_dr": 0.8902920284135754,
+     "or_fpr": 0.9984848484848485,
+     "active_fpr": 0.9984848484848485,
+     "benign_episodes_per_1000": 0.3787878787878788
+    }
+   },
+   "Fri-16-02_DoS-Hulk.json": {
+    "victim": "CIC-IDS2018/172.31.69.25",
+    "frozen": {
+     "auc_max_z": 0.971162442934116,
+     "z_dr": 0.9561611374407583,
+     "z_fpr": 0.20701168614357263,
+     "cusum_fpr": 1.0,
+     "jsd_fpr": 0.06343906510851419,
+     "or_dr": 0.9988151658767772,
+     "or_fpr": 1.0
+    },
+    "closed_loop": {
+     "or_dr": 0.9976303317535545,
+     "or_fpr": 1.0,
+     "active_fpr": 1.0,
+     "benign_episodes_per_1000": 1.669449081803005
+    }
+   },
+   "Fri-16-02_DoS-SlowHTTPTest.json": {
+    "victim": "CIC-IDS2018/172.31.69.25",
+    "frozen": {
+     "auc_max_z": 0.9969897977787014,
+     "z_dr": 0.9974913766070869,
+     "z_fpr": 0.024186046511627906,
+     "cusum_fpr": 1.0,
+     "jsd_fpr": 0.061395348837209304,
+     "or_dr": 0.9996864220758859,
+     "or_fpr": 1.0
+    },
+    "closed_loop": {
+     "or_dr": 0.9993728441517717,
+     "or_fpr": 1.0,
+     "active_fpr": 1.0,
+     "benign_episodes_per_1000": 0.9302325581395349
+    }
+   },
+   "Thu-15-02_DoS-Slowloris.json": {
+    "victim": "CIC-IDS2018/172.31.69.25",
+    "frozen": {
+     "auc_max_z": 0.9985238118191457,
+     "z_dr": 0.9983277591973244,
+     "z_fpr": 0.1352549889135255,
+     "cusum_fpr": 1.0,
+     "jsd_fpr": 0.1352549889135255,
+     "or_dr": 0.9983277591973244,
+     "or_fpr": 1.0
+    },
+    "closed_loop": {
+     "or_dr": 0.9954013377926422,
+     "or_fpr": 1.0,
+     "active_fpr": 1.0,
+     "benign_episodes_per_1000": 1.1086474501108647
+    }
+   },
+   "Tue-20-02_DDoS-LOIC-HTTP.json": {
+    "victim": "CIC-IDS2018/172.31.69.25",
+    "frozen": {
+     "auc_max_z": 0.9993040660993581,
+     "z_dr": 0.999206139190262,
+     "z_fpr": 0.19407894736842105,
+     "cusum_fpr": 1.0,
+     "jsd_fpr": 0.11842105263157894,
+     "or_dr": 1.0,
+     "or_fpr": 1.0
+    },
+    "closed_loop": {
+     "or_dr": 0.8504895474993385,
+     "or_fpr": 1.0,
+     "active_fpr": 1.0,
+     "benign_episodes_per_1000": 3.289473684210526
+    }
+   },
+   "Wed-21-02_DDoS-HOIC.json": {
+    "victim": "CIC-IDS2018/172.31.69.28",
+    "frozen": {
+     "auc_max_z": 0.9897776170447429,
+     "z_dr": 0.9872650090964221,
+     "z_fpr": 0.40185581727337616,
+     "cusum_fpr": 1.0,
+     "jsd_fpr": 0.7394718058529621,
+     "or_dr": 0.998483929654336,
+     "or_fpr": 1.0
+    },
+    "closed_loop": {
+     "or_dr": 0.9978775015160704,
+     "or_fpr": 1.0,
+     "active_fpr": 0.9992862241256245,
+     "benign_episodes_per_1000": 1.4275517487508922
+    }
+   },
+   "Wed-21-02_DDoS-LOIC-UDP.json": {
+    "victim": "CIC-IDS2018/172.31.69.28",
+    "frozen": {
+     "auc_max_z": 1.0,
+     "z_dr": 1.0,
+     "z_fpr": 0.2759322033898305,
+     "cusum_fpr": 1.0,
+     "jsd_fpr": 0.7457627118644068,
+     "or_dr": 1.0,
+     "or_fpr": 1.0
+    },
+    "closed_loop": {
+     "or_dr": 1.0,
+     "or_fpr": 1.0,
+     "active_fpr": 0.9993220338983051,
+     "benign_episodes_per_1000": 1.3559322033898304
+    }
+   },
+   "cicddos_03-11_192-168-50-4_LDAP.json": {
+    "victim": "CICDDoS2019/192.168.50.4",
+    "frozen": {
+     "auc_max_z": 0.9932361324598188,
+     "z_dr": 0.9898819561551433,
+     "z_fpr": 0.0552212389380531,
+     "cusum_fpr": 0.9964601769911504,
+     "jsd_fpr": 0.1384070796460177,
+     "or_dr": 1.0,
+     "or_fpr": 0.9964601769911504
+    },
+    "closed_loop": {
+     "or_dr": 1.0,
+     "or_fpr": 0.9936283185840707,
+     "active_fpr": 0.9950442477876106,
+     "benign_episodes_per_1000": 0.7079646017699115
+    }
+   },
+   "cicddos_03-11_192-168-50-4_Syn.json": {
+    "victim": "CICDDoS2019/192.168.50.4",
+    "frozen": {
+     "auc_max_z": 0.8931736847591774,
+     "z_dr": 0.5274234693877551,
+     "z_fpr": 0.1056283731688512,
+     "cusum_fpr": 1.0,
+     "jsd_fpr": 0.9626060138781805,
+     "or_dr": 1.0,
+     "or_fpr": 1.0
+    },
+    "closed_loop": {
+     "or_dr": 1.0,
+     "or_fpr": 0.9980724749421742,
+     "active_fpr": 1.0,
+     "benign_episodes_per_1000": 0.3855050115651503
+    }
+   },
+   "cicddos_03-11_192-168-50-4_UDP.json": {
+    "victim": "CICDDoS2019/192.168.50.4",
+    "frozen": {
+     "auc_max_z": 0.9880521328963296,
+     "z_dr": 0.9879663056558363,
+     "z_fpr": 0.10549777117384844,
+     "cusum_fpr": 1.0,
+     "jsd_fpr": 0.13818722139673106,
+     "or_dr": 1.0,
+     "or_fpr": 1.0
+    },
+    "closed_loop": {
+     "or_dr": 1.0,
+     "or_fpr": 1.0,
+     "active_fpr": 1.0,
+     "benign_episodes_per_1000": 0.37147102526002973
+    }
+   },
+   "cicddos_03-11_192-168-50-4_UDPLag.json": {
+    "victim": "CICDDoS2019/192.168.50.4",
+    "frozen": {
+     "auc_max_z": 0.9821470846049998,
+     "z_dr": 0.989406779661017,
+     "z_fpr": 0.20045300113250283,
+     "cusum_fpr": 1.0,
+     "jsd_fpr": 0.13967534918837296,
+     "or_dr": 1.0,
+     "or_fpr": 1.0
+    },
+    "closed_loop": {
+     "or_dr": 1.0,
+     "or_fpr": 1.0,
+     "active_fpr": 1.0,
+     "benign_episodes_per_1000": 0.3775009437523594
+    }
+   },
+   "code_red_worm.json": {
+    "victim": "LITNET-2020/193.219.81.138",
+    "frozen": {
+     "auc_max_z": 0.8471824790480159,
+     "z_dr": 0.9942028985507246,
+     "z_fpr": 0.9936102236421726,
+     "cusum_fpr": 1.0,
+     "jsd_fpr": 0.2268370607028754,
+     "or_dr": 1.0,
+     "or_fpr": 1.0
+    },
+    "closed_loop": {
+     "or_dr": 1.0,
+     "or_fpr": 1.0,
+     "active_fpr": 0.9936102236421726,
+     "benign_episodes_per_1000": 6.389776357827476
+    }
+   }
+  }
+ }
+}
