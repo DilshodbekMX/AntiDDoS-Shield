@@ -12,10 +12,10 @@ tree names their directories `CIC-IDS-2017`, `CIC-IDS2018`, `CICDDoS2019` and `L
 No corpus data is deposited. The runners read the derived tree `datasets/extracted/`, which is not
 in the repository. `extraction/` holds the scripts that build it from the official corpus releases,
 and `extraction/tree_manifest/` holds the authors' tree's `index.json` files and per-file checksums.
-The chain is incomplete (see "What the chain cannot rebuild" in `extraction/README.md`). Three
-per-day caches that the scenario builders read have no deposited writer: CIC-IDS-2017 Wednesday,
-CSE-CIC-IDS2018 Tuesday and the attack-typed CIC-DDoS2019 cache. These scripts alone therefore
-cannot rebuild 9 of the 16 panel scenarios, among them CIC-IDS-2017 `Wed-05-07_DoS-Slowhttptest`,
+The chain is incomplete (see "What the chain cannot rebuild" in `extraction/README.md`). Four
+per-day caches that the scenario builders read, as the tree used them, have no deposited writer:
+CIC-IDS-2017 Wednesday and Friday, CSE-CIC-IDS2018 Tuesday and the attack-typed CIC-DDoS2019 cache.
+These scripts alone therefore cannot rebuild 10 of the 16 panel scenarios, among them CIC-IDS-2017 `Wed-05-07_DoS-Slowhttptest`,
 the row that carries 53.8% of the AUC difference reported below. A rebuilt scenario file does not
 reproduce its checksum either; compare it with its `index.json` entry instead.
 
@@ -99,6 +99,7 @@ the conformal-floor cut `alpha_conf`, 0.01 here: it is 15 at 0.0075 and 19 at 0.
 | `panel`, `full_tree_USABLE`, `full_tree_non-USABLE`, `full_tree_ALL` | 16, 16, 12, 28 | `final_evaluation.json` (archived registry) |
 | `USABLE`, `ALL_29_SCENARIOS` and per-verdict strata | 16, 29 | `subspace_ecod_validation_report.json`, `task5_full_tree_stratified`; the 29 are the candidates other than the two NO-FPR ones |
 | PANEL-17 | 17 (6 victims) | `recompute/results/*_sixvictim*` (post hoc sixth-victim check) |
+| USABLE-16, ALL-16 under the repaired split | 16 | `recompute/results/*_threeway40.json` (post hoc held-out re-score; each carries a `split` block) |
 
 ### Corpus spellings
 
@@ -330,6 +331,8 @@ These records were edited after they were written, or have no deposited writer.
   `_inert_list_note`.
 - `admissibility_inputs.json`: no deposited writer. It holds the 31 four-corpus candidates, and
   every `payload_sha256` in it matches the scenario file's entry in `extraction/tree_manifest/`.
+  Its `payload_sha256` values were updated by `extraction/drop_duplicate_columns.py` when two
+  duplicated columns were dropped from the tree; no other field changed.
 
 ### LITNET-2020 records and their input
 
@@ -342,10 +345,10 @@ records were produced from it. Both subnet records, `litnet_l1subnet_{16,24}_res
 two ablation records were therefore scored on an incomplete export that lacks the `udp_f` attack
 type, and none was re-run on the complete file. Do not compare them with complete-export figures.
 
-Both runners first look for `cache/litnet_l1subnet_{16,24}_cache.json`. The three tracked entries
-under `cache/` are symbolic links into a developer directory and dangle in any clone; a runner then
-streams the export from `LITNET_DIR` and fails when it writes its cache through the dangling link.
-Remove the links before running either one.
+Both runners first look for `cache/litnet_l1subnet_{16,24}_cache.json` and otherwise stream the
+export from `LITNET_DIR` and write that cache. The deposit no longer tracks the three symbolic links
+that stood under `cache/`; on the authors' machine they pointed at caches built from the incomplete
+export, the export the records above were scored on.
 
 ---
 
@@ -429,6 +432,16 @@ touched), runs `run_split_control.py` single-threaded, and copies the four `*_si
 `recompute/results/`. It links the derived tree from the repository's own `datasets/extracted/`
 rather than from `ANTIDDOS_BASE`, and it needs `rsync`.
 
+### `recompute/regeneration/heldout_threeway40.sh`
+
+The post hoc held-out re-score under the repaired split. With `ANTIDDOS_SPLIT=threeway40`,
+`run_29_scenarios_corrected.load_case_tree` (which both adjacency-free runners use) fits on the first
+40% of each victim's pre-attack benign windows, calibrates on the next 40% and returns the last fifth
+to the test stream; unset, it keeps the deposited split and its records are unchanged. The script
+writes `scenarios29_corrected_results_threeway40.json`, `adjacency_free_fpr_threeway40.json` and
+`adjacency_free_episodes_threeway40.json` to `recompute/results/`; `recompute/four_corpus_tables.py`
+summarizes them as `heldout_threeway40` in `numbers.json`.
+
 ### Running a single runner
 
 Eight runners route their output through `safe_out.py`: `run_29_scenarios_corrected.py`,
@@ -460,13 +473,13 @@ paths outside `results/`, or the gate overwrites the two matched-smoothing recor
 | file | written by | content |
 |---|---|---|
 | `numbers.json` | `four_corpus_tables.py` | every aggregate in the manuscript's tables, recomputed from the per-scenario records |
-| `validation.json` | `four_corpus_tables.py` | the recomputation checked against the aggregates the records store: 1,508 reproduced, 0 mismatches |
+| `validation.json` | `four_corpus_tables.py` | the recomputation checked against the aggregates the records store: 1,968 reproduced (460 in the repaired-split held-out records), 0 mismatches |
 | `extra.json` | `extra_numbers.py` | second-tier quantities quoted in the prose |
 | `tables_v4.json` | `tables_v4.py` | the rendered table bodies and figure coordinates |
-| `results/` | `regeneration/sixth_victim.sh` | the four sixth-victim records, their input `PANEL_sixvictim.json` (no deposited writer) and a `SHA256SUMS` for the five files |
-| `regeneration/` | | `regenerate.sh`, `sixth_victim.sh`, `pass_comparison.tsv` |
+| `results/` | `regeneration/sixth_victim.sh`, `regeneration/heldout_threeway40.sh` | the four sixth-victim records and their input `PANEL_sixvictim.json` (no deposited writer); the three held-out records re-scored under the repaired 40/40/20 split (`*_threeway40.json`); a `SHA256SUMS` for the eight files |
+| `regeneration/` | | `regenerate.sh`, `sixth_victim.sh`, `heldout_threeway40.sh`, `pass_comparison.tsv` |
 
-The three scripts read `results/` only:
+The three scripts read `results/`; `four_corpus_tables.py` also reads the three `*_threeway40.json` records in `recompute/results/` when they are present:
 
     python3 recompute/four_corpus_tables.py results recompute
     python3 recompute/extra_numbers.py results recompute
@@ -521,10 +534,11 @@ checks every tracked file under `extraction/` except the list itself; the per-co
                                  ablate_no_unique_dst_runner.py, verify_inductive.py,
                                  verify_c_engine_subspace_q.py
       results/                   49 records (see the index), panel_inventory/, rescued/
-      recompute/                 derived numbers, regeneration scripts, sixth-victim records (own README)
+      recompute/                 derived numbers, regeneration scripts, sixth-victim and held-out re-score records (own README)
       extraction/                scripts that build most of datasets/extracted/ from the corpus
                                  releases (see its README), with tree_manifest/ (index.json,
                                  SHA256SUMS and README per corpus) and a SHA256SUMS of its own files
-      cache/                     three symbolic links into a developer directory; dangling in a clone
+      cache/                     not tracked; config.py creates it, and the LITNET-2020 scripts write their caches there
+      requirements.txt           the harness environment (Python 3.12, NumPy, SciPy, scikit-learn, PyOD, PyTorch, dpkt)
       SHA256SUMS.results         record manifest (49 entries)
       SHA256SUMS                 older code-and-record checksum list (20 entries)

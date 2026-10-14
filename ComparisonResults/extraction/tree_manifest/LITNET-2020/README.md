@@ -10,15 +10,12 @@ window from the corpus's own flow labels, so this is selection only.
 The export scripts (`export_litnet_scenarios.py` for the scenarios,
 `export_benign_pools.py` for the pool) read that cache from
 `ComparisonResults/cache/litnet_per_ip_cache.json`, a path neither lets you
-change. The deposit tracks that path as a symbolic link into a developer
-directory: it dangles in a clone, and on the authors' machine it pointed at a
-cache built from an incomplete export, one with no `udp_f` windows. A LITNET
-rebuild therefore needs the complete per-host cache from
-`ComparisonResults/extraction/rebuild_litnet_caches.py`, which writes through
-the same path by default. Remove the tracked link first; otherwise the rebuild
-streams the 26.9 GB file and then fails writing through the dangling link.
-(`--out` moves the rebuild's output, but the export scripts still read the fixed
-path.)
+change. A LITNET rebuild therefore needs the complete per-host cache from
+`ComparisonResults/extraction/rebuild_litnet_caches.py`, which writes that path
+by default (`--out` moves the rebuild's output, but the export scripts still
+read the fixed path). The deposit no longer tracks the symbolic link that stood
+there; on the authors' machine it pointed at a cache built from an incomplete
+export, one with no `udp_f` windows.
 
 `index.json` and `SHA256SUMS` are written by `write_extracted_index.py`. To
 verify a rebuilt tree, run `sha256sum -c` against this directory's `SHA256SUMS`

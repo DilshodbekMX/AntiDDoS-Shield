@@ -137,7 +137,7 @@ def main():
 
     U = [r for r in per_scen if r['verdict'] == 'USABLE']
     Uc = [r for r in U if r['causal']]
-    out = {'note': ('Benign alarm episodes at held-out thresholds, stream-realized against '
+    out = {**R29.SPLIT_META, 'note': ('Benign alarm episodes at held-out thresholds, stream-realized against '
                     'adjacency-free. Adjacency-free re-scores a stream with attack rows excised, '
                     'the same excision runners/run_adjacency_free_fpr.py applies to the '
                     'false-alarm rate, so the EWMA never inherits attack state. It is a '

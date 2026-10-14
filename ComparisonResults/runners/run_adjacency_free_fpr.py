@@ -101,12 +101,12 @@ def main():
 
     usable = [r for r in per_scen if r['verdict'] == 'USABLE']
     strata = {f'ALL-{len(per_scen)}': per_scen, f'USABLE-{len(usable)}': usable}
-    res = {'note': __doc__.strip(),
+    res = {**R29.SPLIT_META, 'note': __doc__.strip(),
            'threshold_control': {'compared': nthr, 'unequal': nbad},
            'summary': {k: summarise(v) for k, v in strata.items() if v},
            'n': {k: len(v) for k, v in strata.items() if v},
            'per_scenario': per_scen}
-    dst = os.path.join(RESULTS_DIR, 'adjacency_free_fpr.json')
+    dst = os.path.join(RESULTS_DIR, os.environ.get('AFF_OUT', 'adjacency_free_fpr.json'))
     json.dump(res, open(dst, 'w'), indent=1, allow_nan=False)
     print(f"\n  thresholds compared {nthr}, unequal {nbad}")
     u = res['summary'][f'USABLE-{len(usable)}']

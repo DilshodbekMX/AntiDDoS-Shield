@@ -32,6 +32,19 @@ BASE = os.environ.get('ANTIDDOS_BASE', os.path.dirname(os.path.dirname(os.path.d
 EXTRACTED = os.path.join(BASE, 'datasets', 'extracted')
 OUT = safe_out.resolve(RESULTS_DIR, 'scenarios29_corrected_results.json', 'S29')
 TARGETS = (0.01, 0.02, 0.05)
+# ANTIDDOS_SPLIT=threeway40 (or threeway60) re-scores the held-out operating point under the
+# repaired split of run_split_control.py and run_post2023_benchmark.load_case: fit is the first
+# 40% (60%) of the pre-attack benign windows, calibration runs to 80%, and the last fifth is
+# returned to the test stream, which then runs benign, attack, benign. Unset: the deposited
+# causal split, whose output is unchanged.
+SPLIT3 = os.environ.get('ANTIDDOS_SPLIT') or None
+if SPLIT3 not in (None, 'threeway', 'threeway40', 'threeway60'):
+    raise ValueError(f'unsupported ANTIDDOS_SPLIT {SPLIT3!r}')
+SPLIT_META = {} if SPLIT3 is None else {'split': {
+    'split_mode': SPLIT3,
+    'rule': 'fit = pre-attack benign [0, %s); calibration = [%s, 0.8); test benign = the last fifth '
+            'of pre-attack benign plus all post-onset benign, in time order' % (
+                '0.6' if SPLIT3 == 'threeway60' else '0.4', '0.6' if SPLIT3 == 'threeway60' else '0.4')}}
 
 
 
@@ -64,6 +77,13 @@ def load_case_tree(fpath, victim, split_mode):
             return None, None, None, None
         a, b = int(len(ben) * 0.6), int(len(ben) * 0.8)
         return ben[:a], ben[a:b], ben[b:], atk
+    if SPLIT3:
+        f = 0.6 if SPLIT3 == 'threeway60' else 0.4
+        a, b = int(len(pre) * f), int(len(pre) * 0.8)
+        post = rows[atk_idx[0]:]
+        return (pre[:a], pre[a:b],
+                sorted(pre[b:] + [r for r in post if not r.get('_is_attack')], key=tkey),
+                [r for r in post if r.get('_is_attack')])
     cut = int(len(pre) * 0.6)
     post = rows[atk_idx[0]:]
     return (pre[:cut], pre[cut:],
@@ -183,7 +203,7 @@ def main():
     agg(usable, f'USABLE-{len(usable)}', res)
     agg([r for r in per_scen if r['causal']], 'causal-split-only', res)
 
-    json.dump({'targets': list(TARGETS), 'alpha': C.ALPHA, 'k': C.K,
+    json.dump({**SPLIT_META, 'targets': list(TARGETS), 'alpha': C.ALPHA, 'k': C.K,
                'corpus_spelling_census': spelling_census([r['_corpus_raw'] for r in per_scen]),
                'note': 'FPR is realized on held-out benign test windows at a threshold '
                        'taken from a separate benign calibration slice. Not matched.',

@@ -8,16 +8,26 @@ tree, so that a reader can regenerate the tree and compare it without the author
 Parts of the tree have no writer here; see
 [What the chain cannot rebuild](#what-the-chain-cannot-rebuild).
 
-The directory holds 16 scripts and one helper module (`tree_io.py`). `SHA256SUMS` lists the
+The directory holds 17 scripts and one helper module (`tree_io.py`). `SHA256SUMS` lists the
 checksum of every other file here, those under `tree_manifest/` included; run
 `sha256sum -c SHA256SUMS` from this directory.
 
 ## Provenance
 
-Every script was copied from the authors' development tree at commit `c8cc797`. `PROVENANCE.tsv`
+Every script except `tree_io.py` and `drop_duplicate_columns.py` was copied from the authors' development tree at commit `c8cc797`. `PROVENANCE.tsv`
 gives each script's original path. Its `source_state` column records whether the copy came from
 that commit (`HEAD`) or from the checkout's working tree (`working-tree`). `tree_io.py` has no row:
 it was written for the deposit, and its docstring names the two files its helpers came from.
+
+`drop_duplicate_columns.py` has no row either. It was not copied from `c8cc797`: it was written and
+run once, on 2026-10-13, when this deposit was prepared, and the deposited copy differs from the one
+that ran only in its paths, its docstring and a `main()` wrapper. It removed `burst_factor` and `unique_flows` from the per-window rows of
+the 34 tree files that carried them (1,739,996 rows); in every such row they equalled
+`packets_per_sec` and `flows_per_sec`, and no deposited record scored them. It rewrites a file only
+if each new row equals the old row minus those two keys, then updates the stored hashes: the tree's
+`SHA256SUMS` and `index.json`, their copies under `tree_manifest/`, and `payload_sha256` in
+`results/admissibility_inputs.json`. The deposited extractor no longer writes the two columns, so on
+the authors' tree or a rebuilt one the script rewrites nothing and leaves a header-only `hash_map.tsv` beside itself.
 
 The copies received four mechanical changes:
 
@@ -109,9 +119,10 @@ python3 write_extracted_index.py <tree>/<corpus>    # index.json + SHA256SUMS  <
 python3 build_scenario_inventory.py                 # SCENARIO_INVENTORY.md
 ```
 
-`ComparisonResults/cache/litnet_per_ip_cache.json` is a tracked symbolic link into a developer
-path, and it dangles in a clone. Remove it before running `rebuild_litnet_caches.py`. Otherwise the
-script fails when it writes the cache, at the end of its run.
+`rebuild_litnet_caches.py` writes `ComparisonResults/cache/litnet_per_ip_cache.json`, which
+`export_litnet_scenarios.py` and `export_benign_pools.py` read. Build it from the complete
+LITNET-2020 export: the deposit no longer tracks the symbolic link that stood at that path, and on
+the authors' machine that link pointed at a cache built from an incomplete export.
 
 Verifying a rebuilt tree:
 
@@ -133,10 +144,14 @@ Verifying a rebuilt tree:
 
 ## What the chain cannot rebuild
 
-Three caches that the scenario builders read have no writer in this directory:
+Four per-day caches that the scenario builders read, as the tree used them, have no writer in this
+directory (each `index.json` entry names its cache in `derived_from`):
 
 - `cicids2017_pcap_wednesday.json` is read by `split_by_attack_schedule.py` and
   `export_benign_pools.py`. `run_cicids2017_pcap.py` builds only the Monday and Friday caches.
+- `cicids2017_pcap_friday.json` as used carries labels from three of CIC's Friday flow CSVs.
+  `run_cicids2017_pcap.py` builds a Friday cache labelled from the afternoon DDoS CSV alone, which
+  could not produce the 426 attack windows of `Fri-07-07_PortScan`.
 - `cicids2018_pcap_tue.json` is read by `split_by_attack_schedule.py` for the two `Tue-20-02`
   slices. `pcap_feature_extractor_cicids2018.py` accepts only `wed`, `thu` and `fri`.
 - `cicddos_03-11_typed.json` is read by `split_cicddos_by_type.py` and `export_benign_pools.py`.
@@ -150,10 +165,11 @@ Even with that cache, `split_cicddos_by_type.py` writes slices only for the docu
 As a result, these scripts alone cannot rebuild from the official releases:
 
 - the five CIC-IDS-2017 `Wed-05-07` slices and the Wednesday benign pool;
+- the two CIC-IDS-2017 `Fri-07-07` slices, as labelled;
 - the two CSE-CIC-IDS2018 `Tue-20-02` slices;
 - the twelve CIC-DDoS2019 slices and their pool.
 
-That is 19 of the 31 scenario files, among them 9 of the 16 USABLE scenarios.
+That is 21 of the 31 scenario files, among them 10 of the 16 USABLE scenarios.
 
 Nor can a rebuild reproduce the 31 scenario checksums. Every scenario payload in the authors' tree,
 and every entry of the four `index.json` files in `tree_manifest/`, carries a `role_unverified`
@@ -170,7 +186,7 @@ directories of the local feature tree, which all 47 `tree_manifest/` checksums v
 ran from a copy of `ComparisonResults/` with `ANTIDDOS_BASE` unset, under Python 3.12 with numpy
 2.4.2, scipy 1.17.0 and dpkt 1.9.8:
 
-- all 17 modules compile and import (`tree_io.py` with `ComparisonResults/` on the path, which the
+- all 18 modules compile and import (`tree_io.py` with `ComparisonResults/` on the path, which the
   other scripts' preamble provides);
 - `verify_extracted_tree.py`: 31 scenario files and 16 pool files checked, 0 problems;
 - `classify_scenarios.py` at its default alpha of 0.01, without `--write`, returns 31 verdicts,

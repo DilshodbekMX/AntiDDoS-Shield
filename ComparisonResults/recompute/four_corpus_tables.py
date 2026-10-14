@@ -125,8 +125,8 @@ def clockjoint():
     out['full_panel'] = {'n': len(rows), 'mean_delta_auc': round(float(d.mean()), 6), 'wins': int((d > 0).sum()), 'losses': int((d < 0).sum()), 'ties': int((d == 0).sum()), 'n_victim_clusters': len(gs), 'victim_cluster_mean': round(float(cm.mean()), 6)}
     return out
 # ---------------- F/G/H. held-out operating point, episodes, clustered tests ----------------
-def heldout():
-    S = J('scenarios29_corrected_results'); F = J('adjacency_free_fpr'); E = J('adjacency_free_episodes')
+def heldout(S=None, F=None, E=None):
+    S = S or J('scenarios29_corrected_results'); F = F or J('adjacency_free_fpr'); E = E or J('adjacency_free_episodes')
     rows = S['per_scenario']
     # join the three held-out records on (canonical corpus, scenario file), never on the label: the corpus
     # spelling differs between records (CSE-CIC-IDS2018 / CIC-IDS2018, CIC-DDoS2019 / CICDDoS2019, ...)
@@ -204,6 +204,8 @@ def leakage(panel_rows):
         out[a_new] = {'uncorrected': round(float(old), 4), 'corrected': round(float(new), 4), 'change': round(float(new - old), 4)}
     return out
 # ---------------- main ----------------
+R40DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'results')
+JR = lambda n: json.load(open(f'{R40DIR}/{n}.json'))
 def run():
     N = {}; N['admissibility'] = admissibility()
     pm = matrix_pops('panel_auc_matrix'); N['populations'] = {p: {'n': len(rs), 'victims': len({vkey(r) for r in rs}), 'corpora': dict(collections.Counter(canon(r['corpus']) for r in rs))} for p, rs in pm.items()}
@@ -211,6 +213,9 @@ def run():
     N['concentration'] = {p: concentration(rs) for p, rs in pm.items()}
     N['leakage'] = leakage(pm[PANEL_POP])
     N['clock'] = clockjoint(); N['heldout'] = heldout(); N['ablation'] = ablation()
+    # the held-out operating point re-scored under the repaired 40/40/20 split (post hoc; records in recompute/results/)
+    if os.path.exists(f'{R40DIR}/scenarios29_corrected_results_threeway40.json'):
+        N['heldout_threeway40'] = heldout(JR('scenarios29_corrected_results_threeway40'), JR('adjacency_free_fpr_threeway40'), JR('adjacency_free_episodes_threeway40'))
     mm = matrix_pops('matched_smoothing_matrix'); N['matched'] = {p: bench(rs) for p, rs in mm.items()}; N['matched_concentration'] = {p: concentration(rs) for p, rs in mm.items()}
     N['split_control'] = {}
     for var in ('deposited', 'threeway40', 'threeway60'):
@@ -280,24 +285,26 @@ for split in ('deposited', 'threeway'):
     for cut in ('0.95', '0.94'):
         r = Cs[f'{split}_split'][f'cut_{cut}']; m = N['clock'][f'cut_{cut}'][split]
         cmp(f'clocksplit/{split}/{cut}/fixed', r['fixed_sign_ge_cut'], m['fixed_sign_ge_cut']); cmp(f'clocksplit/{split}/{cut}/oracle', r['oracle_signed_ge_cut'], m['oracle_signed_ge_cut']); cmp(f'clocksplit/{split}/{cut}/clock_clean', r['clock_clean'], m['clock_clean']['n'])
-S = J('scenarios29_corrected_results')['summary']
-ALL_KEY = f"ALL-{N['heldout']['ALL']['n']}"; USABLE_KEY = f"USABLE-{N['heldout']['USABLE']['n']}"
-for pop, mine in ((ALL_KEY, 'ALL'), (USABLE_KEY, 'USABLE'), ('causal-split-only', 'causal')):
-    for arm, e in S[pop].items():
-        m = N['heldout'][mine]['arms'].get(arm, {})
-        for k in ('n', 'mean_auc', 'dr@1pct', 'fpr@1pct', 'dr@2pct', 'fpr@2pct', 'dr@5pct', 'fpr@5pct'): cmp(f'scen29/{pop}/{arm}/{k}', e[k], m.get(k))
-E = J('adjacency_free_episodes')['summary']
-for pop, mine in ((USABLE_KEY, 'USABLE'), (f"USABLE-{N['heldout']['causal']['n']}-causal", 'causal')):
-    for arm, e in E[pop].items():
-        if not isinstance(e, dict): continue
-        m = N['heldout'][mine]['arms'].get(arm, {})
-        for k in ('stream_ep@1pct', 'free_ep@1pct', 'stream_ep@5pct', 'free_ep@5pct', 'stream_fpr@2pct'): 
-            if k in e: cmp(f'afe/{pop}/{arm}/{k}', e[k], m.get(k.replace('stream_fpr', 'fpr')))
-Fs = J('adjacency_free_fpr')['summary']
-for pop, mine in ((ALL_KEY, 'ALL'), (USABLE_KEY, 'USABLE')):
-    for arm, e in Fs[pop].items():
-        m = N['heldout'][mine]['arms'].get(arm, {})
-        for k in ('1', '2', '5'): cmp(f'aff/{pop}/{arm}/free_fpr@{k}', e[f'free_fpr@{k}'], m.get(f'free_fpr@{k}pct')); cmp(f'aff/{pop}/{arm}/stream_fpr@{k}', e[f'stream_fpr@{k}'], m.get(f'fpr@{k}pct'))
+def check_heldout(tag, S, E, Fs, H):
+    global ok
+    ALL_KEY = f"ALL-{H['ALL']['n']}"; USABLE_KEY = f"USABLE-{H['USABLE']['n']}"
+    for pop, mine in ((ALL_KEY, 'ALL'), (USABLE_KEY, 'USABLE'), ('causal-split-only', 'causal')):
+        for arm, e in S[pop].items():
+            m = H[mine]['arms'].get(arm, {})
+            for k in ('n', 'mean_auc', 'dr@1pct', 'fpr@1pct', 'dr@2pct', 'fpr@2pct', 'dr@5pct', 'fpr@5pct'): cmp(f'{tag}scen29/{pop}/{arm}/{k}', e[k], m.get(k))
+    for pop, mine in ((USABLE_KEY, 'USABLE'), (f"USABLE-{H['causal']['n']}-causal", 'causal')):
+        for arm, e in E[pop].items():
+            if not isinstance(e, dict): continue
+            m = H[mine]['arms'].get(arm, {})
+            for k in ('stream_ep@1pct', 'free_ep@1pct', 'stream_ep@5pct', 'free_ep@5pct', 'stream_fpr@2pct'): 
+                if k in e: cmp(f'{tag}afe/{pop}/{arm}/{k}', e[k], m.get(k.replace('stream_fpr', 'fpr')))
+    for pop, mine in ((ALL_KEY, 'ALL'), (USABLE_KEY, 'USABLE')):
+        for arm, e in Fs[pop].items():
+            m = H[mine]['arms'].get(arm, {})
+            for k in ('1', '2', '5'): cmp(f'{tag}aff/{pop}/{arm}/free_fpr@{k}', e[f'free_fpr@{k}'], m.get(f'free_fpr@{k}pct')); cmp(f'{tag}aff/{pop}/{arm}/stream_fpr@{k}', e[f'stream_fpr@{k}'], m.get(f'fpr@{k}pct'))
+check_heldout('', J('scenarios29_corrected_results')['summary'], J('adjacency_free_episodes')['summary'], J('adjacency_free_fpr')['summary'], N['heldout'])
+if 'heldout_threeway40' in N:
+    check_heldout('r40/', JR('scenarios29_corrected_results_threeway40')['summary'], JR('adjacency_free_episodes_threeway40')['summary'], JR('adjacency_free_fpr_threeway40')['summary'], N['heldout_threeway40'])
 A = J('admissibility_ledger')
 for v, e in A['census'].items(): cmp(f'ledger/census/{v}', e['n'], N['admissibility']['census'][v]['n'])
 cmp('ledger/n_usable_victims', A['n_usable_victims'], N['admissibility']['n_usable_victims']); cmp('ledger/floor', A['highest_surviving_floor']['p_floor'], N['admissibility']['highest_surviving_floor']['p_floor'])

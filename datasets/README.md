@@ -123,14 +123,12 @@ That is 31 candidates; 16 are admitted as usable scenarios
   `allFlows.csv` in the same directory (`ComparisonResults/litnet_loader.py:356-360`). Set
   `LITNET_DIR=$ANTIDDOS_BASE/datasets/LITNET-2020` to read the complete file. A `parts/` split
   must be cut from the complete file: an earlier extraction was 11.5% short and lost two attack
-  types entirely (`rebuild_litnet_caches.py` docstring). The three tracked
-  `ComparisonResults/cache/litnet_*_cache.json` entries are symbolic links into the authors'
-  machine and dangle in a clone. Remove them before running `rebuild_litnet_caches.py` or either
-  subnet runner, which write their caches through those paths. The scenario and pool exporters
-  read the per-IP cache only from `ComparisonResults/cache/litnet_per_ip_cache.json`, and on the
-  authors' machine that link pointed at a cache built from an incomplete export, with no `udp_f`
-  windows; a LITNET rebuild needs the complete per-host cache that `rebuild_litnet_caches.py`
-  writes there.
+  types entirely (`rebuild_litnet_caches.py` docstring). The scenario and pool exporters read the
+  per-IP cache only from `ComparisonResults/cache/litnet_per_ip_cache.json`, which
+  `rebuild_litnet_caches.py` writes; build it from the complete file. The deposit no longer
+  tracks the symbolic links that stood under `ComparisonResults/cache/`; on the authors' machine
+  they pointed at caches built from an incomplete export, with no `udp_f` windows, and the two
+  subnet records were scored on those.
 
 ---
 

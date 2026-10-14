@@ -23,7 +23,7 @@ WHAT WAS WRONG AND WHAT CHANGED
                Siffer Algorithm 3 line 16 forbids ("W* does not contain abnormal
                values"). During a sustained flood the trailing mean climbed to the
                attack level and the residual collapsed. The window is now frozen
-               on an alarm.
+               on an alarm, here any residual above t (Siffer alarms above z_q).
   SPOT         Renamed POT. What is implemented is a static per-feature
                peaks-over-threshold detector with a method-of-moments GPD scale.
                Siffer's SPOT is online and univariate and fits the GPD by MLE, so
@@ -102,11 +102,15 @@ def pot_scores(train_mat, test_mat, q=0.98):
 
 
 def dspot_scores(train_mat, test_mat, q=0.98, depth=64):
-    """DSPOT, faithful to Siffer Algorithm 3: the drift window excludes alarms.
+    """Our variant of Siffer et al.'s DSPOT (Algorithm 3), per feature, maximum over features.
 
-    Algorithm 3 line 16 adds X_i to W only on the normal branch. The previous
-    implementation appended unconditionally, so a sustained flood dragged the
-    trailing mean up to the attack level and the residual went to zero.
+    Residuals are taken from a drift mean over the last `depth` windows. The threshold t is the
+    static q quantile of the training residuals and the scale a static method-of-moments estimate;
+    there is no GPD refit and no z_q, and a window scores (residual - t) / scale above t, like POT.
+    The drift window appends a test window only when its residual is at or below t, so it freezes
+    during a sustained flood. Siffer's Algorithm 3 appends on both its normal and peak branches and
+    freezes only above z_q. The previous implementation appended unconditionally, so a sustained
+    flood dragged the trailing mean up to the attack level and the residual went to zero.
     """
     N, D = train_mat.shape
     S = np.zeros(len(test_mat))

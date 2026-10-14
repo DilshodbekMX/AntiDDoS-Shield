@@ -33,8 +33,8 @@ scripts need numpy and scipy; `four_corpus_tables.py` also imports `corpus_names
   `matched_crosscheck_ok`, which check those two tables' records against the recomputation; both are `true`.
   The keys `detection_sandbox` and `matched_sandbox` keep an earlier name; they hold the columns of
   `corrected_benchmark_results.json` and `matched_smoothing_benchmark.json`.
-- `validation.json`: `{"ok": 1508, "mismatches": []}`, i.e. 1,508 stored aggregates reproduced and
-  0 mismatches. The tolerance for each field is set in `four_corpus_tables.py`.
+- `validation.json`: `{"ok": 1968, "mismatches": []}`, i.e. 1,968 stored aggregates reproduced and
+  0 mismatches, 460 of them in the three repaired-split held-out records. The tolerance for each field is set in `four_corpus_tables.py`.
 
 ## recompute/regeneration/
 
@@ -42,24 +42,28 @@ scripts need numpy and scipy; `four_corpus_tables.py` also imports `corpus_names
   Runners run in two waves (the second reads first-wave records); each writes a log to
   `recompute/regeneration/logs/`. They read the derived feature tree at `$ANTIDDOS_BASE/datasets/extracted/`
   (by default the repository root), which is not deposited. `extraction/` rebuilds it and
-  `extraction/tree_manifest/` pins its checksums, except for three per-day caches that no deposited script
-  writes (CIC-IDS-2017 Wednesday, CSE-CIC-IDS2018 Tuesday, attack-typed CIC-DDoS2019); 9 of the 16 panel
-  scenarios depend on them (`extraction/README.md`, "What the chain cannot rebuild"). Needs numpy, scipy,
-  scikit-learn, PyTorch (for DIF) and PyOD, plus gcc for `runners/run_c_engine_ours.py`, which compiles the
-  engine from `project/layer2/` at the repository root. The records' `versions` blocks name pyod 3.6.5,
-  torch 2.13.0+cpu, numpy 2.4.2, scikit-learn 1.8.0 and scipy 1.17.0.
+  `extraction/tree_manifest/` pins its checksums, except for four per-day caches that no deposited script
+  writes as used (CIC-IDS-2017 Wednesday and Friday, CSE-CIC-IDS2018 Tuesday, attack-typed CIC-DDoS2019);
+  10 of the 16 panel scenarios depend on them (`extraction/README.md`, "What the chain cannot rebuild").
+  `ComparisonResults/requirements.txt` pins the environment (Python 3.12, numpy 2.4.2, scipy 1.17.0,
+  scikit-learn 1.8.0, PyOD 3.6.5, PyTorch 2.13.0+cpu, dpkt 1.9.8); gcc is also needed for
+  `runners/run_c_engine_ours.py`, which compiles the engine from `project/layer2/` at the repository root.
 - `sixth_victim.sh [python]` runs the post hoc check below. It copies `ComparisonResults/` to a temporary
   directory (rsync), installs `recompute/results/PANEL_sixvictim.json` there as the panel inventory, runs
   `runners/run_split_control.py` under the `threeway40` and `threeway60` splits and copies the four
   `*_sixvictim*` records into `recompute/results/`. The deposited `results/` is never touched.
-- `pass_comparison.tsv` compares two complete regeneration passes over the 49 records in `results/`,
-  record by record (columns: record, numeric leaves, values changed from pass 1 to pass 2, cause). Pass 1
+- `heldout_threeway40.sh [python]` re-scores the held-out operating point under the repaired 40/40/20 split
+  (`ANTIDDOS_SPLIT=threeway40` in `runners/run_29_scenarios_corrected.py`) and writes the three
+  `*_threeway40.json` records described below into `recompute/results/`.
+- `pass_comparison.tsv` compares the deposited records, record by record, with earlier copies that are not
+  deposited: pass 1's records and, for `batch_invariance_gate.json`, the previously deposited record (columns: record, numeric leaves, values changed from pass 1 to pass 2, cause). Pass 1
   was an earlier full pass at the default BLAS thread count. Pass 2 is the single-threaded `regenerate.sh`
   run that wrote the deposited records; `batch_invariance_gate.json` was rewritten in a follow-up run of
   `runners/verify_inductive.py`, which `regenerate.sh` now includes; pass 1 did not run that writer, so its
   row compares the follow-up run with the previously deposited record. Values are compared on the leaves both
   passes write. The comparison ignores `elapsed_sec` (the wall-clock run time) and free-text notes, and it
-  matches renamed population keys.
+  matches renamed population keys. The TSV summarizes a leaf-by-leaf comparison whose scripts are not
+  deposited.
 
   `regenerate.sh` does not rewrite the other 20 records; the TSV gives the reason for each. Six are inputs
   with no deposited writer (`panel_inventory/*.json`, `admissibility_inputs.json`). Nine have no deposited
@@ -99,19 +103,26 @@ scripts need numpy and scipy; `four_corpus_tables.py` also imports `corpus_names
 
 ## recompute/results/
 
-A post hoc sensitivity check: the 16-row panel plus LITNET-2020 smurf on 193.219.88.36 (17 rows, six victims),
+Two post hoc checks, neither listed in `SHA256SUMS.results`.
+
+The held-out operating point re-scored under the repaired 40/40/20 split (`regeneration/heldout_threeway40.sh`):
+`scenarios29_corrected_results_threeway40.json`, `adjacency_free_fpr_threeway40.json` and
+`adjacency_free_episodes_threeway40.json`, each with a `split` block naming the rule. `numbers.json` summarizes
+them as `heldout_threeway40`, and `validation.json` checks 460 of their stored aggregates.
+
+The sixth-victim check: the 16-row panel plus LITNET-2020 smurf on 193.219.88.36 (17 rows, six victims),
 run under the two repaired three-way splits only; the deposited split leaves that row no benign test window.
 
 - `PANEL_sixvictim.json`: the 17-row panel inventory (the input; no deposited writer).
 - `split_control_benchmark_threeway{40,60}_sixvictim.json`, `split_control_threeway{40,60}_sixvictim_matrix.json`:
   the records, with populations `PANEL-17` and `USABLE-strict`.
-- `SHA256SUMS`: checksums of these five files, which `SHA256SUMS.results` does not list. Run
-  `sha256sum -c SHA256SUMS` inside `recompute/results/`. The two benchmark records store `elapsed_sec`, the
-  wall-clock run time, so every re-run changes their hashes; compare their values instead.
+- `SHA256SUMS`: checksums of all eight files here. Run `sha256sum -c SHA256SUMS` inside
+  `recompute/results/`. The two benchmark records and two of the three held-out records (all but `adjacency_free_fpr_threeway40.json`)
+  store `elapsed_sec`, the wall-clock run time, so every re-run changes their hashes; compare their values instead.
 
 ## Single-thread setting
 
-`regenerate.sh` and `sixth_victim.sh` export `OMP_NUM_THREADS=1`, `OPENBLAS_NUM_THREADS=1` and
+`regenerate.sh`, `sixth_victim.sh` and `heldout_threeway40.sh` export `OMP_NUM_THREADS=1`, `OPENBLAS_NUM_THREADS=1` and
 `MKL_NUM_THREADS=1` (cause 1 above). Set the same three variables when running a runner by hand. With them,
-a re-run of the three scripts reproduces `numbers.json`, `extra.json`, `tables_v4.json` and
+a re-run of the three Python scripts on the same records reproduces `numbers.json`, `extra.json`, `tables_v4.json` and
 `validation.json` byte for byte. Archived-module LODA cells do not reproduce between runs at any thread count.

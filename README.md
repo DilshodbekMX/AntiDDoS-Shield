@@ -81,14 +81,15 @@ cd ComparisonResults/results
 sha256sum -c ../SHA256SUMS.results     # 49 lines, each ending in OK
 ```
 
-Four further records from a post hoc check that admits a sixth victim host, and the panel
-inventory they read (`PANEL_sixvictim.json`, no deposited writer), are in
+Four further records from a post hoc check that admits a sixth victim host, the panel
+inventory they read (`PANEL_sixvictim.json`, no deposited writer), and the three post hoc records that
+re-score the held-out operating point under the repaired 40/40/20 split (`*_threeway40.json`) are in
 `ComparisonResults/recompute/results/` with their own `SHA256SUMS`. The three Python scripts in
 `ComparisonResults/recompute/` (`four_corpus_tables.py`, `extra_numbers.py` and `tables_v4.py`)
 derive the aggregates the manuscript prints from the per-scenario records, among them the Holm
 adjustment of the victim-clustered p-values, which no runner computes and no record stores;
-`recompute/validation.json` records 1,508 aggregates stored in the records reproduced with no
-mismatch.
+`recompute/validation.json` records 1,968 aggregates stored in the records reproduced with no
+mismatch (460 of them in the repaired-split held-out records).
 
 `recompute/regeneration/regenerate.sh` rewrites 29 of the 49 records on the four corpora,
 single-threaded (`batch_invariance_gate.json` was rewritten in a follow-up run).
@@ -125,16 +126,16 @@ says so in an `_inert_list_note` field.
 > (`run_joint_filter.py`, `run_admissibility_ledger.py` and `run_table_provenance.py`) and the
 > three Python scripts in `recompute/` run from the deposited records alone. Of the other 19
 > runners, 18 need the feature tree and `run_litnet_l1subnet.py` reads the raw LITNET-2020 flow
-> export. Three tracked `cache/` entries are symbolic links into a developer directory and
-> dangle in any clone. The extraction chain is deposited under
-> [`ComparisonResults/extraction/`](ComparisonResults/extraction/) (sixteen scripts, a helper
-> module and a README), with the tree's own `index.json` files and per-file `SHA256SUMS`, which
+> export. The extraction chain is deposited under
+> [`ComparisonResults/extraction/`](ComparisonResults/extraction/) (sixteen scripts,
+> `drop_duplicate_columns.py`, a helper module and a README), with the tree's own `index.json` files and per-file `SHA256SUMS`, which
 > verify the authors' copy of the tree. A rebuilt scenario file can be checked against its
 > `index.json` entry but not its checksum: every scenario file carries a field that no deposited
-> script writes. The chain does not rebuild the whole tree from the official releases: three
-> per-day caches it reads have no writer there, so 19 of the 31 candidate slices, 9 of the 16
-> admitted (among them `Wed-05-07_DoS-Slowhttptest`), cannot be rebuilt with it. Its README lists
-> them.
+> script writes. The chain does not rebuild the whole tree from the official releases: four
+> per-day caches it reads have no writer there as used, so 21 of the 31 candidate slices, 10 of the
+> 16 admitted (among them `Wed-05-07_DoS-Slowhttptest`), cannot be rebuilt with it. Its README lists
+> them. The harness environment is pinned in
+> [`ComparisonResults/requirements.txt`](ComparisonResults/requirements.txt).
 
 The per-record index is in [`ComparisonResults/README.md`](ComparisonResults/README.md);
 corpus download pointers are in [`datasets/README.md`](datasets/README.md). No corpus data is committed.
