@@ -2,7 +2,7 @@
 
 <img src="assets/banner.svg" alt="AntiDDoS Shield: an evaluation protocol for training-free DDoS detection" width="100%">
 
-<br>
+<br> 
 
 [![License](https://img.shields.io/badge/license-MIT-2ea44f?style=flat-square)](LICENSE)
 [![Records](https://img.shields.io/badge/deposit-49%20records%20%C2%B7%20SHA256%20verified-0b7285?style=flat-square)](ComparisonResults/)
