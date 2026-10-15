@@ -80,7 +80,7 @@ Place the official releases under `$ANTIDDOS_BASE/datasets/`. You can also place
 | CIC-IDS-2017 | `CIC-IDS-2017/PCAPs/Monday-WorkingHours.pcap` and `Friday-WorkingHours.pcap`; `CIC-IDS-2017/CSVs/TimestampedFlows/` (the Monday and Friday-afternoon `*.pcap_ISCX.csv`); `CIC-IDS-2017/CSVs/TrafficLabelling /` (the labelled-flow CSVs with IP columns; the trailing space is part of CIC's directory name) | `run_cicids2017_pcap.py` (pcaps, `TimestampedFlows/`); `export_benign_pools.py` and `run_cicids2017_pool_audit.py` (`TrafficLabelling /`) |
 | CSE-CIC-IDS2018 | per-day directories of host captures (`UCAP*` and `cap*` files, e.g. `UCAP172.31.69.25-part1.pcap`), passed as `<pcap_dir>` | `pcap_feature_extractor_cicids2018.py <pcap_dir> <wed\|thu\|fri> <out.json>` |
 | CIC-DDoS2019 | the `SAT-03-11-2018_*` pcaps, passed as `<pcap_dir>`; the per-attack CSVs in `CICDDoS2019/03-11/` (`Syn.csv`, `UDP.csv`, `LDAP.csv`, `MSSQL.csv`, `NetBIOS.csv`, `UDPLag.csv`, `Portmap.csv`) | `pcap_feature_extractor.py <pcap_dir> <csv_dir> <out.json>`, `stamp_cicddos_roles.py`, `export_benign_pools.py` |
-| LITNET-2020 | `LITNET-2020/allFlows.csv` (the complete file; an 88.5 %-truncated export loses two attack types) | `rebuild_litnet_caches.py`, `export_benign_pools.py` |
+| LITNET-2020 | `LITNET-2020/allFlows.csv` (the complete file; an export 11.5% short of it loses two attack types, `udp_f` and `smtp_b`) | `rebuild_litnet_caches.py`, `export_benign_pools.py` |
 
 The extractors write their caches into `ComparisonResults/cache/`. The two that take an output
 path must be given one there. The builders look for the CSE-CIC-IDS2018 caches as

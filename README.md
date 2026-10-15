@@ -10,7 +10,7 @@
 [![Engine](https://img.shields.io/badge/engine-C%20%2B%20DPDK-a6324a?style=flat-square)](project/)
 [![Stack](https://img.shields.io/badge/stack-FastAPI%20%C2%B7%20React-6741d9?style=flat-square)](project/dashboard)
 
-**Reported DDoS-detector performance rests on evaluation choices that are rarely audited.<br>This repository holds the protocol that audits them, the records it produced, and the prototype it was run against.**
+**Protocol, not algorithm, determined most of the manuscript's DDoS-detection results.<br>This repository holds the protocol, the records it produced, and the prototype system.**
 
 </div>
 
@@ -19,8 +19,9 @@
 ## What applying the protocol changed
 
 The manuscript *A Clock Can Score Like a DDoS Detector: How Split Construction and Scoring
-Protocol Manufacture Training-Free Benchmark Results* applies four checks to four public corpora
-(CIC-IDS-2017, CSE-CIC-IDS2018, CIC-DDoS2019 and LITNET-2020): which victim–scenario slices are
+Protocol Can Manufacture Training-Free Benchmark Results* sets out a six-rule evaluation protocol and
+applies it to four public corpora (CIC-IDS-2017, CSE-CIC-IDS2018, CIC-DDoS2019 and LITNET-2020).
+Four of its rules ask which victim–scenario slices are
 admissible, whether a library baseline scores a row independently of the batch it arrives in,
 what the unit of statistical analysis is, and whether a scorer that reads only the window index
 already separates the test stream. The contribution is the protocol and the measurement of what
@@ -34,42 +35,51 @@ seeing results, and no p-value in the manuscript is confirmatory.
 | Admissibility | 31 candidate scenarios, one recorded verdict each; 16 admitted, on five victim hosts. |
 | Batch-invariant scoring | Inductive re-scoring raises the mean AUC of three library baselines (ECOD, COPOD, DIF) by 0.29 to 0.45. |
 | Unit of analysis | On the detector's mean AUC advantage over the peaks-over-threshold (POT) reference, +0.0246, the i.i.d. bootstrap interval [0.0040, 0.0541] excludes zero; resampled by victim host, the interval [−0.0050, 0.0499] spans it. |
-| Clock-only null | The causal split puts every pre-attack benign window into fit and calibration, so each test stream opens on attack, and a scorer that reads only the window index reaches AUC 0.95 or more on 15 of the 16 admitted scenarios. Returning the last fifth of that benign slice to the test stream leaves 3. |
+| Clock-only null | The causal split puts every pre-attack benign window into fit and calibration, so each test stream opens on attack, and a scorer that reads only the window index reaches AUC 0.95 or more on 15 of the 16 admitted scenarios. Returning the last fifth of that benign slice to the test stream (the repaired split, post hoc) leaves 3. |
 
 ## How the system is built
 
 A DPDK packet datapath in C, a statistical detector in C that decides once per second, and a
-web control plane. No machine-learning model anywhere.
+web control plane. No machine-learning model at any layer.
 
 <img src="assets/pipeline.svg" alt="Packets flow from the NIC through the DPDK datapath, over POSIX shared memory into the Layer 2 detector, then over a Unix socket and TCP to the FastAPI backend and the React dashboard" width="100%">
 
 ## What the evaluation found
 
 Every number below comes from the deposited records in
-[`ComparisonResults/results/`](ComparisonResults/results/), directly or through the scripts in
+[`ComparisonResults/results/`](ComparisonResults/results/) and
+[`ComparisonResults/recompute/results/`](ComparisonResults/recompute/results/), directly or
+through the scripts in
 [`ComparisonResults/recompute/`](ComparisonResults/recompute/). On the 16 admitted scenarios:
 
 - The detector's mean AUC is 0.9913 against 0.9667 for the POT reference, a difference of +0.0246
   (scenario-level Holm-adjusted p = 0.064). One scenario, CIC-IDS-2017
   `Wed-05-07_DoS-Slowhttptest`, carries 53.8% of the summed per-scenario difference, and on it the
   clock-only null (AUC 0.9927) scores higher than the detector (0.9875).
-- When every arm gets the same EWMA smoothing stage, the detector leads the runner-up, DIF, by
-  0.0004 in mean AUC, and the equally smoothed reference records fewer benign alarm episodes than
-  the detector at every oracle target. At 1% the detector records more episodes than that reference
+- When every arm gets the same EWMA smoothing stage, the detector's margin over the reference
+  narrows to +0.0227 (Holm-adjusted p = 1.0), and DIF comes within 0.0004 of the detector's mean
+  AUC, a gap the manuscript does not report as a difference between detectors. The equally smoothed
+  reference records fewer benign alarm episodes than the detector at every oracle target. At 1% the
+  detector records more episodes than that reference
   on 9 of the 16 scenarios and fewer on 2 (scenario-level p = 0.041 against the detector;
   victim-clustered p = 0.25).
 - The 16 scenarios sit on five victim hosts, which floors the exact victim-clustered test at
   0.0625: no clustered comparison on them can reach 5%, whatever the effect.
-- At held-out thresholds the detector detects more than the reference at a lower mean false-alarm
-  rate at the 1%, 2% and 5% targets. These are point estimates from an unmatched comparison: the
+- At held-out thresholds the detector detects more than the reference at the 1%, 2% and 5% targets.
+  On the deposited split its mean false-alarm rate is also lower, but that gap comes almost all from
+  LITNET-2020 `code_red_worm`, and the repaired split reverses it at 5% (the detector's 8.14%
+  against the reference's 8.10%). These are point estimates from an unmatched comparison: the
   detector is the only smoothed arm, EWMA state carried across the attack block inflates its
   detection, and no victim-level test supports either difference.
 - On benign alarm episodes, the declared primary metric, the detector is worse than the reference
-  at all three oracle targets and at the held-out 5% target, where it ranks eighth of ten arms.
+  on the deposited split at all three oracle targets and at the held-out 5% target, where it ranks
+  eighth of ten arms. Re-scored post hoc under the repaired split, it records fewer episodes than the
+  reference at every oracle and held-out target (scenario means).
 
 > [!NOTE]
-> Of the corrections the manuscript identifies, five ran *against* the evaluated detector and one
-> for it, and the manuscript reports each in its direction.
+> Inductive re-scoring ran *against* the evaluated detector, cutting its margin over ECOD to 0.0292
+> from a counterfactual 0.3221. The DSPOT rebuild and LODA seeding lowered those two arms,
+> *in its favour*. The manuscript records each movement's direction.
 
 ## Verify the deposit
 
@@ -212,7 +222,7 @@ Correspondence: mamadalievdilshodjon@gmail.com
   year    = {2026},
   url     = {https://github.com/DilshodbekMX/AntiDDoS-Shield},
   version = {see the commit cited in the manuscript's Data Availability Statement},
-  note    = {Companion deposit of the manuscript \emph{A Clock Can Score Like a {DDoS} Detector: How Split Construction and Scoring Protocol Manufacture Training-Free Benchmark Results}}
+  note    = {Companion deposit of the manuscript \emph{A Clock Can Score Like a {DDoS} Detector: How Split Construction and Scoring Protocol Can Manufacture Training-Free Benchmark Results}}
 }
 ```
 

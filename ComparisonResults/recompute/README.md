@@ -13,7 +13,8 @@ scripts need numpy and scipy; `four_corpus_tables.py` also imports `corpus_names
     python3 recompute/extra_numbers.py      results recompute
     python3 recompute/tables_v4.py          results recompute results
 
-- `four_corpus_tables.py <results_dir> <out_dir>` recomputes every aggregate the manuscript prints:
+- `four_corpus_tables.py <results_dir> <out_dir>` recomputes the manuscript's aggregates that rest on
+  per-scenario records (the Data Availability Statement lists the figures that do not):
   admissibility census, discrimination tests with bootstrap and victim-clustered intervals, Holm and
   Bonferroni corrections from the unrounded p-values, held-out operating points, clock strata, EWMA
   ablation, matched-smoothing and split controls, order sensitivity, DIF seed spread and engine

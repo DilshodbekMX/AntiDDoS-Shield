@@ -2,9 +2,9 @@
 
 The evaluation deposit for the Subspace-Q + EWMA detector: the competitor implementations, the
 runners that score them, the 49 result records (34 written by those runners; the index marks the 15
-that have no deposited writer), the scripts that derive every aggregate the manuscript prints
-(`recompute/`), and the extraction chain that builds the per-window feature tree the runners read
-(`extraction/`).
+that have no deposited writer), the scripts that derive the manuscript's aggregates from the
+per-scenario records (`recompute/`), and the extraction chain that builds the per-window feature
+tree the runners read (`extraction/`).
 
 The scope is four corpora: CIC-IDS-2017, CSE-CIC-IDS2018, CIC-DDoS2019 and LITNET-2020. The derived
 tree names their directories `CIC-IDS-2017`, `CIC-IDS2018`, `CICDDoS2019` and `LITNET-2020`.
@@ -23,8 +23,8 @@ reproduce its checksum either; compare it with its `index.json` entry instead.
 
 ## What the records support
 
-**The competitor side is sound.** The corrected registry (`competitors_fixed.py`) scores every arm
-inductively: a row's score never reads the rows that follow it in the scored batch.
+**The corrected competitors pass the batch-invariance gate, which scores one scenario.** The
+corrected registry (`competitors_fixed.py`) scores every arm inductively: a row's score never reads the rows that follow it in the scored batch.
 `runners/verify_inductive.py` is the gate and writes `results/batch_invariance_gate.json`.
 On CIC-IDS-2018 `Tue-20-02_DDoS-LOIC-HTTP`, appending 0, 16 or 3,779 attack rows after a fixed
 block of benign rows leaves the benign rows' scores unchanged for all ten corrected arms (maximum
@@ -78,7 +78,8 @@ PANEL-16, [−0.005, 0.05] on USABLE-strict).
    `clock_clean_stratum`). Benign episodes go the other way under both three-way splits, fewer
    than POT at every target, but no clustered episode test there goes below 0.125.
 
-The competitor numbers are citable. A superiority claim is not.
+The competitor numbers measure these implementations on these 16 scenarios (the DSPOT rebuild's
+figures are not a verdict on DSPOT). A superiority claim is not supported.
 
 ---
 
@@ -153,15 +154,17 @@ the archived records that score them (`post2023_benchmark_results.json`, `final_
   fitted once per ensemble member on the training pass and reused.
 - **LODA.** Seeded. The archived module passes no `random_state`, so its LODA cells are one draw
   each and can move between runs.
-- **DSPOT.** Rebuilt to Siffer et al.'s Algorithm 3: the drift window is frozen on an alarm instead
-  of absorbing flagged windows.
+- **DSPOT.** Rebuilt as a modified form of Siffer et al.'s Algorithm 3: the drift window appends only
+  at or below the static threshold, so it freezes during a sustained flood (Siffer et al.'s Algorithm 3
+  also appends on its peak branch).
 - **SPOT renamed POT.** What is implemented is a static per-feature peaks-over-threshold scorer with
   a method-of-moments GPD scale; Siffer et al.'s SPOT is online, univariate and fitted by maximum
   likelihood.
 - **IForest added**, the shallow counterpart of DIF.
 
 **Hand-rolled detectors that were removed.** The archived module's docstring records four that were
-dropped because they were not the methods they were named after. KitNET was linear PCA
+dropped because they were not the methods they were named after. The manuscript counts five
+removed entries; the fifth, QG-DualPOT, has no surviving code or artifact. KitNET was linear PCA
 reconstruction error, rank-identical (Spearman 1.000000) to the Q-statistic inside our own detector
 on every current panel row; the measurement predates the module's retirement and is not re-run. The
 hand-rolled DIF scored closeness to the split, the inverse of isolation. PatchAD used untrained
@@ -337,8 +340,8 @@ These records were edited after they were written, or have no deposited writer.
 ### LITNET-2020 records and their input
 
 `run_litnet_l1subnet.py` and `ablate_no_unique_dst_runner.py` default `LITNET_DIR` to
-`datasets/LITNET-2020/parts`, chunks of the 88.5%-truncated export, which loses two attack types
-(see `extraction/README.md`). It is the export that
+`datasets/LITNET-2020/parts`, chunks of an export 11.5% short of the complete file, which loses
+two attack types, `udp_f` and `smtp_b` (see `extraction/README.md`). It is the export that
 `rescued/litnet_results_TRUNCATED_EXPORT_per_destination.json` also read (its
 `metadata.source_dir`), and `rescued/ABLATION_README.md` records that the subnet and ablation
 records were produced from it. Both subnet records, `litnet_l1subnet_{16,24}_results.json`, and the
@@ -472,7 +475,7 @@ paths outside `results/`, or the gate overwrites the two matched-smoothing recor
 
 | file | written by | content |
 |---|---|---|
-| `numbers.json` | `four_corpus_tables.py` | every aggregate in the manuscript's tables, recomputed from the per-scenario records |
+| `numbers.json` | `four_corpus_tables.py` | the manuscript's aggregates, recomputed from the per-scenario records; the oracle detection-rate columns and the appendix figures (k grid, verdict strata, uncooled episodes, tournament) that the Data Availability Statement lists come from records without per-scenario rows |
 | `validation.json` | `four_corpus_tables.py` | the recomputation checked against the aggregates the records store: 1,968 reproduced (460 in the repaired-split held-out records), 0 mismatches |
 | `extra.json` | `extra_numbers.py` | second-tier quantities quoted in the prose |
 | `tables_v4.json` | `tables_v4.py` | the rendered table bodies and figure coordinates |
@@ -501,7 +504,8 @@ checks all 49 records (`rescued/ABLATION_README.md` is tracked but not listed). 
 
     sha256sum -c SHA256SUMS
 
-checks the five sixth-victim files. From `ComparisonResults/extraction/`:
+checks the eight files there: the five sixth-victim files and the three repaired-split held-out
+records (`*_threeway40.json`). From `ComparisonResults/extraction/`:
 
     sha256sum -c SHA256SUMS
 
