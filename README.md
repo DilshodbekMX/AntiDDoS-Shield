@@ -4,7 +4,7 @@
 
 <br> 
 
-[![License](https://img.shields.io/badge/license-MIT-2ea44f?style=flat-square)](LICENSE)
+[![License](https://img.shields.io/badge/license-PolyForm%20Noncommercial%201.0.0-2ea44f?style=flat-square)](LICENSE)
 [![Records](https://img.shields.io/badge/deposit-49%20records%20%C2%B7%20SHA256%20verified-0b7285?style=flat-square)](ComparisonResults/)
 [![Corpora](https://img.shields.io/badge/corpora-4%20public-495057?style=flat-square)](datasets/README.md)
 [![Engine](https://img.shields.io/badge/engine-C%20%2B%20DPDK-a6324a?style=flat-square)](project/)
@@ -228,6 +228,10 @@ Correspondence: mamadalievdilshodjon@gmail.com
 
 ## License
 
-Code is released under the [MIT License](LICENSE). Dataset-derived caches and results remain under
-their upstream corpus licenses (CIC-IDS-2017, CSE-CIC-IDS2018, CIC-DDoS2019, LITNET-2020); consult
-each dataset's terms before redistributing anything derived from it.
+Code is released under the [PolyForm Noncommercial License 1.0.0](LICENSE): research, teaching and other
+noncommercial use are permitted; commercial use needs the authors' written permission. Commits up to
+`2e59ab9` were published under the MIT License, which still applies to copies taken from them.
+Third-party components keep their own licences (for example cJSON, embedded in `project/` under the MIT
+license). Dataset-derived caches and results remain under their upstream corpus licenses (CIC-IDS-2017,
+CSE-CIC-IDS2018, CIC-DDoS2019, LITNET-2020); consult each dataset's terms before redistributing anything
+derived from it.
