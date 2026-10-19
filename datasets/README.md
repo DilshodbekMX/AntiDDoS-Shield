@@ -1,7 +1,7 @@
 # Evaluation Datasets
 
 Download pointers for the four public corpora used in the evaluation. **No dataset files are
-committed to this repository** — they are large and redistribution-restricted. This directory
+committed to this repository** — they are large, and the CIC-IDS-2017 and LITNET-2020 terms grant no redistribution. This directory
 holds only this README; download the corpora from the official sources below.
 
 The scripts that read the corpora are in `ComparisonResults/extraction/` (see its README). They

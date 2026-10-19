@@ -1,3 +1,10 @@
+/* Portions of this file are derived from DPDK examples/l2fwd/main.c:
+ *   SPDX-License-Identifier: BSD-3-Clause
+ *   Copyright(c) 2010-2016 Intel Corporation
+ * Those portions remain under the BSD-3-Clause licence (THIRD_PARTY_NOTICES.md);
+ * the rest of the file is under the repository licence (LICENSE).
+ */
+
 #include "dpdk_core.h"
 #include "stats_socket.h"
 #include "traffic_monitor.h"

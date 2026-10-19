@@ -229,9 +229,10 @@ Correspondence: mamadalievdilshodjon@gmail.com
 ## License
 
 Code is released under the [PolyForm Noncommercial License 1.0.0](LICENSE): research, teaching and other
-noncommercial use are permitted; commercial use needs the authors' written permission. Commits up to
-`2e59ab9` were published under the MIT License, which still applies to copies taken from them.
-Third-party components keep their own licences (for example cJSON, embedded in `project/` under the MIT
-license). Dataset-derived caches and results remain under their upstream corpus licenses (CIC-IDS-2017,
+noncommercial use are permitted; commercial use needs the authors' written permission. Earlier commits,
+through `2e59ab9`, were published under the MIT License, which still applies to copies taken from them.
+Third-party components keep their own licences: portions of `project/core/dpdk_core.c` derive from DPDK's
+`examples/l2fwd` (BSD-3-Clause, Intel), and cJSON is embedded in `project/external/` under the MIT license; see
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). Dataset-derived caches and results remain under their upstream corpus licenses (CIC-IDS-2017,
 CSE-CIC-IDS2018, CIC-DDoS2019, LITNET-2020); consult each dataset's terms before redistributing anything
 derived from it.

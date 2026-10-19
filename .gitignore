@@ -15,6 +15,7 @@
 # ── Published ────────────────────────────────────────────────────────────────
 !/.gitignore
 !/LICENSE
+!/THIRD_PARTY_NOTICES.md
 !/README.md
 !/INSTALL.md
 !/ComparisonResults
