@@ -10,14 +10,16 @@ The scope is four corpora: CIC-IDS-2017, CSE-CIC-IDS2018, CIC-DDoS2019 and LITNE
 tree names their directories `CIC-IDS-2017`, `CIC-IDS2018`, `CICDDoS2019` and `LITNET-2020`.
 
 No corpus data is deposited. The runners read the derived tree `datasets/extracted/`, which is not
-in the repository. `extraction/` holds the scripts that build it from the official corpus releases,
-and `extraction/tree_manifest/` holds the authors' tree's `index.json` files and per-file checksums.
-The chain is incomplete (see "What the chain cannot rebuild" in `extraction/README.md`). Four
-per-day caches that the scenario builders read, as the tree used them, have no deposited writer:
-CIC-IDS-2017 Wednesday and Friday, CSE-CIC-IDS2018 Tuesday and the attack-typed CIC-DDoS2019 cache.
-These scripts alone therefore cannot rebuild 10 of the 16 panel scenarios, among them CIC-IDS-2017 `Wed-05-07_DoS-Slowhttptest`,
-the row that carries 53.8% of the AUC difference reported below. A rebuilt scenario file does not
-reproduce its checksum either; compare it with its `index.json` entry instead.
+in the repository. `extraction/` holds the scripts that build all of it from the official corpus
+releases, and `extraction/tree_manifest/` holds the authors' tree's `index.json` files and per-file
+checksums. For this revision every cache, scenario file and benign pool was rebuilt from the raw
+captures and flow files, and the rebuilt tree equals the authors' copy by value. Only 9 of its 47
+files also match their checksums, so compare a rebuilt file with its `index.json` entry
+(`extraction/README.md`). The six CIC-IDS-2017 Wednesday files were regenerated with the chain for
+this revision, and the whole `regenerate.sh` set was run again on the regenerated tree. The three
+records whose values changed were replaced and the others kept; four records with Wednesday rows
+that these scripts do not rewrite are treated one by one (see
+[Records after the Wednesday regeneration](#records-after-the-wednesday-regeneration)).
 
 ---
 
@@ -130,7 +132,7 @@ key to one form (`normalise_victim()`); filter and group records through it, nev
 | HBOS | HBOS | PyOD | Goldstein & Dengel, KI-2012 |
 | LODA | LODA | PyOD; seeded (corrected), unseeded (archived) | Pevný, *Machine Learning* 102(2), 2016 |
 | INNE | INNE | PyOD | Bandaragoda et al., *Comput. Intell.* 34(4), 2018 |
-| IForest | — | PyOD | Liu, Ting & Zhou, IEEE ICDM 2008 |
+| IForest | none | PyOD | Liu, Ting & Zhou, IEEE ICDM 2008 |
 | DIF | DIF | PyOD; scaler fitted once on the training pass (corrected) | Xu et al., IEEE TKDE 35(12), 2023 |
 
 Scores are oriented so that higher means more anomalous. The archived arm "Subspace-ECOD (ours)" is
@@ -300,13 +302,19 @@ k = 8 on 15 of 16 folds and k = 6 on one (held-out mean AUC 0.9854).
 maximum relative error 2.64e-16. The record was restricted by hand to the 16 panel scenarios and
 its summary recomputed from those rows, because the C source it compiles, `layer2/subspace_q.c`
 (with `subspace_q.h`), is not part of this deposit; `verify_c_engine_subspace_q.py` looks for it
-through `SUBSPACE_Q_C` or `ANTIDDOS_BASE`.
+through `SUBSPACE_Q_C` or `ANTIDDOS_BASE`. It was re-measured on the regenerated Wednesday files
+and kept (see [Records after the Wednesday regeneration](#records-after-the-wednesday-regeneration)).
 
 **`c_engine_ours.json`.** Scores the shipped engine's own Layer 2 rule set (three-tier z-score,
 CUSUM and JSD paths), not the Subspace-Q arm, under a frozen and a closed-loop protocol. Its
 false-alarm rates are high: on PANEL-16 the frozen OR rule's `or_fpr` is 0.9998 and the closed-loop
 `or_fpr` 0.9902, as fractions of benign windows. The nine competitor arms have no C
-implementation and are not scored here.
+implementation and are not scored here. `run_c_engine_ours.py` passes 0.0 for any of the
+engine's 39 features a row lacks. Packet-capture rows lack `burst_factor` and `unique_flows`; the
+LITNET-2020 `code_red_worm` rows lack 28 of the 39, `new_srcip_rate` among them. `burst_factor`
+and `new_srcip_rate` are two of the engine's five CUSUM inputs
+(`project/layer2/advanced_detection.c`), so in this record one CUSUM input is constant on the 15
+packet-capture scenarios and two are on `code_red_worm`. The record was replaced after the Wednesday files were regenerated (below).
 
 **`dif_seed_sensitivity.json`.** Corrected DIF mean AUC 0.982906 at seed 42 and 0.983338 at seed 7;
 archived DIF 0.53141 and 0.526631. The corrected-minus-archived difference is +0.451496 at seed 42
@@ -324,7 +332,9 @@ These records were edited after they were written, or have no deposited writer.
   by hand to the four corpora. Both come from an earlier harness that is not deposited, run on an
   earlier version of the derived tree, and neither has a deposited writer.
   `full_tree_all_scenarios_metrics.json` also predates the current extractor and its feature
-  schedule, so its values cannot be re-scored from this deposit.
+  schedule, so its values cannot be re-scored from this deposit. Both records hold CIC-IDS-2017
+  Wednesday rows scored before those files were regenerated, and both are kept as written (see
+  [Records after the Wednesday regeneration](#records-after-the-wednesday-regeneration)).
 - `c_engine_verification_report.json`: restricted to the 16 panel rows, summary recomputed (see
   above).
 - Ten LITNET records, `litnet_l1subnet_{16,24}_results.json` and eight under `rescued/` (the two
@@ -335,7 +345,10 @@ These records were edited after they were written, or have no deposited writer.
 - `admissibility_inputs.json`: no deposited writer. It holds the 31 four-corpus candidates, and
   every `payload_sha256` in it matches the scenario file's entry in `extraction/tree_manifest/`.
   Its `payload_sha256` values were updated by `extraction/drop_duplicate_columns.py` when two
-  duplicated columns were dropped from the tree; no other field changed.
+  duplicated columns were dropped from the tree, and the five CIC-IDS-2017 `Wed-05-07` values
+  again, by a scripted hand edit, when those files were regenerated; no other field changed.
+  Recomputed on the regenerated files with `extraction/classify_scenarios.py`, every other field of
+  all 31 candidates is unchanged.
 
 ### LITNET-2020 records and their input
 
@@ -352,6 +365,71 @@ Both runners first look for `cache/litnet_l1subnet_{16,24}_cache.json` and other
 export from `LITNET_DIR` and write that cache. The deposit no longer tracks the three symbolic links
 that stood under `cache/`; on the authors' machine they pointed at caches built from the incomplete
 export, the export the records above were scored on.
+
+---
+
+## Records after the Wednesday regeneration
+
+Until this revision the six CIC-IDS-2017 Wednesday files of the derived tree (the five `Wed-05-07`
+slices and `benign_pool_wednesday.json`) stored `dst_port_density` 1000 times smaller than every
+other packet-capture file, because the cache they came from predates that feature's factor of 1000.
+The authors regenerated them with `extraction/` (see its README). The whole set of runners that
+`recompute/regeneration/regenerate.sh`, `sixth_victim.sh` and `heldout_threeway40.sh` run was then
+run again, single-threaded, followed by the three `recompute/` scripts: once on the regenerated tree
+and, as a control, once on an unmodified copy of the earlier tree. The control reproduced every
+deposited record except the archived-registry LODA cells, which are unseeded, and the stored run
+times (`elapsed_sec`).
+
+Against the control, the regenerated files changed the values of three records, which replace the
+deposited ones. One derived file and one input were updated with them:
+
+| file | what changed |
+|---|---|
+| `results/c_engine_ours.json` (replaced) | 18 values of the shipped engine's rule set. On PANEL-16 and USABLE-strict, closed-loop `or_dr` 0.9194 to 0.9202 and frozen `auc_max_z` 0.9317 to 0.9288. Per scenario, frozen `auc_max_z` on the four Wednesday rows (Slowhttptest 0.6098 to 0.5595), closed-loop `or_dr` on Hulk (0.1793 to 0.1901) and Slowloris (0.8903 to 0.8911), and closed-loop `or_fpr` on Hulk (0.8531 to 0.8535). Frozen `or_dr` and `or_fpr` and closed-loop `or_fpr` are unchanged at their stored precision |
+| `results/split_control_threeway40_matrix.json` (replaced) | INNE's AUC on `Wed-05-07_DoS-Hulk` under the 40/40/20 split, 0.974410 to 0.974356 (the scenario row and its two population copies) |
+| `recompute/results/split_control_threeway40_sixvictim_matrix.json` (replaced) | the same INNE cell |
+| `recompute/numbers.json` (recomputed) | INNE's `cluster_mean_delta` under `split_control/threeway40`, PANEL-16 and USABLE-strict, −0.003439 to −0.003441, recomputed from the matrix above |
+| `results/admissibility_inputs.json` (edited by hand) | `payload_sha256` of the five Wednesday candidates (no writer; see below) |
+
+The two threeway40 benchmark records (`split_control_threeway40_benchmark.json` and the sixth-victim
+`split_control_benchmark_threeway40_sixvictim.json`) store four decimals, at which nothing moved,
+so they were kept. `recompute/extra.json`, `recompute/tables_v4.json` and `recompute/validation.json`
+(1,968 aggregates, 0 mismatches), recomputed from the replaced records, are byte-identical to the
+deposited ones. Every other record these scripts write was unchanged apart from unseeded LODA cells
+and stored run times, and was kept. The deterministic ones reproduced on the regenerated tree to every stored
+value: the ten corrected arms standardise each feature or work on its ranks, and the
+column's scale reached only the engine's rule set and, at the fifth decimal, one INNE cell. The
+records with archived-registry LODA cells (`post2023_benchmark_results.json`,
+`final_evaluation.json`, `universal_ewma_tournament.json`, `usable_29_scenarios_benchmark.json` and
+`batch_invariance_gate.json`) differ only in those cells, which change between any two runs, the
+control's included; a re-run would only replace one unseeded draw with another. In
+`usable_29_scenarios_benchmark.json`, for example, only the two LODA rows differ, and the
+Subspace-ECOD (k = 8) mean AUC is bit-identical.
+
+### Records with Wednesday rows that these scripts do not rewrite
+
+- `c_engine_verification_report.json`. Its runner, `verify_c_engine_subspace_q.py`, needs the
+  engine source `subspace_q.c`, which is not deposited. The authors recovered that source from an
+  earlier commit of this repository that is not in its published history and re-ran the runner on
+  the regenerated files: all 166 values it writes equal the record, and every per-window Python and
+  C score is bit-identical to a run on the earlier files on 16 of 16 rows. The record is kept. The C
+  source is still not deposited, so a reader cannot repeat this check.
+- `admissibility_inputs.json`. No deposited writer. Re-measured on the regenerated files with
+  `extraction/classify_scenarios.py`, all ten statistics of all 31 candidates are unchanged; only
+  the five Wednesday `payload_sha256` values were updated, by hand, to match the regenerated files.
+- `full_tree_all_scenarios_metrics.json`. No deposited writer. Its five Wednesday rows were scored
+  on the earlier `dst_port_density` scale and are kept as written. The authors re-scored them
+  outside the deposit, through a reconstruction of the undeposited scoring code that reproduces four
+  of the record's seven arms exactly on 30 of its 31 rows of the earlier files. On the regenerated
+  files six of the seven arms move on the Wednesday rows, by up to 0.065 AUC on one row and by at
+  most 0.0031 in an arm's 31-row mean; for `ens` and `pewma`, which the reconstruction does not
+  reproduce exactly, the movement is an estimate. The ordering the manuscript cites still holds:
+  each of `anewma`, `mcpts`, `pewma` and `cv` has a lower mean AUC than each of `ens`, `z` and
+  `spot` (smallest gap +0.0439 before, +0.0430 after).
+- `all_extracted_datasets_evaluation_results.json`. No deposited writer. Its four Wednesday rows
+  were scored on the earlier scale and were not re-measured.
+
+`SHA256SUMS.results` and `recompute/results/SHA256SUMS` list the replaced files.
 
 ---
 
@@ -400,7 +478,8 @@ depends on the BLAS thread count. Wave 1 runs the 19 tree-reading runners in par
 read LITNET-2020 caches that are not deposited), or `run_corrected_benchmark.py` (an earlier form of
 `run_corrected_benchmark_full.py` that writes the benchmark record without the matrix).
 
-`recompute/regeneration/pass_comparison.tsv` compares the deposited pass with an earlier full pass
+`recompute/regeneration/pass_comparison.tsv` compares the deposited pass (pass 2, run before the
+Wednesday files were regenerated) with an earlier full pass
 at the default BLAS thread count, record by record (49 rows: numeric leaf count, values changed and
 the cause):
 
@@ -424,7 +503,9 @@ the cause):
   writer is deposited).
 
 No other value changed between the two passes. The archived LODA cells are not guaranteed to
-reproduce in any run.
+reproduce in any run. Both passes ran on the tree as it stood before the Wednesday files were
+regenerated; the three records replaced afterwards are listed in
+[Records after the Wednesday regeneration](#records-after-the-wednesday-regeneration).
 
 ### `recompute/regeneration/sixth_victim.sh`
 
@@ -465,7 +546,8 @@ paths outside `results/`, or the gate overwrites the two matched-smoothing recor
       python3 runners/run_matched_smoothing.py
 
 `extraction/classify_scenarios.py`, run on the default tree, writes
-`results/scenario_classification.json`, which is not a deposited record.
+`results/scenario_classification.json`, which is not a deposited record. Given a tree path, it
+writes that file into the tree's root instead (`extraction/README.md`, Provenance, item 4).
 
 ---
 
@@ -509,8 +591,9 @@ records (`*_threeway40.json`). From `ComparisonResults/extraction/`:
 
     sha256sum -c SHA256SUMS
 
-checks every tracked file under `extraction/` except the list itself; the per-corpus lists under
-`extraction/tree_manifest/` check a rebuilt tree (see `extraction/README.md`).
+checks every tracked file under `extraction/` except the list itself. The per-corpus lists under
+`extraction/tree_manifest/` pin the authors' copy of the tree; a rebuilt tree matches 9 of their 47
+lines and is compared by value otherwise (see `extraction/README.md`).
 `ComparisonResults/SHA256SUMS` is an older list of 20 code and record checksums; check it from
 `ComparisonResults/` with `sha256sum -c SHA256SUMS`. It is not the record manifest.
 
@@ -539,7 +622,7 @@ checks every tracked file under `extraction/` except the list itself; the per-co
                                  verify_c_engine_subspace_q.py
       results/                   49 records (see the index), panel_inventory/, rescued/
       recompute/                 derived numbers, regeneration scripts, sixth-victim and held-out re-score records (own README)
-      extraction/                scripts that build most of datasets/extracted/ from the corpus
+      extraction/                scripts that build datasets/extracted/ from the corpus
                                  releases (see its README), with tree_manifest/ (index.json,
                                  SHA256SUMS and README per corpus) and a SHA256SUMS of its own files
       cache/                     not tracked; config.py creates it, and the LITNET-2020 scripts write their caches there

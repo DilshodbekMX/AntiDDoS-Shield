@@ -74,6 +74,18 @@ DOCUMENTED_VICTIMS = {
     '172.31.69.25', '172.31.69.28',              # CIC-IDS-2018 schedule
     '192.168.50.4',                              # CIC-DDoS2019 CSV Destination IP
 }
+# Corpora on which the inbound-flag heuristic below was checked against ground
+# truth and found NOT to hold. The rule works where a flood provokes a reply the
+# victim sends back -- the SYN-flood case it was built on. It cannot work where
+# the flood provokes nothing (RST+FIN, PSH+ACK, fragmented-ACK floods): on such a
+# corpus the authors measured it inverted, flagging confirmed flood targets as
+# sources. That corpus is outside the four this deposit covers, so the set is
+# empty and role_unverified is False on every scenario classified here. On a
+# corpus listed here an inferred attacker is ROLE-UNVERIFIED instead of
+# ATTACKER-SIDE: still excluded, because an unknown role cannot anchor a
+# detection claim, but excluded for a reason that is true.
+FLAG_HEURISTIC_INVALID = frozenset()
+
 # Attacks that are not denial-of-service. Kept as data, excluded from a DDoS
 # panel regardless of how well they separate.
 NOT_DDOS = {'Heartbleed', 'PortScan'}
@@ -114,7 +126,7 @@ def split_for(rows, mode):
     return within_split(rows)
 
 
-def analyse(rows, alpha, mode='within', victim=None, scenario=''):
+def analyse(rows, alpha, mode='within', victim=None, scenario='', corpus=None):
     a = [r for r in rows if r.get('_is_attack')]
     b = [r for r in rows if not r.get('_is_attack')]
     out = {'n_attack': len(a), 'n_benign': len(b)}
@@ -155,7 +167,12 @@ def analyse(rows, alpha, mode='within', victim=None, scenario=''):
     # inverts the second -- it made all six CIC-DDoS2019 attacker slices USABLE.
     documented = victim in DOCUMENTED_VICTIMS
     documented_attacker = victim in DOCUMENTED_ATTACKERS
-    attacker_side = bool(documented_attacker or (inferred_attacker and not documented))
+    heuristic_valid = corpus not in FLAG_HEURISTIC_INVALID
+    attacker_side = bool(documented_attacker or
+                         (inferred_attacker and not documented and heuristic_valid))
+    role_unverified = bool(not documented_attacker and inferred_attacker
+                           and not documented and not heuristic_valid)
+    out['role_unverified'] = role_unverified
     out['role_documented_attacker'] = documented_attacker
     out.update(attacker_side=attacker_side,
                role_documented=bool(documented or documented_attacker),
@@ -176,6 +193,8 @@ def analyse(rows, alpha, mode='within', victim=None, scenario=''):
         out['verdict'] = 'NOT-DDOS'
     elif attacker_side:
         out['verdict'] = 'ATTACKER-SIDE'
+    elif role_unverified:
+        out['verdict'] = 'ROLE-UNVERIFIED'
     elif floor > alpha:
         out['verdict'] = 'FLOOR-LIMITED'
     elif n_tb < 5:
@@ -214,7 +233,8 @@ def main():
             mode = m.get('mode') or 'within'
             r = analyse(sorted(js['per_ip_windows'][v], key=lambda x: x.get('_dt', 0)),
                         alpha, mode, victim=v,
-                        scenario=os.path.basename(m['file']).replace('.json', ''))
+                        scenario=os.path.basename(m['file']).replace('.json', ''),
+                        corpus=corpus)
             r['split_mode'] = mode
             r.update(corpus=corpus, scenario=os.path.basename(m['file']).replace('.json', ''),
                      victim=v)

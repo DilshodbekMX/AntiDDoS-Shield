@@ -42,10 +42,9 @@ scripts need numpy and scipy; `four_corpus_tables.py` also imports `corpus_names
 - `regenerate.sh [python]` rewrites 29 of the 49 records in `results/`, then runs the three scripts above.
   Runners run in two waves (the second reads first-wave records); each writes a log to
   `recompute/regeneration/logs/`. They read the derived feature tree at `$ANTIDDOS_BASE/datasets/extracted/`
-  (by default the repository root), which is not deposited. `extraction/` rebuilds it and
-  `extraction/tree_manifest/` pins its checksums, except for four per-day caches that no deposited script
-  writes as used (CIC-IDS-2017 Wednesday and Friday, CSE-CIC-IDS2018 Tuesday, attack-typed CIC-DDoS2019);
-  10 of the 16 panel scenarios depend on them (`extraction/README.md`, "What the chain cannot rebuild").
+  (by default the repository root), which is not deposited. `extraction/` rebuilds it from the corpus
+  releases and `extraction/tree_manifest/` pins its checksums; a rebuilt tree equals the authors' copy by
+  value, and 9 of its 47 files also by checksum (`extraction/README.md`, "Comparing a rebuilt tree").
   `ComparisonResults/requirements.txt` pins the environment (Python 3.12, numpy 2.4.2, scipy 1.17.0,
   scikit-learn 1.8.0, PyOD 3.6.5, PyTorch 2.13.0+cpu, dpkt 1.9.8); gcc is also needed for
   `runners/run_c_engine_ours.py`, which compiles the engine from `project/layer2/` at the repository root.
@@ -59,7 +58,7 @@ scripts need numpy and scipy; `four_corpus_tables.py` also imports `corpus_names
 - `pass_comparison.tsv` compares the deposited records, record by record, with earlier copies that are not
   deposited: pass 1's records and, for `batch_invariance_gate.json`, the previously deposited record (columns: record, numeric leaves, values changed from pass 1 to pass 2, cause). Pass 1
   was an earlier full pass at the default BLAS thread count. Pass 2 is the single-threaded `regenerate.sh`
-  run that wrote the deposited records; `batch_invariance_gate.json` was rewritten in a follow-up run of
+  run that wrote the deposited records before the Wednesday regeneration (below); `batch_invariance_gate.json` was rewritten in a follow-up run of
   `runners/verify_inductive.py`, which `regenerate.sh` now includes; pass 1 did not run that writer, so its
   row compares the follow-up run with the previously deposited record. Values are compared on the leaves both
   passes write. The comparison ignores `elapsed_sec` (the wall-clock run time) and free-text notes, and it
@@ -101,6 +100,17 @@ scripts need numpy and scipy; `four_corpus_tables.py` also imports `corpus_names
   `scenarios29_corrected_results.json` and `split_control_{deposited,threeway40,threeway60}_benchmark.json`.
   After a re-run, their entries in `SHA256SUMS.results` and those of the records with LODA cells (cause 2)
   will generally fail. Compare values, not hashes.
+
+  Both passes ran on the derived tree as it stood before the six CIC-IDS-2017 Wednesday files were
+  regenerated (`extraction/README.md`). For this revision `regenerate.sh`, `sixth_victim.sh` and
+  `heldout_threeway40.sh` were run again in full on the regenerated tree. Three records changed in value
+  and replace the deposited ones: `results/c_engine_ours.json` (18 values of the shipped engine's rule
+  set), and `results/split_control_threeway40_matrix.json` and
+  `recompute/results/split_control_threeway40_sixvictim_matrix.json` (one INNE cell each, 0.974410 to
+  0.974356), with two leaves of `numbers.json` that derive from that cell. The other records these
+  scripts write were unchanged apart from unseeded LODA cells and stored run times, and were kept. `extra.json`,
+  `tables_v4.json` and `validation.json` are unchanged. `ComparisonResults/README.md` lists the changes;
+  `pass_comparison.tsv` still compares passes 1 and 2.
 
 ## recompute/results/
 

@@ -1,20 +1,23 @@
-# CIC-IDS-2018 — per-attack-type feature caches
+# CIC-IDS-2018: per-attack-type feature caches
 
 **Eight** single-attack slices of the CSE-CIC-IDS2018 DoS/DDoS days, one file per
-attack, named by attack. Derived from the per-day caches — the day caches
-already carry per-window unix timestamps — except Tuesday, whose pcap had to be
+attack, named by attack. Derived from the per-day caches (the day caches
+already carry per-window unix timestamps), except Tuesday, whose pcap had to be
 recovered and re-parsed (see below).
 
 Produced by `ComparisonResults/extraction/split_by_attack_schedule.py 2018` from
 the four `cicids2018_pcap_<day>.json` caches in `ComparisonResults/cache/`,
-which are not deposited. `pcap_feature_extractor_cicids2018.py` is the deposited
-extractor for the Wednesday, Thursday and Friday caches; no deposited script
-builds Tuesday's (see the Tuesday section). `index.json` and `SHA256SUMS` are
+which are not deposited. `pcap_feature_extractor_cicids2018.py` builds all four
+from the per-host captures; Tuesday's must first be unpacked from a RAR5 archive
+(see the Tuesday section). `index.json` and `SHA256SUMS` are
 written by `write_extracted_index.py`. To verify a rebuilt tree, run `sha256sum -c` against
 this directory's `SHA256SUMS` (eight entries, one per slice) from inside
 `datasets/extracted/CIC-IDS2018/`, and against `benign_pools/SHA256SUMS` (three
 pools and their `.meta.json` files, six entries) from inside its
-`benign_pools/`.
+`benign_pools/`. On a rebuilt tree none of these lines matches although every
+file equals the authors' by value: rebuilt Wednesday, Thursday and Friday rows
+carry an `_attack_types` key, metadata keys come in a different order, and the
+pool metadata gains four role-check fields (`ComparisonResults/extraction/README.md`).
 
 ## Why these exist
 
@@ -42,7 +45,7 @@ disappears inside it.
 | `Wed-21-02_DDoS-LOIC-UDP.json` | DDoS-LOIC-UDP | 172.31.69.28 | Wed 21-02 10:09–10:43 | 1101 | 2291 | 327 | 100.0% |
 | `Wed-21-02_DDoS-HOIC.json` | DDoS-HOIC | 172.31.69.28 | Wed 21-02 14:05–15:05 | 3298 | 2291 | 356 | 98.2% |
 
-§ floor-limited, see note 3. ‡ `n_test_benign = 0`, so no FPR is measurable —
+§ floor-limited, see note 3. ‡ `n_test_benign = 0`, so no FPR is measurable:
 the attack occupies the tail of the capture. DR is the `ours_ensemble` arm.
 
 The detection rates, AUCs and score ratios in this file come from a per-scenario
@@ -54,7 +57,7 @@ the source 38-feature row plus `_dt`, `_id_time`, `_is_attack`, `_n_flows`, and
 an added `_attack_type`; the two Tuesday slices also carry `_attack_types`, an
 empty mapping on every window.
 
-## The label-boundary guard — read this first
+## The label-boundary guard: read this first
 
 **`_is_attack` in the source day caches comes only from CIC's published Table-2
 schedule minute, and real floods do not respect a documented minute.** Traffic
@@ -68,7 +71,7 @@ Three leaks were measured, each from an independent source:
 |---|---|---|
 | Wed LOIC-UDP start | CIC's own CSV labels the flood from **10:08:51**; the schedule says 10:09 | 8 windows, 39,274–100,441 pps, `udp_ratio` 1.000 |
 | Wed HOIC drain | runs unbroken across 15:05 at ~1,100 pps, decaying to 103 pps at 15:05:53 before a 100× cliff to 1 pps. The Wednesday CSV is 12-hour and stops at 14:33, so this is provable only from the packets | 54 windows |
-| Thu Slowloris end | CIC's CSV runs to **11:42:01** against a schedule ending 11:40 | 121 s — the largest |
+| Thu Slowloris end | CIC's CSV runs to **11:42:01** against a schedule ending 11:40 | 121 s, the largest |
 
 Those 8 Wednesday windows were the calibration **maximum for both Wednesday
 slices**, 48× HOIC's own attack maximum. Effect at α=0.01:
@@ -80,14 +83,14 @@ slices**, 48× HOIC's own attack maximum. Effect at α=0.01:
 | `Thu-15-02_DoS-Slowloris` | 1,035 → 13 pps | **0.1% → 99.8%** |
 
 **The correction is a guard band, not a relabelling.** Benign windows within
-**180 s** of a labelled attack span are *quarantined* — dropped from the slice,
+**180 s** of a labelled attack span are *quarantined*: dropped from the slice,
 counted as neither attack nor benign. Labels are never rewritten. Three
 properties, all load-bearing:
 
 1. **Magnitude-blind.** The rule is temporal proximity to a labelled attack. It
    contains no packets-per-second test, so it cannot be selecting away the
    benign windows that happen to be inconvenient. Where there is no leak it
-   removes *low*-rate windows and keeps higher ones — Friday drops a maximum of
+   removes *low*-rate windows and keeps higher ones: Friday drops a maximum of
    10 pps while keeping a genuine 916 pps benign burst at 08:56, 76 minutes
    before any attack.
 2. **Never invents a positive.** DR denominators are unchanged. Every change
@@ -114,7 +117,7 @@ corrected under one definition. An earlier revision of this paragraph gave as
 the reason that CIC-IDS-2017 ships only flow files with no `Timestamp` column;
 its labelled-flow CSVs do carry one (see that corpus's README).
 
-## Timezone — derived, not assumed
+## Timezone: derived, not assumed
 
 The published schedule is local time; cache timestamps are unix epoch. The
 offset was fixed by matching the **existing** `_is_attack` labels against the
@@ -126,15 +129,15 @@ schedule (local)               09:26–10:09         and       10:59–11:40
 ```
 
 Both match to the second; Friday and Wednesday confirm it independently. Note
-that UTC−4 in February is **AST, not EDT** — earlier revisions of this file
+that UTC−4 in February is **AST, not EDT**; earlier revisions of this file
 named it EDT, which is a season that did not exist on these capture dates.
 
 ## Read these before using the files
 
 **1. Same-day slices share a benign pool.** Both slices from a day draw on that
 day's benign windows. The causal split partitions them differently (Thursday:
-GoldenEye `n_calib`=89, Slowloris `n_calib`=149), so FPR rows are not identical
-— but it is the same underlying traffic. **A mean over all eight double-counts
+GoldenEye `n_calib`=89, Slowloris `n_calib`=149), so FPR rows are not identical,
+but it is the same underlying traffic. **A mean over all eight double-counts
 four benign samples.** Aggregate per day, or deduplicate by victim.
 
 **2. Two different discontinuities exist, and only one of them is caused by
@@ -143,12 +146,12 @@ consume rows in order and carry state; they cannot see a gap. But before
 attributing anything to the per-attack split, the gaps have to be separated by
 cause, because the largest gap in most slices is **not** the split's doing:
 
-* **Protocol splice — the slice's own attack span.** The causal split
+* **Protocol splice: the slice's own attack span.** The causal split
   calibrates on benign *preceding* the first attack and tests on what follows,
   so the last calibration window and the first post-attack benign window are
   separated by the whole attack. This gap exists identically in the unsplit day
   cache. It is a property of the evaluation protocol, not of this directory.
-* **Split-induced hole — the other attack's span, removed.** This is the one
+* **Split-induced hole: the other attack's span, removed.** This is the one
   the per-attack split actually creates, and only four slices have one.
 
 Measured on the 60 benign windows following each gap, against that detector's
@@ -170,18 +173,18 @@ mean over all its benign eval windows:
 
 **Split-induced holes: 4, largest response 1.36× (CUSUM) and 1.67× (AnEWMA).
 Protocol splices: 7, largest 1.36× and 1.74×.** Neither is large, and the two
-*biggest* gaps of all — the 229.83-minute pair — produce responses *below*
+*biggest* gaps of all, the 229.83-minute pair, produce responses *below*
 baseline. `Tue-20-02_DDoS-LOIC-UDP` has no gap over 10 minutes at all.
 
 Note that the same wall-clock interval appears twice with different causes: the
 Thursday 10:55–11:43 gap is Slowloris's own span in the Slowloris slice and
 Slowloris's *removal* in the GoldenEye slice. Same seconds, opposite
-attribution — which is exactly why the causes have to be separated rather than
+attribution, which is exactly why the causes have to be separated rather than
 tabulated as one "hole" column.
 
 Two earlier revisions of this file got this wrong in different ways. The first
 reported a 41.5-minute Slowloris hole inflating scores 3.65×–3.77×, put Hulk at
-34.9 minutes, and said Slowloris's hole "sits inside its calibration region" —
+34.9 minutes, and said Slowloris's hole "sits inside its calibration region";
 none of which reproduces (Slowloris's calibration set's largest internal gap is
 2.60 minutes). The second corrected the numbers but listed one gap per slice
 under a heading about removing the other attack, when for five of seven slices
@@ -190,13 +193,13 @@ the gap it listed was the protocol splice.
 Where the gaps come from: Thursday's and Tuesday's source caches have **no** gap
 over 5 minutes (3.33 and 3.30), and Friday's has one natural 9.20-minute gap, so
 in those days every large gap is either a protocol splice or split-induced.
-**Wednesday's 208.43-minute gap is natural** — a capture break already present
+**Wednesday's 208.43-minute gap is natural**: a capture break already present
 in the source day cache, which is why the Wednesday rows are so much larger than
 any attack span.
 
 **3. Exactly one slice is floor-limited at α=0.01.** Split-conformal p-values
 cannot go below `1/(n_calib+1)`. `Thu-15-02_DoS-GoldenEye` (`n_calib`=89, floor
-**0.0111**) cannot fire at α=0.01 at all — every detector reads exactly 0.0%
+**0.0111**) cannot fire at α=0.01 at all: every detector reads exactly 0.0%
 there by arithmetic, not by failing. Evaluate it at α≥0.05, where it is 99.5%,
 or not at all. Every other slice has a floor between 0.0028 and 0.0093 and is
 evaluable at α=0.01. An earlier revision said two slices were floor-limited;
@@ -222,7 +225,7 @@ here says nothing about HOIC.
 
 Tuesday was absent because its pcaps had never been extractable. Every other day
 ships from the AWS bucket as `pcap.zip`; **Tuesday alone ships as `pcap.rar`
-(RAR 5.0)** — 41.3 GiB. No rar reader was installed (`unrar`, `unar`, `7z`,
+(RAR 5.0)**, 41.3 GiB. No rar reader was installed (`unrar`, `unar`, `7z`,
 `bsdtar` and Python `rarfile` all absent), so the download script fell through
 its rar branch and wrote a partial extraction: 253 members, subnets
 172.31.64–67 only, missing 68.x and 69.x and therefore both victims.
@@ -245,22 +248,29 @@ bsdtar -xvf pcap.rar pcap/UCAP172.31.69.25      # 8.49 GB, victim only
 
 That recovery wrote `pcap/UCAP172.31.69.25` (8.49 GB) and
 `pcap/capEC2AMAZ-O4EL3NG-172.31.69.28` (100 MB), and **the two Tuesday slices
-are built from the former** — not from the 253 partial members. Only the
-victim's own capture was extracted, not all 41.3 GiB: the extractor keeps only
+are built from the former**, not from the 253 partial members. Only those
+two captures were extracted, not all 41.3 GiB: the extractor keeps only
 windows where `dst_ip` equals the file's own host, so the other members are
 irrelevant to this victim. The deposited `pcap_feature_extractor_cicids2018.py`
-accepts only the day tags `wed`, `thu` and `fri`, so it cannot rebuild the
-Tuesday cache as it stands. The victim is confirmed by the same size-dominance
-rule the extractor documents for the other days — 8.49 GB against a 100 MB
-runner-up — and independently by the Tuesday CSV, whose `Dst IP` column (the
+takes the day tag `tue` and, given that `pcap/` directory, rebuilds the Tuesday
+cache the slices were split from, row for row. The victim is confirmed by the same size-dominance
+rule the extractor documents for the other days (8.49 GB against a 100 MB
+runner-up) and independently by the Tuesday CSV, whose `Dst IP` column (the
 only 2018 CSV that retains it) carries `172.31.69.25` on every
 `DDoS attacks-LOIC-HTTP` flow.
+
+A rebuild needs both captures that cache read; the CRC32 of each equals the CRC
+`pcap.rar` stores for it:
+
+```bash
+bsdtar -xvf pcap.rar pcap/UCAP172.31.69.25 pcap/capEC2AMAZ-O4EL3NG-172.31.69.28
+```
 
 ## Coverage
 
 All four DoS/DDoS capture days of CSE-CIC-IDS2018 are extracted; eight attacks in
-total, and the release has no fifth DoS/DDoS day. Six further capture days —
-14-02, 22-02, 23-02, 28-02, 01-03 and 02-03 — carry brute-force, web-attack,
+total, and the release has no fifth DoS/DDoS day. Six further capture days
+(14-02, 22-02, 23-02, 28-02, 01-03 and 02-03) carry brute-force, web-attack,
 infiltration and botnet traffic, not DoS/DDoS, and none of their pcaps was
 extracted. An earlier revision said "nothing
 further remains in this corpus", which overstates it: nothing further remains

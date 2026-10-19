@@ -92,6 +92,13 @@ class WindowAggregator:
             'dst_ports': Counter(),
             'flows': set(),  # 5-tuples observed
             'attack_flows': set(),  # 5-tuples labeled attack
+            # Which attack each flow belongs to. CIC-DDoS2019 runs a dozen
+            # distinct attacks in one capture and its per-attack CSVs are not
+            # clean -- UDP.csv alone carries UDP, MSSQL and BENIGN rows -- so a
+            # window can legitimately contain more than one attack type.
+            # Recording the distribution rather than a single label keeps that
+            # visible instead of silently picking a winner.
+            'attack_types': Counter(),
             'small_pkts': 0,  # packets < 100 bytes
             'fragments': 0,
             'ttl_sum': 0,
@@ -169,6 +176,9 @@ class WindowAggregator:
         w['flows'].add(flow_tuple)
         if pkt_info.get('is_attack'):
             w['attack_flows'].add(flow_tuple)
+            lbl = pkt_info.get('attack_label')
+            if lbl:
+                w['attack_types'][lbl] += 1
 
         # Track new src_ips for new_srcip_rate
         new_seen = pkt_info['src_ip'] not in self.seen_src_ips[dst_ip]
@@ -266,8 +276,21 @@ class WindowAggregator:
             topk_flow_share = min(10, len(w['flows'])) / max(len(w['flows']), 1) * 100
             heavy_hitter_count = float(len(w['flows']) // 10)  # rough approximation
 
-            # Label: attack if any attack flow in this window
+            # Label: attack if any attack flow in this window.
+            # NOTE this is why CIC-DDoS2019 labels run wall-to-wall: its floods
+            # produce enormous flow counts, so nearly every second at the victim
+            # contains at least one attack flow and the whole capture reads as
+            # attack. _attack_types below is what makes the capture separable.
             is_attack = len(w['attack_flows']) > 0
+            # .get(), not [] -- pcap_feature_extractor_cicids2018.py builds its
+            # OWN window dict (CappedCounter/CappedSet) and reuses this
+            # finalize(). Indexing directly assumed every caller initialises the
+            # key and broke that extractor outright. CIC-IDS-2018 has no
+            # per-flow labels to record anyway: its CSVs are sanitised with no
+            # IP columns, so its attack labels come from documented time
+            # windows, and None here is the correct answer rather than a gap.
+            atypes = dict(w.get('attack_types') or {})
+            dominant = max(atypes, key=atypes.get) if atypes else None
 
             row = {
                 # Volume (3)
@@ -324,6 +347,8 @@ class WindowAggregator:
                 '_dt': self.t0 + sec_idx,  # absolute unix timestamp
                 '_id_time': sec_idx,
                 '_is_attack': is_attack,
+                '_attack_type': dominant,
+                '_attack_types': atypes,
                 '_n_flows': int(flows_per_sec),
             }
             result[dst_ip].append(row)
@@ -411,11 +436,13 @@ def parse_pcap_file(pcap_path, aggregator, flow_labels=None, max_packets=None):
 
                 # Ground-truth label lookup
                 is_attack = False
+                attack_label = None
                 if flow_labels:
                     key = (src_ip, src_port, dst_ip, dst_port, proto)
                     label = flow_labels.get(key)
                     if label and label != 'BENIGN':
                         is_attack = True
+                        attack_label = label
 
                 pkt_info = {
                     'src_ip': src_ip,
@@ -429,6 +456,7 @@ def parse_pcap_file(pcap_path, aggregator, flow_labels=None, max_packets=None):
                     'is_fragment': is_fragment,
                     'icmp_type': icmp_type,
                     'is_attack': is_attack,
+                    'attack_label': attack_label,
                 }
                 aggregator.add_packet(ts, pkt_info)
                 count += 1

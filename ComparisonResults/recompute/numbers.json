@@ -4385,7 +4385,7 @@
       ],
       "n_clusters": 5,
       "cluster_p": 1.0,
-      "cluster_mean_delta": -0.003439,
+      "cluster_mean_delta": -0.003441,
       "vs_ref_p_holm": 1.0,
       "vs_ref_p_bonf": 1.0,
       "family_size": 9
@@ -4659,7 +4659,7 @@
       ],
       "n_clusters": 5,
       "cluster_p": 1.0,
-      "cluster_mean_delta": -0.003439,
+      "cluster_mean_delta": -0.003441,
       "vs_ref_p_holm": 1.0,
       "vs_ref_p_bonf": 1.0,
       "family_size": 9

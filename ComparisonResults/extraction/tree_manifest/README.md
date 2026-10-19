@@ -10,16 +10,16 @@ from flow records, carry 13.
 This is the README of the derived tree `datasets/extracted/`, which is not
 deposited. The deposit carries this file, `SCENARIO_INVENTORY.md`, and each
 corpus's `README.md`, `index.json` and `SHA256SUMS` files under
-`ComparisonResults/extraction/tree_manifest/`. The scripts that build it are
-in `ComparisonResults/extraction/`; they cannot rebuild all of it (see below).
+`ComparisonResults/extraction/tree_manifest/`. The scripts that build it from
+the official corpus releases are in `ComparisonResults/extraction/` (see below).
 
 ```
 extracted/
-  CIC-IDS-2017/    7 scenarios    38.8 MB    3 benign pools    671.2 MB
+  CIC-IDS-2017/    7 scenarios    39.4 MB    3 benign pools    681.3 MB
   CIC-IDS2018/     8 scenarios    29.2 MB    3 benign pools    860.5 MB
   CICDDoS2019/    12 scenarios    84.0 MB    1 benign pool      40.4 MB
   LITNET-2020/     4 scenarios     4.8 MB    1 benign pool     172.8 MB
-                  31 scenarios   156.8 MB    8 benign pools  1,745.0 MB
+                  31 scenarios   157.4 MB    8 benign pools  1,755.1 MB
 ```
 
 Each corpus directory holds `SHA256SUMS`, an `index.json` with per-scenario
@@ -97,20 +97,20 @@ protected network, not every uninvolved host in the capture.
 ways that matter.
 
 Rebuild with the scripts in `ComparisonResults/extraction/`; its `README.md`
-gives the recipe, including the per-day caches these steps read. The chain is
-incomplete. Three of those caches (`cicids2017_pcap_wednesday.json`,
-`cicids2018_pcap_tue.json`, `cicddos_03-11_typed.json`) have no writer there,
-and no script writes the six `attacker_side/` slices. So the five CIC-IDS-2017
-Wednesday slices and the Wednesday pool, the two CSE-CIC-IDS2018 `Tue-20-02`
-slices, and all twelve CIC-DDoS2019 slices and their pool cannot be rebuilt
-from the official releases with these scripts alone. Nine of the 16 usable
-scenarios are among them; see "What the chain cannot rebuild" in that README.
-The order matters: `classify_scenarios.py --write` rewrites the payloads, so
-the index and checksums must be written **after** it, never only before:
+gives the recipe, including the per-day caches these steps read and how they
+are built from the raw captures and flow files. A rebuilt tree equals this one
+by value; only 9 of the 47 files listed in the `SHA256SUMS` files also match
+byte for byte, so compare the others with their `index.json` entries (that
+README says how). The six CIC-IDS-2017 Wednesday files were regenerated with
+these scripts for this revision. The order matters:
+`classify_scenarios.py --write` rewrites the payloads, so the index and
+checksums must be written **after** it, never only before:
 
 ```
 split_by_attack_schedule.py all                  # CIC-IDS-2017 + CSE-CIC-IDS2018 slices
-split_cicddos_by_type.py <typed_cache> 03-11     # CIC-DDoS2019
+split_cicddos_by_type.py <typed_cache> 03-11     # CIC-DDoS2019 victim slices
+split_cicddos_by_type.py <typed_cache> 03-11 --attacker-side   # the six attacker_side/ slices
+stamp_cicddos_slice_metadata.py                  # CIC-DDoS2019 keys first typed by hand
 stamp_cicddos_roles.py                           # CIC-DDoS2019 host roles, measured from the 03-11 CSVs
 export_litnet_scenarios.py                       # LITNET-2020  (rebuild_litnet_caches.py first)
 export_benign_pools.py                           # benign_pools/   [--only CORPUS]

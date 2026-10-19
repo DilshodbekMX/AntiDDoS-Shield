@@ -16,6 +16,17 @@ minute-resolution timestamps only, insufficient for 1-second windowing. Raw
 pcaps have microsecond timestamps, enabling true 1-second binning.
 
 Output: cicids2017_pcap_features_<day>.json + cicids2017_pcap_results.json
+
+Usage:
+    python3 run_cicids2017_pcap.py
+        Monday + Friday caches (parsed only if absent), then the cross-day
+        evaluation; this is also what run_cicids2017_pool_audit.py drives.
+    python3 run_cicids2017_pcap.py --day {monday,friday,wednesday} [--pcap P]
+                                   [--csv C [C ...]] [--out OUT]
+        Parse one day into its cache and stop (no evaluation). Rewrites an
+        existing cache. Defaults come from MONDAY_*/FRIDAY_*/WEDNESDAY_* below,
+        which sit under $ANTIDDOS_BASE/datasets/CIC-IDS-2017 and CACHE_DIR.
+        --day friday is what reparse_friday_2017.py runs.
 """
 import os as _os, sys as _sys
 _HERE = _os.path.dirname(_os.path.abspath(__file__))
@@ -45,11 +56,52 @@ MONDAY_PCAP = os.path.join(DATASET_DIR, "PCAPs", "Monday-WorkingHours.pcap")
 FRIDAY_PCAP = os.path.join(DATASET_DIR, "PCAPs", "Friday-WorkingHours.pcap")
 MONDAY_CSV  = os.path.join(DATASET_DIR, "CSVs", "TimestampedFlows",
                            "Monday-WorkingHours.pcap_ISCX.csv")
-FRIDAY_CSV  = os.path.join(DATASET_DIR, "CSVs", "TimestampedFlows",
-                           "Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv")
+# CIC ships Friday's labels in THREE files and this script used to open one.
+# The DDoS CSV alone leaves two whole attacks unlabelled:
+#
+#   PortScan  158,930 flows, 13:05-15:23, all 172.16.0.1 -> 192.168.10.50.
+#             Unlabelled, the scan stays in the benign pool, and because
+#             within_split cuts at the first ATTACK window it lands in the
+#             calibration set of the DDoS-LOIT scenario that runs later the
+#             same afternoon -- 85% of that calibration set is scan traffic,
+#             whose maximum (1,090 pps / 1,001 syn.s-1 / 1,026 dst ports) sits
+#             against an outside-span p95 of 74 / 4 / 11. LOIT then reads 13.6%
+#             DR at alpha=0.01 instead of 99.6%.
+#   Bot       1,966 flows, 09:34-12:59, C2 205.174.165.73 against
+#             192.168.10.5/.8/.9/.12/.14/.15/.17. Unlabelled, all eight hosts
+#             ship in benign_pool_friday as "attack-free" -- the false-alarm
+#             denominator contains the botnet AND its command server.
+#
+# Read from TrafficLabelling/ (note CIC's trailing space in the directory name)
+# because it is the only copy carrying all three; its DDoS file is byte-
+# identical to the TimestampedFlows copy this used to read, so the DDoS labels
+# themselves are unchanged.
+FRIDAY_CSVS = [os.path.join(DATASET_DIR, "CSVs", "TrafficLabelling ", f) for f in (
+    "Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv",
+    "Friday-WorkingHours-Afternoon-PortScan.pcap_ISCX.csv",
+    "Friday-WorkingHours-Morning.pcap_ISCX.csv")]
+
+# Wednesday (2017-07-05: DoS slowloris / Slowhttptest / Hulk / GoldenEye
+# against 192.168.10.50, Heartbleed against 192.168.10.51). Its cache is read
+# by split_by_attack_schedule.py and export_benign_pools.py. The writer of the
+# cache the tree was first built from (2026-05-22: a parse_day call on this
+# pcap and this CSV, as its metadata records) was never committed and is not
+# recovered, so this entry is new. Its labels come from the one Wednesday file
+# CIC ships, in TrafficLabelling/.
+# Run with the current extractor, it differs from that cache in two ways:
+#   - dst_port_density is on the x1000 scale (unique_dst_ports * 1000 /
+#     packets_per_sec, shared_memory.c:577). The May cache predates that fix
+#     (F-CIC-6); the five Wed-05-07 slices and benign_pool_wednesday built from
+#     it carried values 1000 times smaller and were rebuilt from this entry.
+#   - rows carry _attack_type (None) and _attack_types ({}), which the
+#     extractor writes since it began recording attack types per window.
+WEDNESDAY_PCAP = os.path.join(DATASET_DIR, "PCAPs", "Wednesday-workingHours.pcap")
+WEDNESDAY_CSV  = os.path.join(DATASET_DIR, "CSVs", "TrafficLabelling ",
+                              "Wednesday-workingHours.pcap_ISCX.csv")
 
 MONDAY_FEATURES_JSON = os.path.join(CACHE_DIR, "cicids2017_pcap_monday.json")
 FRIDAY_FEATURES_JSON = os.path.join(CACHE_DIR, "cicids2017_pcap_friday.json")
+WEDNESDAY_FEATURES_JSON = os.path.join(CACHE_DIR, "cicids2017_pcap_wednesday.json")
 RESULTS_JSON         = os.path.join(RESULTS_DIR, "cicids2017_pcap_results.json")
 
 MIN_ROWS_PER_IP = 60          # ~1 minute of activity required for an IP to count
@@ -74,13 +126,35 @@ def epoch_to_dt(t):
     return datetime.fromtimestamp(t, tz=timezone.utc)
 
 
-def load_2017_flow_labels(csv_path):
-    """Build 5-tuple -> label dict from CIC-IDS-2017 GeneratedLabelledFlows CSV.
+def load_2017_flow_labels(csv_paths):
+    """Build 5-tuple -> label dict from CIC-IDS-2017 labelled-flow CSVs.
+
+    Accepts one path or a list. A day whose labels CIC split across several
+    files needs all of them: merging is safe because an attack label always
+    wins over BENIGN, so a tuple labelled benign in one file and attacked in
+    another comes out attacked regardless of load order.
 
     The 2017 CSV columns use leading spaces (' Source IP', ' Destination IP', etc.)
     and the Label column has values like 'BENIGN', 'DDoS', 'PortScan'.
+
+    NOTE the key is direction-sensitive and time-blind: (src, sport, dst, dport,
+    proto) with no timestamp. Return traffic from a victim therefore never
+    matches, which is why victim->attacker packets are labelled benign; and a
+    5-tuple reused later in the day inherits the attack label of its earlier
+    use. Both are properties of this join, not of the corpus.
     """
+    if isinstance(csv_paths, (str, bytes, os.PathLike)):
+        csv_paths = [csv_paths]
     labels = {}
+    n_attack = n_benign = 0
+    for csv_path in csv_paths:
+        na, nb = _merge_2017_labels(labels, csv_path)
+        n_attack += na
+        n_benign += nb
+    return labels, n_attack, n_benign
+
+
+def _merge_2017_labels(labels, csv_path):
     n_attack = n_benign = 0
     with open(csv_path, 'r', encoding='utf-8', errors='replace') as f:
         reader = csv.DictReader(f)
@@ -104,7 +178,7 @@ def load_2017_flow_labels(csv_path):
                     n_attack += 1
             except (ValueError, TypeError):
                 continue
-    return labels, n_attack, n_benign
+    return n_attack, n_benign
 
 
 def _open_pcap_reader(f):
@@ -176,9 +250,16 @@ def parse_pcap(pcap_path, aggregator, flow_labels=None, label_log_every=2_000_00
 def parse_day(pcap_path, label_csv_path, out_json):
     print(f"\n=== Parsing {os.path.basename(pcap_path)} ===")
     flow_labels = {}
-    if label_csv_path and os.path.exists(label_csv_path):
-        print(f"  Loading flow labels from {os.path.basename(label_csv_path)}...")
-        flow_labels, na, nb = load_2017_flow_labels(label_csv_path)
+    paths = ([label_csv_path] if isinstance(label_csv_path, (str, bytes, os.PathLike))
+             else list(label_csv_path or []))
+    present = [p for p in paths if p and os.path.exists(p)]
+    missing = [p for p in paths if p and not os.path.exists(p)]
+    for m in missing:
+        print(f"  !! label CSV ABSENT, its attack will be unlabelled: {m}")
+    if present:
+        for p in present:
+            print(f"  Loading flow labels from {os.path.basename(p)}...")
+        flow_labels, na, nb = load_2017_flow_labels(present)
         print(f"    {len(flow_labels)} flow labels ({na:,} attack-labeled rows, {nb:,} benign-labeled rows)")
 
     aggregator = WindowAggregator()
@@ -461,7 +542,50 @@ def evaluate_cross_day(monday_per_ip, friday_per_ip):
     return out
 
 
-def main():
+def day_inputs(day):
+    """(pcap, label CSV or list of CSVs, cache path) for one capture day."""
+    return {
+        'monday':    (MONDAY_PCAP, MONDAY_CSV, MONDAY_FEATURES_JSON),
+        'friday':    (FRIDAY_PCAP, FRIDAY_CSVS, FRIDAY_FEATURES_JSON),
+        'wednesday': (WEDNESDAY_PCAP, WEDNESDAY_CSV, WEDNESDAY_FEATURES_JSON),
+    }[day]
+
+
+def parse_one_day(day, pcap=None, csvs=None, out=None):
+    """Parse one day into its cache (the --day mode); returns per_ip_windows."""
+    d_pcap, d_csv, d_out = day_inputs(day)
+    pcap = pcap or d_pcap
+    csvs = csvs or d_csv
+    out = out or d_out
+    t0 = time.time()
+    print(f"pcap : {pcap}")
+    for c in ([csvs] if isinstance(csvs, str) else csvs):
+        print(f"label: {c}  {'OK' if os.path.exists(c) else 'MISSING'}")
+    print(f"out  : {out}\n")
+    if not os.path.exists(pcap):
+        sys.exit(f"pcap not found: {pcap} (set ANTIDDOS_BASE or pass --pcap)")
+    os.makedirs(os.path.dirname(os.path.abspath(out)), exist_ok=True)
+    per_ip = parse_day(pcap, csvs, out)
+    print(f"\ndone in {time.time()-t0:.0f}s")
+    return per_ip
+
+
+def main(argv=None):
+    # argv is None when another script (run_cicids2017_pool_audit.py) calls
+    # main(): it then runs exactly as before, whatever that script's own argv.
+    if argv:
+        import argparse
+        ap = argparse.ArgumentParser(description=__doc__,
+                                     formatter_class=argparse.RawDescriptionHelpFormatter)
+        ap.add_argument('--day', required=True, choices=['monday', 'friday', 'wednesday'],
+                        help='parse this day into its cache and stop')
+        ap.add_argument('--pcap', help='override the day\'s pcap path')
+        ap.add_argument('--csv', nargs='+', help='override the day\'s label CSV(s)')
+        ap.add_argument('--out', help='override the cache path the day is written to')
+        a = ap.parse_args(argv)
+        parse_one_day(a.day, pcap=a.pcap, csvs=a.csv, out=a.out)
+        return
+
     print(f"=== CIC-IDS-2017 Cross-Day PCAP Per-IP Evaluation ===\n")
     t0 = time.time()
 
@@ -477,7 +601,7 @@ def main():
         print(f"Loading cached Friday features: {FRIDAY_FEATURES_JSON}")
         friday_per_ip = json.load(open(FRIDAY_FEATURES_JSON))['per_ip_windows']
     else:
-        friday_per_ip = parse_day(FRIDAY_PCAP, FRIDAY_CSV, FRIDAY_FEATURES_JSON)
+        friday_per_ip = parse_day(FRIDAY_PCAP, FRIDAY_CSVS, FRIDAY_FEATURES_JSON)
 
     # F-CIC-6 cache upgrade: dst_port_density x1000 to match shared_memory.c:577
     from pipeline import upgrade_dst_port_density_inplace
@@ -505,4 +629,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv[1:])

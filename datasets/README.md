@@ -1,7 +1,7 @@
 # Evaluation Datasets
 
 Download pointers for the four public corpora used in the evaluation. **No dataset files are
-committed to this repository** — they are large, and the CIC-IDS-2017 and LITNET-2020 terms grant no redistribution. This directory
+committed to this repository**: they are large, and the CIC-IDS-2017 and LITNET-2020 terms grant no redistribution. This directory
 holds only this README; download the corpora from the official sources below.
 
 The scripts that read the corpora are in `ComparisonResults/extraction/` (see its README). They
@@ -40,17 +40,17 @@ That is 31 candidates; 16 are admitted as usable scenarios
 - **Source:** https://www.unb.ca/cic/datasets/ids-2017.html
 - **Reference:** Sharafaldin, Habibi Lashkari and Ghorbani, "Toward Generating a New Intrusion Detection Dataset and Intrusion Traffic Characterization," ICISSP 2018, pp. 108–116, doi:10.5220/0006639801080116
 - **Used as:** raw pcaps aggregated to per-(destination IP, 1 s) windows. The CSVs are read only for 5-tuple attack labels and for the role screening and audit of the benign pools: their timestamps have minute resolution, too coarse for 1-second windows (`run_cicids2017_pcap.py` docstring).
-- **Expected layout** (paths set in `ComparisonResults/extraction/run_cicids2017_pcap.py:43-49`, `export_benign_pools.py:88-95` and `run_cicids2017_pool_audit.py:51-61`):
+- **Expected layout** (paths set in `ComparisonResults/extraction/run_cicids2017_pcap.py:54-58, 79-82 and 98-100`, `export_benign_pools.py:88-95` and `run_cicids2017_pool_audit.py:51-61`):
 
   ```
   datasets/CIC-IDS-2017/
   ├── PCAPs/
   │   ├── Monday-WorkingHours.pcap
+  │   ├── Wednesday-workingHours.pcap
   │   └── Friday-WorkingHours.pcap
   └── CSVs/
-      ├── TimestampedFlows/
-      │   ├── Monday-WorkingHours.pcap_ISCX.csv
-      │   └── Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv
+      ├── TimestampedFlows/           # not shipped by CIC: a copy of TrafficLabelling /'s Monday CSV
+      │   └── Monday-WorkingHours.pcap_ISCX.csv
       └── TrafficLabelling /          # trailing space is CIC's own; the eight weekly labelled-flow CSVs
           ├── Wednesday-workingHours.pcap_ISCX.csv
           ├── Friday-WorkingHours-Morning.pcap_ISCX.csv
@@ -59,10 +59,9 @@ That is 31 candidates; 16 are admitted as usable scenarios
           └── ...
   ```
 
-  Filenames are matched exactly (not globbed). The Wednesday slices also need the Wednesday capture,
-  which no deposited script parses, and the deposited `run_cicids2017_pcap.py` labels Friday from the
-  DDoS CSV alone; `ComparisonResults/extraction/tree_manifest/CIC-IDS-2017/README.md` describes
-  both gaps.
+  Filenames are matched exactly (not globbed). `run_cicids2017_pcap.py --day monday|wednesday|friday`
+  parses one capture into its cache, labelling Wednesday from its one `TrafficLabelling /` CSV and
+  Friday from the three Friday ones (`reparse_friday_2017.py` runs the same Friday parse).
 
 ## CSE-CIC-IDS2018 (per-day pcap directories, passed as an argument)
 
@@ -71,18 +70,20 @@ That is 31 candidates; 16 are admitted as usable scenarios
 - **Used as:** per-host pcaps of the four DoS/DDoS days. The released CSVs for Wednesday, Thursday and Friday lack the IP columns a 5-tuple join needs (Tuesday 20-02's retains them), so windows on all four days are labelled by the published attack schedule on the day's documented victim (`pcap_feature_extractor_cicids2018.py` docstring); Tuesday's `Dst IP` column serves to confirm that day's victim.
 - **Expected layout:** no fixed path. Run
   `ComparisonResults/extraction/pcap_feature_extractor_cicids2018.py <pcap_dir> <day_tag> <output_json>`
-  once per day, with `<day_tag>` one of `wed`, `thu`, `fri`; `<pcap_dir>` holds that day's per-host
-  captures, matched by the globs `cap*` and `UCAP*` (`pcap_feature_extractor_cicids2018.py:329-330`).
-  The deposited extractor has no Tuesday (20-02) entry; Tuesday's capture ships as a RAR5 archive,
-  and `ComparisonResults/extraction/tree_manifest/CIC-IDS2018/README.md` describes how it was
-  recovered.
+  once per day, with `<day_tag>` one of `tue`, `wed`, `thu`, `fri`; `<pcap_dir>` holds that day's per-host
+  captures, matched by the globs `cap*` and `UCAP*` (`pcap_feature_extractor_cicids2018.py:346-347`).
+  Tuesday (20-02) ships as a RAR 5.0 archive, `pcap.rar`, where the other days ship as `pcap.zip`.
+  Unpack its `pcap/UCAP172.31.69.25` and `pcap/capEC2AMAZ-O4EL3NG-172.31.69.28` with a RAR5 reader
+  such as `bsdtar` and pass that `pcap/` directory; `ComparisonResults/extraction/README.md` (Inputs)
+  gives the command, and `ComparisonResults/extraction/tree_manifest/CIC-IDS2018/README.md` describes
+  how the authors recovered it.
 
 ## CIC-DDoS2019 (labels `datasets/CICDDoS2019/03-11/`; pcaps passed as an argument)
 
 - **Source:** https://www.unb.ca/cic/datasets/ddos-2019.html
 - **Reference:** Sharafaldin, Habibi Lashkari, Hakak and Ghorbani, "Developing Realistic Distributed Denial of Service (DDoS) Attack Dataset and Taxonomy," ICCST 2019, doi:10.1109/CCST.2019.8888419
 - **Used as:** raw pcaps of the 03-11 day with 5-tuple labels from the seven per-attack CSVs. One of the two labelled hosts is the attack source; its six slices are kept apart as a negative control.
-- **Expected layout** — the label CSVs are read from a fixed path by `stamp_cicddos_roles.py:29` and `export_benign_pools.py:98`, and passed as `<csv_dir>` to `pcap_feature_extractor.py <pcap_dir> <csv_dir> <output_json>` (filenames at `pcap_feature_extractor.py:36-44`); the pcaps can live anywhere and are passed as `<pcap_dir>` (glob at `pcap_feature_extractor.py:464`):
+- **Expected layout**: the label CSVs are read from a fixed path by `stamp_cicddos_roles.py:29` and `export_benign_pools.py:98`, and passed as `<csv_dir>` to `pcap_feature_extractor.py <pcap_dir> <csv_dir> <output_json>` (filenames at `pcap_feature_extractor.py:36-44`); the pcaps can live anywhere and are passed as `<pcap_dir>` (glob at `pcap_feature_extractor.py:492`):
 
   ```
   datasets/CICDDoS2019/03-11/        # CSV label dir; these exact filenames are read
@@ -99,9 +100,9 @@ That is 31 candidates; 16 are admitted as usable scenarios
   └── ...
   ```
 
-  The slices were split from a day cache carrying per-window attack types, which the deposited
-  `pcap_feature_extractor.py` does not write;
-  `ComparisonResults/extraction/tree_manifest/CICDDoS2019/README.md` describes the gap.
+  `pcap_feature_extractor.py` writes the day cache with per-window attack types
+  (`cicddos_03-11_typed.json`), and `split_cicddos_by_type.py` splits it by attack type; its
+  `--attacker-side` run writes the six slices of the attack source into `attacker_side/`.
 
 ## LITNET-2020 (`datasets/LITNET-2020/`)
 

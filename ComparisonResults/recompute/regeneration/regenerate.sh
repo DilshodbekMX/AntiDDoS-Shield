@@ -3,8 +3,8 @@
 # numbers in ../. The other 20 are inputs, records restricted by hand, or records whose writers are not run here;
 # pass_comparison.tsv gives the reason for each. Run from anywhere.
 # The runners read the derived feature tree at $ANTIDDOS_BASE/datasets/extracted/ (default: the repository root), which
-# is not deposited. ../../extraction/ rebuilds it and ../../extraction/tree_manifest/ pins its checksums, except for
-# four per-day caches that no deposited script writes as used, behind 10 of the 16 panel scenarios (../../extraction/README.md).
+# is not deposited. ../../extraction/ rebuilds it from the corpus releases and ../../extraction/tree_manifest/ pins its
+# checksums; compare a rebuilt tree with them by value, not by checksum (../../extraction/README.md).
 # Records are written single-threaded: the DIF arm's fifth decimal depends on the BLAS thread count. LODA in the
 # archived module post2023_competitors.py is unseeded and changes on every run, and ten records store elapsed_sec,
 # so compare a re-run with the deposited records by value (e.g. as pass_comparison.tsv does), not by hash.

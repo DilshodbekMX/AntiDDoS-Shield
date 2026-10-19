@@ -27,6 +27,13 @@ dominated by a different attack. It is not a claim that the attack ran
 continuously across that span.
 
 Usage: python3 split_cicddos_by_type.py <typed_cache> <day-tag> [--out DIR] [--dry-run]
+                                        [--attacker-side]
+
+--attacker-side slices the documented attack SOURCE (CSV_ATTACKERS) instead of
+the victims, with the same slicing code, and writes into <out>/attacker_side/
+(by default <tree>/CICDDoS2019/attacker_side/). Those six 172.16.0.5 files are
+kept as a negative control, not as scenarios; stamp_cicddos_slice_metadata.py
+and stamp_cicddos_roles.py then record why.
 """
 import os as _os, sys as _sys
 _HERE = _os.path.dirname(_os.path.abspath(__file__))
@@ -50,6 +57,11 @@ MIN_PRE = 30
 # UDP, UDPLag). Extend this when adding the 01-12 day, whose documented victim
 # is 192.168.50.1.
 CSV_VICTIMS = ['192.168.50.4']
+# The attack SOURCE on 03-11, from the same CSV fields (see the ground-truth
+# comment in main()). An earlier revision selected hosts by attack-window count
+# and so wrote slices for this host beside the victim's; they were then moved
+# by hand into attacker_side/. --attacker-side writes them there directly.
+CSV_ATTACKERS = ['172.16.0.5']
 TZ = timezone(timedelta(hours=-4))   # display only; no labelling depends on it
 
 
@@ -67,6 +79,9 @@ def main():
     # CHANGE 199 and missed here.
     outdir = next((sys.argv[i + 1] for i, a in enumerate(sys.argv) if a == '--out'),
                   TREE_DIR)
+    attacker_side = '--attacker-side' in sys.argv
+    if attacker_side:
+        outdir = os.path.join(outdir, 'attacker_side')
 
     path = cache if os.path.exists(cache) else os.path.join(CACHE_DIR, cache)
     d = json.load(open(path))
@@ -97,7 +112,13 @@ def main():
     # Selecting on count produced six scenarios on the attacker's own host,
     # every one of which the intensity gate later flagged at 1.0-1.3x its own
     # benign traffic.
-    victims = [ip for ip in CSV_VICTIMS if ip in d]
+    if attacker_side:
+        victims = [ip for ip in CSV_ATTACKERS if ip in d]
+        if not victims:
+            sys.exit(f"--attacker-side: none of {CSV_ATTACKERS} is in {path}")
+        print(f"{path}\n  attacker-side hosts (CSV Source IP): {victims}\n")
+    else:
+        victims = [ip for ip in CSV_VICTIMS if ip in d]
     if not victims:
         victims = sorted((ip for ip, rows in d.items()
                           if sum(1 for r in rows if r.get('_is_attack')) >= 100),
@@ -105,7 +126,8 @@ def main():
         print("  WARNING: no known CSV victim present; falling back to "
               "attack-window count, which can select the attacker -- verify "
               "direction against the CSV Destination IP field before using.")
-    print(f"{path}\n  victims with >=100 attack windows: {victims}\n")
+    if not attacker_side:
+        print(f"{path}\n  victims with >=100 attack windows: {victims}\n")
 
     for v in victims:
         rows = sorted(d[v], key=lambda r: r.get('_dt', 0))

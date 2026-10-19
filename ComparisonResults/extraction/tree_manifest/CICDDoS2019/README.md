@@ -1,4 +1,4 @@
-# CIC-DDoS2019 — per-attack-type feature caches (day 03-11)
+# CIC-DDoS2019: per-attack-type feature caches (day 03-11)
 
 Twelve single-attack slices from the 3 November 2018 capture, six attacks on
 each of two labelled hosts. Produced by re-extracting the pcaps with per-window
@@ -7,30 +7,35 @@ attack-type recording, then splitting on the dataset's own CSV labels.
 **Only one of the two hosts is a victim.** `172.16.0.5` is the attack *source*,
 confirmed against the corpus CSVs; its six slices live in `attacker_side/` and
 are excluded from every usable count, leaving **four** usable scenarios on
-`192.168.50.4`. See "`172.16.0.5` is the ATTACKER" below — the tables in the
+`192.168.50.4`. See "`172.16.0.5` is the ATTACKER" below; the tables in the
 next two sections still list all twelve, because the exclusion is a conclusion
 drawn from them, not an assumption made before them.
 
-Pipeline (scripts in `ComparisonResults/extraction/`), in this order —
+Pipeline (scripts in `ComparisonResults/extraction/`), in this order;
 `write_extracted_index.py` runs **twice** and both times matter:
 
 ```
-pcap_feature_extractor.py        # day cache, with per-window attack types (see below)
-split_cicddos_by_type.py         # victim slices (--out defaults to the tree)
-stamp_cicddos_roles.py           # measures host roles from the CSVs, stamps them
-write_extracted_index.py <dir>   # index.json  <- FIRST
-classify_scenarios.py --write    # verdicts into each payload
-write_extracted_index.py <dir>   # index.json + SHA256SUMS, again, LAST
+pcap_feature_extractor.py                    # day cache, with per-window attack types (see below)
+split_cicddos_by_type.py <cache> 03-11       # victim slices (--out defaults to the tree)
+split_cicddos_by_type.py <cache> 03-11 --attacker-side   # the six 172.16.0.5 slices, into attacker_side/
+stamp_cicddos_slice_metadata.py              # intensity, floor and role keys first typed by hand
+stamp_cicddos_roles.py                       # measures host roles from the CSVs, stamps them
+write_extracted_index.py <dir>               # index.json  <- FIRST
+classify_scenarios.py --write                # verdicts into each payload
+write_extracted_index.py <dir>               # index.json + SHA256SUMS, again, LAST
 ```
 
-The first step is not reproducible from the deposit as it stands. The slices
-were split from a day cache whose windows carry `_attack_type` and
-`_attack_types`; the deposited `pcap_feature_extractor.py` writes neither, and
-`split_cicddos_by_type.py` selects attack windows by `_attack_type`, so it
-finds none in that extractor's output.
+The day cache carries `_attack_type` and `_attack_types` on every window, and
+`split_cicddos_by_type.py` selects attack windows by `_attack_type`. Rebuilt
+from the 146 pcaps and the seven CSVs, the cache equals the one these slices
+were split from on all 93,238 windows; the steps above rebuild all twelve
+slices with the same values, and `export_benign_pools.py` the pool. Their
+checksums still differ:
+metadata keys come in a different order, and the pool metadata gains four
+role-check fields (`ComparisonResults/extraction/README.md`).
 
 `classify_scenarios.py` skips any corpus directory with no `index.json` and
-exits 0, so the single-pass order prints `USABLE: 0 of 0` and writes nothing —
+exits 0, so the single-pass order prints `USABLE: 0 of 0` and writes nothing;
 an earlier revision of this file documented exactly that order, and the tree
 README was corrected for it while this one was not. And because
 `classify --write` rewrites each payload to embed its verdict, hashes must be
@@ -46,7 +51,7 @@ from inside its `benign_pools/`.
 ## Why this corpus contributed nothing before
 
 CIC-DDoS2019 yielded **zero** usable scenarios. Its causal split found
-`n_pre_benign = 1`, because the day-level labels run wall-to-wall — victim
+`n_pre_benign = 1`, because the day-level labels run wall-to-wall: victim
 192.168.50.4 showed one continuous attack block covering 09:18:30–17:36:40, the
 entire capture.
 
@@ -81,7 +86,7 @@ the 09:18:30–17:36:40 span above, run one hour ahead of the UTC−4 clock that
 `split_cicddos_by_type.py` prints and that the slice spans below use (the Syn
 slice's last attack window is 16:36:40 at UTC−4; `Syn.csv` ends at 17:36:41).
 
-For reference only, the capture date is **3 November 2018** — the naming is
+For reference only, the capture date is **3 November 2018**; the naming is
 DD-MM, so `SAT-03-11-2018` is a Saturday (3 Nov 2018 was; 11 Mar was not),
 confirmed by the CSVs' own `2018-11-03` timestamps. Note the UNB page's day
 labels are swapped relative to the file naming: its "First Day (Training)"
@@ -92,8 +97,8 @@ table lists the seven attacks belonging to this 03-11 day.
 | victim | attack | n_attack | n_calib | floor | evaluable at α=0.01 |
 |---|---|---:|---:|---:|---|
 | 192.168.50.4 | LDAP | 593 | 144 | 0.0069 | yes |
-| 192.168.50.4 | **MSSQL** | 1861 | 81 | 0.0122 | **no — floor-limited** |
-| 192.168.50.4 | **NetBIOS** | 560 | 94 | 0.0105 | **no — floor-limited** |
+| 192.168.50.4 | **MSSQL** | 1861 | 81 | 0.0122 | **no: floor-limited** |
+| 192.168.50.4 | **NetBIOS** | 560 | 94 | 0.0105 | **no: floor-limited** |
 | 192.168.50.4 | Syn | 6272 | 236 | 0.0042 | yes |
 | 192.168.50.4 | UDP | 831 | 197 | 0.0051 | yes |
 | 192.168.50.4 | UDPLag | 472 | 214 | 0.0047 | yes |
@@ -106,10 +111,10 @@ table lists the seven attacks belonging to this 03-11 day.
 
 **Portmap is absent from both victims by design.** It is the first attack of the
 day and starts at capture open (08:18:30 / 08:19:24), leaving `n_pre_benign` of
-1 and 11 — below the gate of 30. That is the original whole-corpus failure, now
+1 and 11, below the gate of 30. That is the original whole-corpus failure, now
 isolated to a single attack instead of condemning all seven.
 
-## What a slice actually is — read before using
+## What a slice actually is: read before using
 
 **Attack time SPANS interleave, but individual windows are clean.** An earlier
 version of this file claimed windows mix attacks heavily. They do not, and the
@@ -117,7 +122,7 @@ measurement says so: the dominant type holds a median of **100%** of a window's
 attack packets (p05 = 0.945), only 15.8% of windows on 192.168.50.4 contain
 more than one type at all, and on 172.16.0.5 just **2 windows** do.
 
-What interleaves is the *dominant-label spans* — 18 of 21 span-pairs on
+What interleaves is the *dominant-label spans*: 18 of 21 span-pairs on
 192.168.50.4 overlap, with MSSQL-dominant windows running 08:44–11:38 across
 NetBIOS, LDAP and UDP. **That is an artifact of how the labels are merged, not a
 property of the capture.** The corpus's own labels are strictly sequential by
@@ -136,7 +141,7 @@ last-write-wins, so a 5-tuple appearing in several files resolves to whichever
 file was loaded last rather than to whichever record matches the packet in time.
 MSSQL.csv loads last, which is why MSSQL-dominant windows appear hours from any
 MSSQL flow record. Treat a slice's span as "windows this label won", not as
-"when this attack ran" — the second reading is what the sequential table above
+"when this attack ran"; the second reading is what the sequential table above
 gives.
 
 So a slice means: *windows where this attack dominates, plus every fully-benign
@@ -144,7 +149,7 @@ window; windows dominated by a different attack are excluded.* It is **not** a
 claim that the attack ran continuously across that span. Each window carries
 `_attack_types`, the full `{label: packet_count}` distribution.
 
-**Verified clean:** across all 12 slices there is zero leakage — no attack
+**Verified clean:** across all 12 slices there is zero leakage: no attack
 window in any fit or calibration set, no attack-flagged window in any benign
 test set, and no wrong-attack window in any test set. The benign windows are
 real traffic, not idle seconds: 0% sit below 1 pkt/s.
@@ -169,11 +174,11 @@ packet-rate test recorded in `index.json` (`p95_packets_per_sec`,
 | 192.168.50.4 | UDPLag | 16 | **no** |
 | 172.16.0.5 | *all six* | 12–16 | **no** |
 
-**`172.16.0.5` is the ATTACKER.** Not "almost certainly" — confirmed against
+**`172.16.0.5` is the ATTACKER.** Not "almost certainly": confirmed against
 the corpus's own CSVs, unanimously across all seven 03-11 files:
 
 Measured over **all seven** 03-11 CSVs, 20,364,525 data rows, by
-`stamp_cicddos_roles.py` — which also writes this into `index.json` and every
+`stamp_cicddos_roles.py`, which also writes this into `index.json` and every
 `attacker_side/` payload, so the number cannot drift from its source again:
 
 | direction | flows |
@@ -186,41 +191,44 @@ Per file: LDAP 2,107,494 / 616 · MSSQL 5,772,083 / 909 · NetBIOS 3,454,063 / 5
 · Portmap 186,511 / 449 · Syn 4,281,316 / 3,435 · UDP 3,777,978 / 1,094 ·
 UDPLag 720,036 / 1,061. All seven agree.
 
-Those 8,079 inbound flows are SYN-ACK and RST-ACK replies from the victim —
+Those 8,079 inbound flows are SYN-ACK and RST-ACK replies from the victim:
 backscatter. Its attack-labelled windows are that backscatter plus its own
 outbound attack traffic, so no detection claim can rest on them.
 
 **An earlier revision of this file printed "2,966,708 and 2,232" here.** Those
-are Syn.csv alone, and only its first 3,000,000 of 4,320,541 rows — both numbers
+are Syn.csv alone, and only its first 3,000,000 of 4,320,541 rows; both numbers
 reproduce simultaneously at exactly that row, so it was a truncated read rather
 than a different counting rule. No variant reproduces the pair. The same figure
 had been copied into `index.json`, into all six `attacker_side/` payloads and
 into the splitter source: one short read stamped in sixteen places. The verdict
-was right, which is precisely why it survived review — a 1,329:1 ratio on a
+was right, which is precisely why it survived review: a 1,329:1 ratio on a
 truncated slice instead of 2,513:1 on the corpus.
 
-Those six files are moved to `attacker_side/` and excluded from every count.
+Those six files live in `attacker_side/` and are excluded from every count. The
+authors moved them there by hand; `split_cicddos_by_type.py --attacker-side`
+now writes them there.
 They are kept rather than deleted because they are a useful negative control:
 a detector that alarms on them is alarming on the attack *source*, which is a
 different and much easier problem than protecting the target.
 
 **How this was missed, and how it was caught.** The original victim rule picked
 hosts by attack-window count. The cache is keyed by destination, but a host also
-accumulates attack-labelled windows from backscatter it *receives* — so the
+accumulates attack-labelled windows from backscatter it *receives*, so the
 attacker ranked second by count with 7,025 windows. The intensity gate flagged
 all six independently at 1.0–1.3× their own benign traffic before the CSV was
 consulted, which is a useful validation of that gate: it reached the right
 answer with no ground truth available. The splitter now selects victims from
-the CSV Destination IP field.
+the CSV Destination IP field, and slices `172.16.0.5` only when asked to with
+`--attacker-side`.
 
-So: **4 usable scenarios** — 192.168.50.4 on LDAP, Syn, UDP and UDPLag.
+So: **4 usable scenarios**: 192.168.50.4 on LDAP, Syn, UDP and UDPLag.
 `intensity_class` and `usable_as_ddos_scenario` are recorded per entry in
 `index.json`. An earlier revision said three here while saying four at the top
 of the file; the deposited records say four (`index.json` and
 `ComparisonResults/results/panel_inventory/PANEL.json` agree), and these four
 are among the tree's 16 usable scenarios. UDPLag is the one that was being
-dropped: it is LOW-RATE rather than a flood — its `intensity_class` is
-`LOW-RATE` — but low-rate is not unusable, and it clears every gate.
+dropped: it is LOW-RATE rather than a flood (its `intensity_class` is
+`LOW-RATE`), but low-rate is not unusable, and it clears every gate.
 
 ## Measured results (α=0.01, causal split)
 
@@ -248,8 +256,8 @@ Removing them leaves every DR identical and collapses the column:
 | Adaptive Entropy | 3.5 | 0.3 |
 | SPOT / EVT | 3.6 | 0.5 |
 
-No ranking inverts, and the **5 floods** column — the one the comparison below
-rests on — is unaffected, because the victim slices carry no backscatter (max benign 258
+No ranking inverts, and the **5 floods** column, the one the comparison below
+rests on, is unaffected, because the victim slices carry no backscatter (max benign 258
 pkt/s). This is the same direction-blindness that put the attacker into
 CIC-IDS-2017's benign pool: one mechanism, two corpora, two different symptoms.
 
@@ -264,7 +272,7 @@ CIC-IDS-2017's benign pool: one mechanism, two corpora, two different symptoms.
 | PEWMA | 12.7 / 3.4 | 21.6 / 0.3 | 6.4 / 5.6 |
 
 **On the genuine floods our method loses.** AnEWMA reaches 42.7% DR at 0.3% FPR
-against our 35.9% at 0.6% — **−6.8 pp at double the false-alarm rate**. The
+against our 35.9% at 0.6%: **−6.8 pp at double the false-alarm rate**. The
 all-12 column, which appears to show us ahead of SPOT (34.6 vs 29.8), is an
 average dominated by seven scenarios that contain no flood.
 
@@ -283,8 +291,8 @@ almost nothing detected at α=0.01.
 
 ## Not included
 
-The **01-12 day** (1 December 2018) holds twelve further attacks — NTP, DNS,
-LDAP, MSSQL, NetBIOS, SNMP, SSDP, UDP, UDP-Lag, WebDDoS, SYN, TFTP — and was not
+The **01-12 day** (1 December 2018) holds twelve further attacks (NTP, DNS,
+LDAP, MSSQL, NetBIOS, SNMP, SSDP, UDP, UDP-Lag, WebDDoS, SYN, TFTP) and was not
 extracted. Its CSVs use a `DrDoS_` prefix and its victim is 192.168.50.1, so
 slices from it must be day-qualified: several attack names recur across both
 days with different victims and times.

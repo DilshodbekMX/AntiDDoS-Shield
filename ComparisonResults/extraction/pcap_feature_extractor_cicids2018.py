@@ -41,7 +41,9 @@ Schema matches the other pcap-extractor outputs (23 active features).
 
 Usage:
     python3 pcap_feature_extractor_cicids2018.py <pcap_dir> <day_tag> <output_json>
-    where <day_tag> ∈ {wed, thu, fri}.
+    where <day_tag> ∈ {tue, wed, thu, fri}.
+    For tue, <pcap_dir> is the pcap/ directory unpacked from the day's pcap.rar
+    (RAR 5.0); it must hold UCAP172.31.69.25 (the victim's capture).
 """
 import os as _os, sys as _sys
 _HERE = _os.path.dirname(_os.path.abspath(__file__))
@@ -153,6 +155,21 @@ ATTACKS_PER_DAY = {
         'attacks': [
             ('SlowHTTPTest', '10:12:00', '11:08:00'),
             ('Hulk',         '13:45:00', '14:19:00'),
+        ],
+    },
+    # Tuesday was absent from this table because its pcaps were never
+    # extracted: the day ships as pcap.rar (RAR 5.0) while every other day is a
+    # pcap.zip, and no rar reader was installed, so the archive unpacked
+    # partially -- 252 of 452 members, subnets 64-67 only, missing 68.x and
+    # 69.x and therefore both victims. bsdtar (libarchive) reads RAR5 and needs
+    # no root. Victim confirmed by the same size-dominance rule as the other
+    # days: UCAP172.31.69.25 is 8.49 GB against a 100 MB runner-up.
+    'tue': {
+        'date': '2018-02-20',
+        'victim': '172.31.69.25',
+        'attacks': [
+            ('LOIC-HTTP', '10:12:00', '11:17:00'),
+            ('LOIC-UDP',  '13:13:00', '13:32:00'),
         ],
     },
 }
@@ -296,7 +313,7 @@ def parse_pcap_for_one_host(pcap_path, host_ip, attack_windows, aggregator):
 def main():
     if len(sys.argv) < 4:
         print("Usage: pcap_feature_extractor_cicids2018.py <pcap_dir> <day_tag> <output_json>")
-        print("       <day_tag> ∈ {wed, thu, fri}")
+        print("       <day_tag> ∈ {tue, wed, thu, fri}")
         sys.exit(1)
 
     pcap_dir = sys.argv[1]

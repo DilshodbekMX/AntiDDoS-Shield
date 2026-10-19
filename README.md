@@ -117,7 +117,8 @@ differently; and the earlier pass did not rewrite `joint_filter.json` or
 
 The guard-band leak, the admissibility census statistics and the CIC-IDS-2017 benign-pool audit
 have no record; the extraction scripts compute them from the per-day caches, the feature tree and
-the CIC-IDS-2017 flow-label files, and rebuild the caches and the tree only in part (below). Four
+the CIC-IDS-2017 flow-label files, and rebuild the caches and the tree from the official releases
+(below). Four
 records were restricted to the four corpora by hand (`full_tree_all_scenarios_metrics.json`,
 `all_extracted_datasets_evaluation_results.json`, `panel_inventory/PANEL.json` and
 `c_engine_verification_report.json`); no writer for the first three or for the rest of
@@ -137,14 +138,23 @@ says so in an `_inert_list_note` field.
 > three Python scripts in `recompute/` run from the deposited records alone. Of the other 19
 > runners, 18 need the feature tree and `run_litnet_l1subnet.py` reads the raw LITNET-2020 flow
 > export. The extraction chain is deposited under
-> [`ComparisonResults/extraction/`](ComparisonResults/extraction/) (sixteen scripts,
+> [`ComparisonResults/extraction/`](ComparisonResults/extraction/) (eighteen scripts,
 > `drop_duplicate_columns.py`, a helper module and a README), with the tree's own `index.json` files and per-file `SHA256SUMS`, which
-> verify the authors' copy of the tree. A rebuilt scenario file can be checked against its
-> `index.json` entry but not its checksum: every scenario file carries a field that no deposited
-> script writes. The chain does not rebuild the whole tree from the official releases: four
-> per-day caches it reads have no writer there as used, so 21 of the 31 candidate slices, 10 of the
-> 16 admitted (among them `Wed-05-07_DoS-Slowhttptest`), cannot be rebuilt with it. Its README lists
-> them. The harness environment is pinned in
+> verify the authors' copy of the tree. The chain rebuilds the whole tree from the official
+> releases: for this revision every cache, candidate slice and benign pool was rebuilt from the raw
+> captures and flow files, and the rebuilt tree equals the authors' copy by value. Byte checksums identify only 9 of
+> the 47 tree files, because metadata key order, a few metadata fields and two per-row bookkeeping
+> keys differ, so check a rebuilt file against its `index.json` entry. The six CIC-IDS-2017
+> Wednesday files were regenerated with the chain for this revision (their `dst_port_density` had
+> been stored 1000 times smaller than in every other file). The whole `regenerate.sh` set, with
+> `sixth_victim.sh` and `heldout_threeway40.sh`, was then run again on the regenerated tree. Three
+> records changed in value and were replaced: `c_engine_ours.json`,
+> `split_control_threeway40_matrix.json` and
+> `recompute/results/split_control_threeway40_sixvictim_matrix.json`. The other records these
+> scripts write were unchanged apart from unseeded LODA cells and stored run times, and were kept. Four records with
+> Wednesday rows are not rewritten by these scripts;
+> [`ComparisonResults/README.md`](ComparisonResults/README.md) says what was re-measured for each,
+> and the extraction README describes the regeneration. The harness environment is pinned in
 > [`ComparisonResults/requirements.txt`](ComparisonResults/requirements.txt).
 
 The per-record index is in [`ComparisonResults/README.md`](ComparisonResults/README.md);
@@ -153,7 +163,7 @@ corpus download pointers are in [`datasets/README.md`](datasets/README.md). No c
 ## Run the prototype
 
 <details>
-<summary><b>Build the C engine</b> — Meson + Ninja, DPDK for the datapath (<a href="INSTALL.md">INSTALL.md</a>)</summary>
+<summary><b>Build the C engine</b>: Meson + Ninja, DPDK for the datapath (<a href="INSTALL.md">INSTALL.md</a>)</summary>
 
 ```bash
 cd project
@@ -164,7 +174,7 @@ ninja -C build
 </details>
 
 <details>
-<summary><b>Run the backend</b> — FastAPI</summary>
+<summary><b>Run the backend</b>: FastAPI</summary>
 
 ```bash
 cd project/backend
@@ -175,7 +185,7 @@ uvicorn api.main:app
 </details>
 
 <details>
-<summary><b>Run the dashboard</b> — React + Vite</summary>
+<summary><b>Run the dashboard</b>: React + Vite</summary>
 
 ```bash
 cd project/dashboard
