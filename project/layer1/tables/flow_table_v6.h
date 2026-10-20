@@ -64,7 +64,8 @@ struct flow_entry_v6 {
     uint8_t  tcp_flags_hi_to_lo;
     uint8_t  flags;
     uint8_t  initiator_dir;
-    uint8_t  _pad1[3];
+    uint8_t  vouched;              // FLOW_VOUCHED_BY_LO / _HI (flow_table.h)
+    uint8_t  _pad1[2];
 
     // Bidirectional counters (32 bytes)
     uint64_t packets_lo_to_hi;
@@ -183,13 +184,26 @@ struct flow_entry_v6* flow_table_v6_lookup(struct packet_features_v6 *features);
 
 /**
  * Update IPv6 flow counters and state.
- * Thread-safe using atomic operations.
+ * Thread-safe using atomic operations. As flow_table_update(), a SYN-ACK
+ * does not move the last-seen time of a flow whose handshake is not
+ * verified.
  *
  * @param flow      Flow entry to update
  * @param features  Packet features
  */
 void flow_table_v6_update(struct flow_entry_v6 *flow,
                           const struct packet_features_v6 *features);
+
+/**
+ * Whether an IPv6 TCP flow vouches for a segment between its two hosts
+ * (IPv6 Stage 8b in spoofed mode), by the rules of flow_table_vouches_for().
+ *
+ * @param flow      Flow entry (from a lookup)
+ * @param features  The segment's features (flow_direction set by that lookup)
+ * @return true if the flow vouches for the segment
+ */
+bool flow_table_v6_vouches_for(const struct flow_entry_v6 *flow,
+                               const struct packet_features_v6 *features);
 
 /**
  * Count a packet on its IPv6 flow without letting it change the flow's TCP
@@ -217,6 +231,8 @@ enum rate_limit_action flow_table_v6_check_rate_limit(
 /**
  * Age out expired IPv6 flows.
  * Should be called periodically from maintenance thread.
+ * As flow_table_age_flows(), each call checks the registered readers for a
+ * stall and deletes nothing while one is stalled.
  *
  * @return Number of flows aged out
  */
@@ -243,6 +259,15 @@ uint32_t flow_table_v6_emergency_evict(uint32_t count_needed);
  * flow_table_hash_seed_seam()).
  */
 uint32_t flow_table_v6_get_hash_seed(void);
+
+/**
+ * The IPv6 table's hash of a key, as its lookups compute it, with its seed
+ * (diagnostics and tests). The key may be at any address: the hash reads a
+ * copy of it.
+ *
+ * @return the hash, or 0 if the table is not initialized
+ */
+uint32_t flow_table_v6_key_hash(const struct flow_key_v6 *key);
 
 /**
  * Whether the IPv6 table's writer lock is held, by anyone (diagnostics and

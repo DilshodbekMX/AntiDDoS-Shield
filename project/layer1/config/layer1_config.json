@@ -139,6 +139,7 @@
         "log_matches": true,
         "block_amplification": true,
         "block_scans": true,
+        "strict_syn_scan": false,
         "disabled_amplification_ports": []
     },
     "layer2_response": {

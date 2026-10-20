@@ -2,6 +2,7 @@
 #include "hyperloglog.h"
 #include "burst_ewma.h"
 #include "../tables/ip_lists.h"
+#include "../tables/flow_table_internal.h"
 #include <rte_hash.h>
 #include <rte_jhash.h>
 #include <rte_malloc.h>
@@ -27,6 +28,24 @@ static bool g_initialized = false;
 // Free list for per-IP feature slots
 static uint32_t *g_free_slots = NULL;
 static uint32_t g_free_count = 0;
+
+// Registration, unregistration and the control-path walks of the table hold
+// this lock (see "Thread Safety" in per_ip_features.h). It is also the
+// table's writer lock: RTE_HASH_EXTRA_FLAGS_RW_CONCURRENCY_LF makes lookups
+// safe against one writer at a time, not writers against each other.
+static rte_spinlock_t g_ctl_lock = RTE_SPINLOCK_INITIALIZER;
+
+// Unregistered slots waiting for the readers' grace period, and per slot the
+// hash position its deleted key keeps until the slot is released:
+// RTE_HASH_EXTRA_FLAGS_RW_CONCURRENCY_LF keeps a deleted key's position
+// allocated until rte_hash_free_key_with_position(). A slot is in one place
+// at a time (free, registered, or here), so the limbo never refuses one.
+static struct flow_limbo g_limbo;
+static uint32_t *g_retired_pos = NULL;
+
+// Longest a registration that finds no free slot waits for unregistered
+// slots' grace period (control path; the packet lcores report every burst)
+#define PERIP_SLOT_WAIT_US  50000
 
 // CMS concentration export gate (max_flow_fraction / topk_flow_share / heavy_hitter_count).
 // DISABLED by default so the shipped detector is byte-for-byte unchanged: when off, the export
@@ -54,10 +73,11 @@ static int per_ip_cms_init(struct per_ip_cms *cms) {
 
     // Allocate flat counter array
     size_t counter_size = cms->width * cms->depth * sizeof(uint32_t);
-    cms->counters = rte_zmalloc("perip_cms", counter_size, 64);
-    if (!cms->counters) {
+    uint32_t *counters = rte_zmalloc("perip_cms", counter_size, 64);
+    if (!counters) {
         return -1;
     }
+    __atomic_store_n(&cms->counters, counters, __ATOMIC_RELEASE);
 
     // Initialize seeds
     for (uint32_t i = 0; i < cms->depth; i++) {
@@ -78,12 +98,13 @@ static int per_ip_cms_init(struct per_ip_cms *cms) {
 }
 
 /**
- * Cleanup CMS
+ * Cleanup CMS. Only once no reader can use it: after the readers' grace
+ * period of an unregistration, or at teardown.
  */
 static void per_ip_cms_cleanup(struct per_ip_cms *cms) {
-    if (cms && cms->counters) {
-        rte_free(cms->counters);
-        cms->counters = NULL;
+    if (cms) {
+        uint32_t *counters = __atomic_exchange_n(&cms->counters, NULL, __ATOMIC_ACQ_REL);
+        rte_free(counters);
     }
 }
 
@@ -131,7 +152,11 @@ static void cms_topk_update(struct per_ip_cms *cms, uint32_t key, uint32_t est) 
  * Add to CMS and return estimated count
  */
 static uint32_t cms_add_and_query(struct per_ip_cms *cms, uint32_t key, uint32_t count) {
-    if (!cms || !cms->counters) return 0;
+    if (!cms) return 0;
+    // One load: a NULL check followed by a second load of the field could
+    // see two different values
+    uint32_t *counters = __atomic_load_n(&cms->counters, __ATOMIC_ACQUIRE);
+    if (!counters) return 0;
 
     uint32_t min_count = UINT32_MAX;
 
@@ -139,7 +164,7 @@ static uint32_t cms_add_and_query(struct per_ip_cms *cms, uint32_t key, uint32_t
         uint32_t idx = cms_hash(key, cms->seeds[d]) % cms->width;
         uint32_t offset = d * cms->width + idx;
 
-        uint32_t new_val = __atomic_add_fetch(&cms->counters[offset], count, __ATOMIC_RELAXED);
+        uint32_t new_val = __atomic_add_fetch(&counters[offset], count, __ATOMIC_RELAXED);
         if (new_val < min_count) {
             min_count = new_val;
         }
@@ -161,7 +186,9 @@ static uint32_t cms_add_and_query(struct per_ip_cms *cms, uint32_t key, uint32_t
  * Query CMS for estimated count
  */
 static uint32_t cms_query(const struct per_ip_cms *cms, uint32_t key) {
-    if (!cms || !cms->counters) return 0;
+    if (!cms) return 0;
+    const uint32_t *counters = __atomic_load_n(&cms->counters, __ATOMIC_ACQUIRE);
+    if (!counters) return 0;
 
     uint32_t min_count = UINT32_MAX;
 
@@ -169,7 +196,7 @@ static uint32_t cms_query(const struct per_ip_cms *cms, uint32_t key) {
         uint32_t idx = cms_hash(key, cms->seeds[d]) % cms->width;
         uint32_t offset = d * cms->width + idx;
 
-        uint32_t val = __atomic_load_n(&cms->counters[offset], __ATOMIC_RELAXED);
+        uint32_t val = __atomic_load_n(&counters[offset], __ATOMIC_RELAXED);
         if (val < min_count) {
             min_count = val;
         }
@@ -182,12 +209,14 @@ static uint32_t cms_query(const struct per_ip_cms *cms, uint32_t key) {
  * Reset CMS window counters (decay by 50%)
  */
 static void cms_reset_window(struct per_ip_cms *cms) {
-    if (!cms || !cms->counters) return;
+    if (!cms) return;
+    uint32_t *counters = __atomic_load_n(&cms->counters, __ATOMIC_ACQUIRE);
+    if (!counters) return;
 
     // Decay all counters by 50%
     for (uint32_t i = 0; i < cms->width * cms->depth; i++) {
-        uint32_t val = __atomic_load_n(&cms->counters[i], __ATOMIC_RELAXED);
-        __atomic_store_n(&cms->counters[i], val / 2, __ATOMIC_RELAXED);
+        uint32_t val = __atomic_load_n(&counters[i], __ATOMIC_RELAXED);
+        __atomic_store_n(&counters[i], val / 2, __ATOMIC_RELAXED);
     }
 
     cms->window_count = 0;
@@ -246,16 +275,25 @@ int per_ip_features_init(uint32_t max_ips) {
         return -1;
     }
 
-    // Initialize free list
+    // Initialize free list, and the deferred release of unregistered slots
     g_free_slots = rte_malloc("perip_freelist", max_ips * sizeof(uint32_t), 0);
-    if (!g_free_slots) {
-        RTE_LOG(ERR, PERIP, "Failed to allocate free list\n");
+    g_retired_pos = rte_malloc("perip_retired_pos", max_ips * sizeof(uint32_t), 0);
+    if (!g_free_slots || !g_retired_pos ||
+        flow_limbo_init(&g_limbo, max_ips, "perip_limbo") != 0 ||
+        flow_table_readers() == NULL) {
+        RTE_LOG(ERR, PERIP, "Failed to allocate free list or deferred release state\n");
+        flow_limbo_free(&g_limbo);
+        rte_free(g_retired_pos);
+        rte_free(g_free_slots);
         rte_free(g_perip_pool);
         rte_hash_free(g_perip_hash);
+        g_retired_pos = NULL;
+        g_free_slots = NULL;
         g_perip_pool = NULL;
         g_perip_hash = NULL;
         return -1;
     }
+    rte_spinlock_init(&g_ctl_lock);
 
     // Fill free list (all slots available)
     for (uint32_t i = 0; i < max_ips; i++) {
@@ -280,11 +318,10 @@ void per_ip_features_cleanup(void) {
         return;
     }
 
-    // Cleanup CMS for each registered IP
+    // Cleanup CMS for each registered IP, and for each unregistered one
+    // still waiting for its grace period
     for (uint32_t i = 0; i < g_max_ips; i++) {
-        if (g_perip_pool[i].active) {
-            per_ip_cms_cleanup(&g_perip_pool[i].cms);
-        }
+        per_ip_cms_cleanup(&g_perip_pool[i].cms);
     }
 
     if (g_perip_hash) {
@@ -301,6 +338,10 @@ void per_ip_features_cleanup(void) {
         rte_free(g_free_slots);
         g_free_slots = NULL;
     }
+
+    flow_limbo_free(&g_limbo);
+    rte_free(g_retired_pos);
+    g_retired_pos = NULL;
 
     g_max_ips = 0;
     g_registered_count = 0;
@@ -325,11 +366,58 @@ bool per_ip_features_concentration_export_enabled(void) {
 
 // ==================== Registration ====================
 
-int per_ip_features_register(uint32_t dst_ip) {
-    if (!g_initialized) {
-        return -1;
-    }
+// Test seam (see per_ip_features.h): this weak default does nothing
+__attribute__((weak)) void per_ip_features_seam(enum per_ip_features_seam_point point) {
+    (void)point;
+}
 
+bool per_ip_features_ctl_lock_held(void) {
+    return rte_spinlock_is_locked(&g_ctl_lock) != 0;
+}
+
+uint32_t per_ip_features_slots_waiting(void) {
+    return g_initialized ? flow_limbo_waiting(&g_limbo) : 0;
+}
+
+/**
+ * Release the unregistered slots whose grace period is over: free their
+ * count-min counters and their keys' hash positions, and return them to
+ * the free list. Non-blocking. Caller holds g_ctl_lock.
+ */
+static void perip_reclaim_locked(void) {
+    uint32_t slots[64];
+    uint32_t n;
+
+    do {
+        n = flow_limbo_take(&g_limbo, slots, RTE_DIM(slots));
+        for (uint32_t i = 0; i < n; i++) {
+            uint32_t slot = slots[i];
+            per_ip_cms_cleanup(&g_perip_pool[slot].cms);
+            rte_hash_free_key_with_position(g_perip_hash, (int32_t)g_retired_pos[slot]);
+            g_free_slots[g_free_count++] = slot;
+        }
+    } while (n == RTE_DIM(slots));
+}
+
+/**
+ * With no free slot while unregistered slots wait for their grace period,
+ * wait for it, at most PERIP_SLOT_WAIT_US: the packet lcores report a
+ * quiescent state once per burst, so this is short unless one has stopped.
+ * The lock is dropped while sleeping. Caller holds g_ctl_lock.
+ */
+static void perip_wait_for_slot_locked(void) {
+    uint64_t deadline = rte_get_tsc_cycles() + (rte_get_tsc_hz() / 1000000) * PERIP_SLOT_WAIT_US;
+
+    while (g_free_count == 0 && flow_limbo_waiting(&g_limbo) > 0 &&
+           rte_get_tsc_cycles() < deadline) {
+        rte_spinlock_unlock(&g_ctl_lock);
+        rte_delay_us_sleep(100);
+        rte_spinlock_lock(&g_ctl_lock);
+        perip_reclaim_locked();
+    }
+}
+
+static int perip_register_locked(uint32_t dst_ip) {
     // Check if already registered
     int ret = rte_hash_lookup(g_perip_hash, &dst_ip);
     if (ret >= 0) {
@@ -343,10 +431,13 @@ int per_ip_features_register(uint32_t dst_ip) {
 
     // Get free slot
     if (g_free_count == 0) {
-        RTE_LOG(ERR, PERIP, "Per-IP feature table full (max=%u)\n", g_max_ips);
+        RTE_LOG(ERR, PERIP, "Per-IP feature table full (max=%u, %u unregistered slots wait for "
+                "their grace period)\n", g_max_ips, flow_limbo_waiting(&g_limbo));
         return -1;
     }
 
+    // A free slot is used by no reader: it was never registered, or its
+    // grace period is over
     uint32_t slot = g_free_slots[--g_free_count];
     struct per_ip_features *pif = &g_perip_pool[slot];
 
@@ -395,39 +486,69 @@ int per_ip_features_register(uint32_t dst_ip) {
     return 0;
 }
 
+int per_ip_features_register(uint32_t dst_ip) {
+    if (!g_initialized) {
+        return -1;
+    }
+
+    rte_spinlock_lock(&g_ctl_lock);
+    perip_reclaim_locked();
+    if (g_free_count == 0) {
+        perip_wait_for_slot_locked();
+    }
+    int ret = perip_register_locked(dst_ip);
+    rte_spinlock_unlock(&g_ctl_lock);
+    return ret;
+}
+
 int per_ip_features_unregister(uint32_t dst_ip) {
     if (!g_initialized) {
         return -1;
     }
 
+    rte_spinlock_lock(&g_ctl_lock);
+
     void *data;
-    int ret = rte_hash_lookup_data(g_perip_hash, &dst_ip, &data);
-    if (ret < 0) {
+    int pos = rte_hash_lookup_data(g_perip_hash, &dst_ip, &data);
+    if (pos < 0) {
+        rte_spinlock_unlock(&g_ctl_lock);
         return -1;  // Not found
     }
 
     uint32_t slot = (uint32_t)(uintptr_t)data;
     struct per_ip_features *pif = &g_perip_pool[slot];
+    per_ip_features_seam(PERIP_SEAM_UNREGISTER);
 
-    // Cleanup CMS
-    per_ip_cms_cleanup(&pif->cms);
-
-    // Remove from hash
+    // Remove from hash: no lookup finds the slot from now on. A packet lcore
+    // may still use it (and its counters) from an earlier lookup, so the
+    // slot, its counters and the key's position are released after the
+    // readers' grace period (perip_reclaim_locked()), not here.
     rte_hash_del_key(g_perip_hash, &dst_ip);
+    g_retired_pos[slot] = (uint32_t)pos;
 
     // Mark slot as inactive
     pif->active = 0;
-
-    // Return slot to free list
-    g_free_slots[g_free_count++] = slot;
     g_registered_count--;
+
+    if (flow_limbo_push(&g_limbo, &slot, 1) != 0) {
+        // Not reachable while a slot is in one place at a time
+        RTE_LOG(ERR, PERIP, "Deferred release refused slot %u, released at once\n", slot);
+        per_ip_cms_cleanup(&pif->cms);
+        rte_hash_free_key_with_position(g_perip_hash, pos);
+        g_free_slots[g_free_count++] = slot;
+    }
+    // With no reader registered the slot is free at once
+    perip_reclaim_locked();
+    uint32_t total = g_registered_count;
+
+    rte_spinlock_unlock(&g_ctl_lock);
 
     RTE_LOG(INFO, PERIP, "Unregistered protected IP: %u.%u.%u.%u (total=%u)\n",
             (rte_be_to_cpu_32(dst_ip) >> 24) & 0xFF,
             (rte_be_to_cpu_32(dst_ip) >> 16) & 0xFF,
             (rte_be_to_cpu_32(dst_ip) >> 8) & 0xFF,
             rte_be_to_cpu_32(dst_ip) & 0xFF,
-            g_registered_count);
+            total);
 
     return 0;
 }
@@ -595,11 +716,13 @@ static uint64_t get_timestamp_ns(void) {
     return (uint64_t)ts.tv_sec * 1000000000ULL + ts.tv_nsec;
 }
 
-int per_ip_features_snapshot(uint32_t dst_ip, struct per_ip_feature_snapshot *out) {
+// per_ip_features_snapshot() with g_ctl_lock held
+static int perip_snapshot_locked(uint32_t dst_ip, struct per_ip_feature_snapshot *out) {
     if (!out) return -1;
 
     struct per_ip_features *pif = per_ip_features_lookup(dst_ip);
     if (!pif) return -1;
+    per_ip_features_seam(PERIP_SEAM_SNAPSHOT);
 
     // Aggregate per-lcore counters
     per_ip_features_aggregate(pif);
@@ -729,6 +852,13 @@ int per_ip_features_snapshot(uint32_t dst_ip, struct per_ip_feature_snapshot *ou
     return 0;
 }
 
+int per_ip_features_snapshot(uint32_t dst_ip, struct per_ip_feature_snapshot *out) {
+    rte_spinlock_lock(&g_ctl_lock);
+    int ret = perip_snapshot_locked(dst_ip, out);
+    rte_spinlock_unlock(&g_ctl_lock);
+    return ret;
+}
+
 /* Upper bound on the top-K selection scratch array (covers all real max_count). */
 #define PERIP_SELECT_MAX 256
 
@@ -747,7 +877,12 @@ uint32_t per_ip_features_snapshot_all(struct per_ip_feature_snapshot *out, uint3
         return 0;
     }
 
-    uint32_t total = rte_hash_count(g_perip_hash);
+    // Held for the whole walk: no slot it reads is released meanwhile
+    rte_spinlock_lock(&g_ctl_lock);
+
+    // The registered IPs (rte_hash_count() also counts the positions of
+    // unregistered keys that wait for their grace period)
+    uint32_t total = g_registered_count;
     uint32_t count = 0;
     uint32_t iter = 0;
     const void *key;
@@ -758,10 +893,11 @@ uint32_t per_ip_features_snapshot_all(struct per_ip_feature_snapshot *out, uint3
         while (rte_hash_iterate(g_perip_hash, &key, &data, &iter) >= 0) {
             if (count >= max_count) break;
             uint32_t dst_ip = *(const uint32_t *)key;
-            if (per_ip_features_snapshot(dst_ip, &out[count]) == 0) {
+            if (perip_snapshot_locked(dst_ip, &out[count]) == 0) {
                 count++;
             }
         }
+        rte_spinlock_unlock(&g_ctl_lock);
         return count;
     }
 
@@ -796,10 +932,11 @@ uint32_t per_ip_features_snapshot_all(struct per_ip_feature_snapshot *out, uint3
     }
 
     for (uint32_t i = 0; i < ntop && count < max_count; i++) {
-        if (per_ip_features_snapshot(top[i].dst_ip, &out[count]) == 0) {
+        if (perip_snapshot_locked(top[i].dst_ip, &out[count]) == 0) {
             count++;
         }
     }
+    rte_spinlock_unlock(&g_ctl_lock);
 
     // Loud, rate-limited notice that priority selection is in effect: the
     // non-selected registrations get no L2 detection this cycle.
@@ -890,10 +1027,17 @@ void per_ip_features_reset_all_windows(void) {
     const void *key;
     void *data;
 
+    // Held for the whole walk: no slot it resets is released meanwhile
+    rte_spinlock_lock(&g_ctl_lock);
     while (rte_hash_iterate(g_perip_hash, &key, &data, &iter) >= 0) {
         uint32_t slot = (uint32_t)(uintptr_t)data;
+        per_ip_features_seam(PERIP_SEAM_RESET);
         per_ip_features_reset_window(&g_perip_pool[slot]);
     }
+    // Unregistered slots whose grace period is over are released here too
+    // (once a window), not only by the next registration or unregistration
+    perip_reclaim_locked();
+    rte_spinlock_unlock(&g_ctl_lock);
 }
 
 // ==================== Statistics ====================
@@ -924,6 +1068,8 @@ void per_ip_features_print_stats(void) {
         void *data;
         int count = 0;
 
+        // Held for the whole walk: no slot it reads is released meanwhile
+        rte_spinlock_lock(&g_ctl_lock);
         while (rte_hash_iterate(g_perip_hash, &key, &data, &iter) >= 0 && count < 5) {
             uint32_t dst_ip = *(const uint32_t *)key;
             uint32_t slot = (uint32_t)(uintptr_t)data;
@@ -943,6 +1089,7 @@ void per_ip_features_print_stats(void) {
                    unique_ips);
             count++;
         }
+        rte_spinlock_unlock(&g_ctl_lock);
     }
 }
 

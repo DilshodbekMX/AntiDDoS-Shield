@@ -3,6 +3,7 @@
 
 #include "../../common/types.h"
 #include "../interlayer/shared_memory.h"
+#include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <rte_mbuf.h>
@@ -73,22 +74,30 @@ struct syn_proxy_conn {
     uint32_t ctl;
     uint64_t state_change_tsc;
     
-    uint32_t client_isn;
+    uint32_t client_isn;        // ISN of the client's SYN (proxied and BYPASSED)
     uint32_t cookie_isn;
     uint32_t client_next_seq;   // Proxied: end of the client's FIN, as the server numbers it
-    uint32_t client_next_ack;
+    uint32_t server_next_seq;   // Proxied: end of the server's FIN, as the client numbers it
     
     uint32_t proxy_isn;
     uint32_t server_isn;    // ISN of the server's SYN-ACK (proxied and BYPASSED)
-    uint32_t server_next_seq;   // Proxied: end of the server's FIN, as the client numbers it
-    uint32_t server_next_ack;
+    uint64_t created_tsc;
     
     int32_t seq_delta_c2s;
     int32_t seq_delta_s2c;
     
-    struct tcp_syn_options client_opts;
-    
-    uint64_t created_tsc;
+    // What an RST is checked against (see "RST validation" in syn_proxy.c),
+    // 0 = nothing seen yet: the latest acknowledgement each side sent (its
+    // next expected sequence number, as it numbers the other side's bytes),
+    // and the server's next sequence number (the end of the latest segment it
+    // sent that occupies sequence space, in its own numbering). Written, never
+    // read, by the segments that move them, next to the activity timestamps
+    // that the same segments write; only an RST reads them.
+    uint32_t client_next_ack;
+    uint32_t server_next_ack;
+    uint32_t server_snd_nxt;
+    uint8_t  syn_retries;
+    uint8_t  _pad[3];
     uint64_t last_client_tsc;
     uint64_t last_server_tsc;
     
@@ -97,22 +106,62 @@ struct syn_proxy_conn {
     uint64_t bytes_c2s;
     uint64_t bytes_s2c;
     
-    uint8_t  syn_retries;
-    uint8_t  _pad[3];
+    struct tcp_syn_options client_opts;
     
 } __attribute__((aligned(64)));
 
-// Process-private, never in shared memory. The control word took the place of
-// the 4-byte state field, so every field keeps its offset; size and alignment
-// stay as they were.
+// Process-private, never in shared memory: only its size and alignment are
+// pinned, and which cache line some fields are on. The first line holds what
+// every packet reads (the 4-tuple, the control word, the sequence deltas);
+// the fields written per packet are on the second, so that the inbound and
+// the outbound lcore of a connection do not take the first line from each
+// other on every packet.
 _Static_assert(sizeof(struct syn_proxy_conn) == 192, "syn_proxy_conn must stay 192 bytes");
 _Static_assert(_Alignof(struct syn_proxy_conn) == 64, "syn_proxy_conn must stay cache-line aligned");
+_Static_assert(offsetof(struct syn_proxy_conn, seq_delta_s2c) < 64 &&
+               offsetof(struct syn_proxy_conn, client_next_ack) >= 64 &&
+               offsetof(struct syn_proxy_conn, bytes_s2c) + sizeof(uint64_t) <= 128,
+               "the fields written per packet must stay on the second cache line");
+
+// ==================== Close Timeouts ====================
+
+/**
+ * How long the cleanup keeps a proxied entry in CLOSING (both sides have sent
+ * FIN, and a FIN is not acknowledged yet) without a segment, at most the idle
+ * timeout. The FIN's sender retransmits it (and the data before it) with
+ * exponential backoff until it is acknowledged; every retransmission needs
+ * translating, and one that comes after the entry is gone reaches the peer in
+ * the wrong numbering, so the peer never gets the last bytes. 60 s is the
+ * FIN_WAIT_2 timeout of Linux (tcp_fin_timeout) and covers about eight
+ * consecutive losses at a 200 ms RTO. A close is normally released by its
+ * last ACK long before; an attacker can already hold an ESTABLISHED entry for
+ * the idle timeout.
+ */
+#define SYN_PROXY_CLOSING_TIMEOUT_SEC   60
+
+/**
+ * How long the cleanup keeps a proxied entry in CLOSED (its close is complete:
+ * both FINs are acknowledged) without a segment, at most the idle timeout: a
+ * TIME_WAIT for the proxy. If the last ACK is lost beyond the proxy, the
+ * passive closer retransmits its FIN after its RTO, and the active closer
+ * answers it again; both still need translating. Every translated segment
+ * restarts the wait. A new SYN on the 4-tuple ends the wait at once. The
+ * table cost is the close rate times this time.
+ */
+#define SYN_PROXY_TIME_WAIT_SEC         5
 
 // ==================== Result Structure ====================
 
 struct syn_proxy_result {
     enum syn_proxy_action action;
     bool packet_modified;
+    // With SYN_PROXY_DROP: why, as a DROP_REASON_* code of layer1.h. 0 is a
+    // drop of the cookie path (Stage 9 reports DROP_REASON_COOKIE_INVALID);
+    // DROP_REASON_SPOOFED_TCP is an RST outside its connection's window.
+    uint8_t drop_reason;
+    // With SYN_PROXY_FORWARD: an RST forwarded without ending the entry (not
+    // at the receiver's next sequence), which the flow must not trust either
+    bool rst_unconfirmed;
     struct rte_mbuf *reply_pkt;
     enum syn_proxy_state conn_state;
     uint32_t conn_id;
@@ -152,6 +201,10 @@ struct syn_proxy_stats {
 
     // Spoofed-mode challenge counters
     uint64_t challenged_spoofed_mode; // SYNs challenged because spoofed attack mode active
+
+    // RST validation (see "RST validation" in syn_proxy.c)
+    uint64_t rst_unconfirmed;         // Forwarded but not at the receiver's next sequence: the entry stays
+    uint64_t rst_dropped;             // Dropped: outside the receiver's window, or not exact while waiting on the server
 };
 
 // ==================== Public API ====================

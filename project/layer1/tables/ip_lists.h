@@ -510,18 +510,117 @@ bool ip_protected_lookup_profile_pos(uint32_t ip,
 bool ip_protected_proto_rate_check(int32_t pos, uint8_t protocol,
                                    uint32_t limit_pps);
 
+// ==================== Test Seams ====================
+
 /**
- * Mark source IP as legitimate after passing SYN proxy challenge.
+ * Test seam: every writer of the whitelist, the blacklist, the protected
+ * list, the CIDR whitelist and the protected subnets calls it once, after its
+ * table change and while it holds the module's writer lock. The library's
+ * weak definition does nothing; a unit test may link its own.
+ */
+void ip_lists_write_seam(void);
+
+/**
+ * Whether a writer holds the module's writer lock (for the test seam above).
+ */
+bool ip_lists_writer_lock_held(void);
+
+// ==================== Legitimate Sources ====================
+//
+// Sources that returned a valid SYN cookie. The SYN proxy marks a source
+// when its cookie validates (legitimate_ip_add()); the mark lasts until the
+// TTL after that proof has passed. No decision reads it:
+// syn_proxy_should_challenge() challenges a marked source like any other,
+// because exempting it let one source that completed one handshake fill the
+// SYN proxy table under attack (see there). The table is not the whitelist,
+// Stage 5 never reads it, and the packets of a marked source's proxied
+// connections still reach Stage 9 for translation. Nothing refreshes an
+// entry but a new valid cookie, so one handshake buys at most one TTL. The
+// table holds at most its size, never grows, and every packet lcore may add
+// to it and look it up (see ip_lists.c).
+
+#define LEGITIMATE_DEFAULT_TABLE_SIZE  100000u     // layer1_config.json legitimate_table_size
+#define LEGITIMATE_DEFAULT_TTL_SEC     300u        // layer1_config.json legitimate_ttl_sec
+#define LEGITIMATE_MAX_TABLE_SIZE      (1u << 24)
+#define LEGITIMATE_MAX_TTL_SEC         86400u
+
+/**
+ * Create the legitimate-source table (again, empty, if it exists).
+ *
+ * @param table_size  Entries it holds, rounded up to a power of two
+ *                    (0 = LEGITIMATE_DEFAULT_TABLE_SIZE, at most
+ *                    LEGITIMATE_MAX_TABLE_SIZE)
+ * @param ttl_sec     How long a valid cookie keeps its source legitimate
+ *                    (0 = LEGITIMATE_DEFAULT_TTL_SEC, at most
+ *                    LEGITIMATE_MAX_TTL_SEC)
+ * @return 0 on success, -1 if the memory cannot be allocated (no source is
+ *         then marked)
+ */
+int legitimate_ip_init(uint32_t table_size, uint32_t ttl_sec);
+
+/**
+ * Free the legitimate-source table. Not safe while packet lcores use it.
+ */
+void legitimate_ip_free(void);
+
+/**
+ * Mark a source legitimate: it returned a valid SYN cookie. Its entry
+ * expires ttl_sec from now; an entry it already had is renewed. If its set
+ * of the table is full, the entry that expires first gives way. A no-op
+ * before legitimate_ip_init() and for source 0. Safe on every lcore.
+ *
+ * @param src_ip  Source IP, network byte order
  */
 void legitimate_ip_add(uint32_t src_ip);
 
 /**
- * Remove expired entries from the legitimate IP table.
- * Called periodically to prevent unbounded growth.
+ * Whether a source returned a valid SYN cookie within the TTL. Reads one
+ * cache line; safe on every lcore. false before legitimate_ip_init().
+ *
+ * @param src_ip  Source IP, network byte order
+ */
+bool legitimate_ip_lookup(uint32_t src_ip);
+
+/**
+ * Remove expired entries (maintenance, once a second on the main lcore).
+ * Each call examines at most 16384 entries and the next resumes there; an
+ * expired entry counts as absent before it is removed.
  *
  * @return Number of entries removed
  */
 uint32_t legitimate_ip_cleanup(void);
+
+/**
+ * Number of entries that have not expired (scans the whole table: for
+ * diagnostics and tests, not for the packet path).
+ */
+uint32_t legitimate_ip_count(void);
+
+/**
+ * Number of entries the table holds (its size after rounding), 0 before
+ * legitimate_ip_init().
+ */
+uint32_t legitimate_ip_capacity(void);
+
+/**
+ * Remove every entry.
+ */
+void legitimate_ip_clear(void);
+
+/**
+ * Test seam: the TSC time the legitimate-source table reads for its
+ * expiry ticks. The library's weak definition returns rte_get_tsc_cycles();
+ * a unit test may link its own to let entries expire without waiting.
+ */
+uint64_t legitimate_ip_clock(void);
+
+/**
+ * Test seam: legitimate_ip_add() calls it between choosing the word it takes
+ * and its compare-and-swap of that word, where another lcore may take the
+ * word first. The library's weak definition does nothing; a unit test may
+ * link its own.
+ */
+void legitimate_ip_add_seam(void);
 
 /**
  * Reset per-protocol rate counters for all protected IPs.

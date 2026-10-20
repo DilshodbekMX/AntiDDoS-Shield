@@ -16,6 +16,17 @@
  *
  * Uses sliding window algorithm for time-based limits.
  * All operations are thread-safe for multi-core RSS.
+ *
+ * Thread safety:
+ * - Lookups take no lock of this module. Every add and delete of the table
+ *   holds its writer lock: the hash (RTE_HASH_EXTRA_FLAGS_RW_CONCURRENCY)
+ *   makes readers safe against one writer at a time, not writers against
+ *   each other.
+ * - A tracker is indexed by its IP's position in the table. A deleted IP's
+ *   position (and tracker) is reused only after every registered flow table
+ *   reader has reported a quiescent state since the delete (see "Deferred
+ *   Reclamation" in flow_table.h): a packet lcore uses the tracker after its
+ *   lookup.
  */
 
 // ==================== Configuration ====================
@@ -114,5 +125,47 @@ bool connection_limits_get_count(uint32_t ip, uint32_t *active, uint32_t *total)
 void connection_limits_get_stats(uint32_t *tracked_ips,
                                  uint32_t *total_connections,
                                  uint64_t *limits_exceeded);
+
+/**
+ * Position of a tracked IP in the table (its tracker), or -1 if the IP is
+ * not tracked. For tests and diagnostics.
+ */
+int32_t connection_limits_position(uint32_t ip);
+
+/**
+ * Number of deleted IPs' positions waiting for the readers' grace period.
+ */
+uint32_t connection_limits_positions_waiting(void);
+
+// ==================== Test Seams ====================
+
+/**
+ * Points at which connection_limits_check() and
+ * connection_limits_cleanup_expired() call connection_limits_seam():
+ * moments at which another lcore could act on the same IP. "Under the
+ * lock" means with the table's writer lock held.
+ */
+enum connection_limits_seam_point {
+    CONNLIM_SEAM_MISSED = 0,    // check: the lookup missed, before the IP is added (no lock)
+    CONNLIM_SEAM_ADD,           // check: under the lock, before the IP is added
+    CONNLIM_SEAM_PUBLISH,       // check: the IP is added (other lcores find it), under the lock, before its tracker is set up
+    CONNLIM_SEAM_HIT,           // check: the IP's tracker was found, before it is used (no lock)
+    CONNLIM_SEAM_CLEANUP_SCAN,  // cleanup: the pass has read its clock, before its scan (no lock)
+    CONNLIM_SEAM_CLEANUP_DELETE,// cleanup: an expired IP passed its recheck, under the lock, before its delete
+    CONNLIM_SEAM_MAX
+};
+
+/**
+ * Test seam: called at each point of enum connection_limits_seam_point. The
+ * library's weak definition does nothing; a unit test may link its own to
+ * act there as another lcore would. At a point under the lock an override
+ * must not add or delete IPs (the lock is not recursive).
+ */
+void connection_limits_seam(enum connection_limits_seam_point point);
+
+/**
+ * True while some thread holds the table's writer lock (for tests).
+ */
+bool connection_limits_writer_lock_held(void);
 
 #endif // LAYER1_CONNECTION_LIMITS_H

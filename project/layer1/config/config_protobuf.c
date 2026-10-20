@@ -777,6 +777,9 @@ static bool parse_signatures_section(json_parser_t *p, struct signatures_cfg *cf
         } else if (strcmp(key, "block_attack_tools") == 0) {
             if (!json_parse_bool(p, &bval)) return false;
             cfg->block_attack_tools = bval;
+        } else if (strcmp(key, "strict_syn_scan") == 0) {
+            if (!json_parse_bool(p, &bval)) return false;
+            cfg->strict_syn_scan = bval;
         } else {
             if (!json_skip_value(p)) return false;
         }

@@ -25,6 +25,19 @@
  * Integration with Layer 4 (Continuous Reputation):
  * - Rate limit violations reported via feedback queue
  * - Layer 4 can boost suspicion score on repeated violations
+ *
+ * Thread safety:
+ * - tcp_flag_rate_check(): safe from every lcore and thread at once. Lookups
+ *   take no lock; adding a new source holds the table's writer lock.
+ * - tcp_flag_rate_cleanup_expired(): from one maintenance thread at a time;
+ *   each delete holds the writer lock.
+ * - A deleted source's position (its bucket) is reused only after every
+ *   registered flow table reader has reported a quiescent state since the
+ *   delete (see "Deferred Reclamation" in flow_table.h): the packet lcores
+ *   use buckets after their lookups.
+ * - A new source that finds the table full of live sources is accepted
+ *   without a bucket (counted as table_full): a full table says nothing
+ *   about that source, so it is not dropped for it.
  */
 
 // ==================== TCP Flag Classes ====================
@@ -105,8 +118,10 @@ struct tcp_flag_rate_stats {
     uint64_t packets_checked;               // Total packets checked
     uint64_t packets_accepted;              // Packets accepted
     uint64_t drops_per_class[TCPF_MAX];     // Drops per flag class
-    uint64_t current_entries;               // Current entries in hash
+    uint64_t current_entries;               // Positions in use: tracked sources plus positions_waiting
     uint64_t cleanups_performed;            // Number of cleanup cycles
+    uint64_t table_full;                    // New sources accepted untracked: no free position
+    uint64_t positions_waiting;             // Deleted positions waiting for the readers' grace period
 };
 
 // ==================== Public API ====================
@@ -217,6 +232,8 @@ void tcp_flag_rate_reset_stats(void);
 /**
  * Cleanup expired entries.
  * Should be called periodically from maintenance thread.
+ * Also returns to the table the positions of sources deleted earlier whose
+ * grace period is over (see "Thread safety" above).
  *
  * @return Number of entries cleaned up
  */
@@ -235,5 +252,41 @@ int tcp_flag_rate_set_limit(enum tcp_flag_class flag_class, uint32_t pps_limit);
  * Check if rate limiting is enabled.
  */
 bool tcp_flag_rate_is_enabled(void);
+
+/**
+ * Position of a tracked source in the table (its bucket), or -1 if the
+ * source is not tracked. For tests and diagnostics.
+ */
+int32_t tcp_flag_rate_position(uint32_t src_ip);
+
+// ==================== Test Seams ====================
+
+/**
+ * Points at which tcp_flag_rate_check() and tcp_flag_rate_cleanup_expired()
+ * call tcp_flag_rate_seam(): moments at which another lcore could act on
+ * the same source. "Under the lock" means with the table's writer lock held.
+ */
+enum tcp_flag_rate_seam_point {
+    TCPF_SEAM_HIT = 0,          // check: the lookup found the source, before its bucket is used (no lock)
+    TCPF_SEAM_MISSED,           // check: the lookup missed, before the source is added (no lock)
+    TCPF_SEAM_ADD,              // check: a new source, under the lock, before its key is added
+    TCPF_SEAM_PUBLISH,          // check: the new bucket is set up, under the lock, before it is published
+    TCPF_SEAM_CLEANUP_SCAN,     // cleanup: the pass has read its clock, before its scan (no lock)
+    TCPF_SEAM_CLEANUP_DELETE,   // cleanup: an expired source passed its recheck, under the lock, before its delete
+    TCPF_SEAM_MAX
+};
+
+/**
+ * Test seam: called at each point of enum tcp_flag_rate_seam_point. The
+ * library's weak definition does nothing; a unit test may link its own to
+ * act there as another lcore would. At a point under the lock an override
+ * must not add or delete sources (the lock is not recursive).
+ */
+void tcp_flag_rate_seam(enum tcp_flag_rate_seam_point point);
+
+/**
+ * True while some thread holds the table's writer lock (for tests).
+ */
+bool tcp_flag_rate_writer_lock_held(void);
 
 #endif // LAYER1_TCP_FLAG_RATE_LIMIT_H

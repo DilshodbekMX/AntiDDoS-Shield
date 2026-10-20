@@ -102,6 +102,29 @@ uint32_t flow_limbo_waiting(const struct flow_limbo *l);
 void flow_limbo_check_stall(struct flow_limbo *l, uint64_t now_tsc, uint64_t stall_tsc,
                             const char *table);
 
+/**
+ * Look for stalled readers (see "Deferred Reclamation" in flow_table.h).
+ * Each registered reader that has not reported a quiescent state since a
+ * probe token issued more than stall_tsc before now_tsc is marked stalled,
+ * logged at WARNING and counted, once; a marked reader that has reported
+ * since is unmarked (logged at NOTICE). Then the next probe is issued when
+ * the last one is acknowledged or old enough. Both tables' aging calls it on
+ * the maintenance lcore; a call that finds another one running returns.
+ */
+void flow_readers_watch(uint64_t now_tsc, uint64_t stall_tsc);
+
+// ==================== Vouching Segments ====================
+
+/**
+ * Whether a TCP segment with these flags vouches for a connection of its
+ * sender (see FLOW_VOUCHED_BY_LO in flow_table.h): a SYN without ACK (it
+ * opens one), or an ACK without SYN (it holds one), and no RST
+ */
+static inline bool flow_tcp_segment_vouches(uint8_t tcp_flags) {
+    uint8_t syn_ack = tcp_flags & (TCP_FLAG_SYN | TCP_FLAG_ACK);
+    return !(tcp_flags & TCP_FLAG_RST) && (syn_ack == TCP_FLAG_SYN || syn_ack == TCP_FLAG_ACK);
+}
+
 // ==================== Hash Seed ====================
 
 /**

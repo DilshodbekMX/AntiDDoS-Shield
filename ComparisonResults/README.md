@@ -557,10 +557,9 @@ to `895e581`); and the 39 names of this revision. All p-values stay descriptive.
   features instead of 10.
 - The engine changes of this revision, under `project/layer1/`, `project/core/`,
   `project/common/` and `project/tests/` (listed in `project/LAYER1_FIXES.md`), enter no scored
-  record. The pre-registration says so of the syn_proxy and flow_table fixes; the others
-  (HyperLogLog, flow hash, per-IP features, packet parser, `simd_utils.h`, the DPDK lcore loop) were
-  not pre-registered and enter none either: `run_c_engine_ours.py` builds only the Layer 2 sources it
-  lists, the shared library it builds is byte-identical with and without them, and with the first
+  record. The pre-registration says so of the syn_proxy and flow_table fixes; the other fixes that
+  file lists were not pre-registered and enter none either: `run_c_engine_ours.py` builds only the
+  Layer 2 sources it lists, the shared library it builds is byte-identical with and without them, and with the first
   of them applied it wrote the `895e581` record byte for byte on the 37-name tree.
 
 **The tree.** Rebuilt from the raw releases with the patched chain (`extraction/README.md`,

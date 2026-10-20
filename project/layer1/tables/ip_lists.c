@@ -7,6 +7,10 @@
 #include <rte_flow.h>
 #include <rte_ethdev.h>
 #include <rte_atomic.h>   // rte_smp_wmb
+#include <rte_spinlock.h>
+#include <rte_malloc.h>
+#include <rte_cycles.h>
+#include <rte_random.h>
 #include <string.h>
 #include <stdlib.h>
 #include <netinet/in.h>
@@ -14,6 +18,37 @@
 #define RTE_LOGTYPE_IPLIST RTE_LOGTYPE_USER5
 
 // ==================== Global State ====================
+
+// Every writer of the three hashes and the two LPM tables below takes this
+// lock. The hashes are created with RTE_HASH_EXTRA_FLAGS_RW_CONCURRENCY and
+// without MULTI_WRITER_ADD: lookups may run on every lcore while one thread
+// writes, but two writers at once can take the same free key slot (rte_hash
+// takes it with a single-consumer ring dequeue after releasing its own writer
+// lock), which loses a key and leaves a ghost bucket entry. rte_lpm_add() and
+// rte_lpm_delete(), the protected-subnet side table and the per-IP feature
+// registration have no writer locking of their own. The writers are the
+// control socket thread, ip_lists_load() at init and tests; the packet path
+// only reads these tables (the legitimate-source table, which packet lcores
+// write, is separate and lock-free, see "Legitimate Sources").
+static rte_spinlock_t lists_write_lock = RTE_SPINLOCK_INITIALIZER;
+
+// Test seam (see ip_lists.h): this weak default does nothing
+__attribute__((weak)) void ip_lists_write_seam(void) {
+}
+
+static inline void lists_write_begin(void) {
+    rte_spinlock_lock(&lists_write_lock);
+}
+
+// The writer's table change is done: the seam runs while the lock is held
+static inline void lists_write_end(void) {
+    ip_lists_write_seam();
+    rte_spinlock_unlock(&lists_write_lock);
+}
+
+bool ip_lists_writer_lock_held(void) {
+    return rte_spinlock_is_locked(&lists_write_lock) != 0;
+}
 
 static struct rte_hash *whitelist_hash = NULL;
 static struct rte_hash *blacklist_hash = NULL;
@@ -251,7 +286,9 @@ int ip_whitelist_add(uint32_t ip, uint8_t mode) {
 
     /* Store mode + 1 as data so 0 can mean "not found" in lookup */
     uintptr_t data_val = (uintptr_t)(mode + 1);
+    lists_write_begin();
     ret = rte_hash_add_key_data(whitelist_hash, &ip, (void *)data_val);
+    lists_write_end();
     if (ret < 0) {
         RTE_LOG(ERR, IPLIST, "Failed to add IP to whitelist: 0x%08x\n",
                 rte_be_to_cpu_32(ip));
@@ -274,7 +311,9 @@ int ip_whitelist_remove(uint32_t ip) {
         return -1;
     }
 
+    lists_write_begin();
     ret = rte_hash_del_key(whitelist_hash, &ip);
+    lists_write_end();
     if (ret < 0) {
         return -1;  // Not found
     }
@@ -321,7 +360,9 @@ bool ip_whitelist_lookup(uint32_t ip, uint8_t *mode) {
 
 void ip_whitelist_clear(void) {
     if (whitelist_hash) {
+        lists_write_begin();
         rte_hash_reset(whitelist_hash);
+        lists_write_end();
         RTE_LOG(INFO, IPLIST, "Whitelist cleared\n");
     }
 }
@@ -345,7 +386,12 @@ int ip_whitelist_cidr_add(uint32_t ip_prefix, uint8_t depth) {
         return -1;
     }
 
+    lists_write_begin();
     int ret = rte_lpm_add(whitelist_lpm, ip_prefix, depth, LPM_WHITELIST_NEXTHOP);
+    if (ret >= 0) {
+        __atomic_add_fetch(&whitelist_cidr_entries, 1, __ATOMIC_RELAXED);
+    }
+    lists_write_end();
     if (ret < 0) {
         RTE_LOG(ERR, IPLIST, "Failed to add CIDR to whitelist: %u.%u.%u.%u/%u (err=%d)\n",
                 (ip_prefix >> 24) & 0xFF,
@@ -355,8 +401,6 @@ int ip_whitelist_cidr_add(uint32_t ip_prefix, uint8_t depth) {
                 depth, ret);
         return -1;
     }
-
-    __atomic_add_fetch(&whitelist_cidr_entries, 1, __ATOMIC_RELAXED);
 
     RTE_LOG(INFO, IPLIST, "Added CIDR to whitelist: %u.%u.%u.%u/%u\n",
             (ip_prefix >> 24) & 0xFF,
@@ -377,12 +421,15 @@ int ip_whitelist_cidr_remove(uint32_t ip_prefix, uint8_t depth) {
         return -1;
     }
 
+    lists_write_begin();
     int ret = rte_lpm_delete(whitelist_lpm, ip_prefix, depth);
+    if (ret >= 0) {
+        __atomic_sub_fetch(&whitelist_cidr_entries, 1, __ATOMIC_RELAXED);
+    }
+    lists_write_end();
     if (ret < 0) {
         return -1;  // Not found
     }
-
-    __atomic_sub_fetch(&whitelist_cidr_entries, 1, __ATOMIC_RELAXED);
 
     RTE_LOG(INFO, IPLIST, "Removed CIDR from whitelist: %u.%u.%u.%u/%u\n",
             (ip_prefix >> 24) & 0xFF,
@@ -411,8 +458,10 @@ bool ip_whitelist_cidr_lookup(uint32_t ip) {
 
 void ip_whitelist_cidr_clear(void) {
     if (whitelist_lpm) {
+        lists_write_begin();
         rte_lpm_delete_all(whitelist_lpm);
         __atomic_store_n(&whitelist_cidr_entries, 0, __ATOMIC_RELAXED);
+        lists_write_end();
         RTE_LOG(INFO, IPLIST, "CIDR whitelist cleared\n");
     }
 }
@@ -430,7 +479,9 @@ int ip_blacklist_add(uint32_t ip) {
         return -1;
     }
 
+    lists_write_begin();
     ret = rte_hash_add_key_data(blacklist_hash, &ip, (void *)(uintptr_t)PRESENT);
+    lists_write_end();
     if (ret < 0) {
         RTE_LOG(ERR, IPLIST, "Failed to add IP to blacklist: 0x%08x\n",
                 rte_be_to_cpu_32(ip));
@@ -453,7 +504,9 @@ int ip_blacklist_remove(uint32_t ip) {
         return -1;
     }
 
+    lists_write_begin();
     ret = rte_hash_del_key(blacklist_hash, &ip);
+    lists_write_end();
     if (ret < 0) {
         return -1;  // Not found
     }
@@ -485,7 +538,9 @@ bool ip_blacklist_lookup(uint32_t ip) {
 
 void ip_blacklist_clear(void) {
     if (blacklist_hash) {
+        lists_write_begin();
         rte_hash_reset(blacklist_hash);
+        lists_write_end();
         RTE_LOG(INFO, IPLIST, "Blacklist cleared\n");
     }
 }
@@ -506,16 +561,21 @@ int ip_protected_add(uint32_t ip) {
         return -1;
     }
 
+    lists_write_begin();
     ret = rte_hash_add_key_data(protected_hash, &ip, (void *)(uintptr_t)PRESENT);
     if (ret < 0) {
+        lists_write_end();
         RTE_LOG(ERR, IPLIST, "Failed to add IP to protected list: 0x%08x\n",
                 rte_be_to_cpu_32(ip));
         return -1;
     }
 
-    // Register for per-IP feature tracking (if initialized)
-    if (per_ip_features_is_initialized()) {
-        int reg_ret = per_ip_features_register(ip);
+    // Register for per-IP feature tracking (if initialized). Its table has
+    // one writer at a time too, so the registration stays under the lock.
+    bool features_on = per_ip_features_is_initialized();
+    int reg_ret = features_on ? per_ip_features_register(ip) : 0;
+    lists_write_end();
+    if (features_on) {
         if (reg_ret < 0) {
             RTE_LOG(ERR, IPLIST, "FAILED to register IP for per-IP features: %u.%u.%u.%u\n",
                     (rte_be_to_cpu_32(ip) >> 24) & 0xFF,
@@ -553,14 +613,15 @@ int ip_protected_remove(uint32_t ip) {
         return -1;
     }
 
+    lists_write_begin();
     ret = rte_hash_del_key(protected_hash, &ip);
+    // Unregister from per-IP feature tracking (if initialized)
+    if (ret >= 0 && per_ip_features_is_initialized()) {
+        per_ip_features_unregister(ip);
+    }
+    lists_write_end();
     if (ret < 0) {
         return -1;  // Not found
-    }
-
-    // Unregister from per-IP feature tracking (if initialized)
-    if (per_ip_features_is_initialized()) {
-        per_ip_features_unregister(ip);
     }
 
     RTE_LOG(INFO, IPLIST, "Removed protected server IP: %u.%u.%u.%u\n",
@@ -591,7 +652,9 @@ bool ip_protected_lookup(uint32_t ip) {
 
 void ip_protected_clear(void) {
     if (protected_hash) {
+        lists_write_begin();
         rte_hash_reset(protected_hash);
+        lists_write_end();
         RTE_LOG(INFO, IPLIST, "Protected list cleared\n");
     }
 }
@@ -624,7 +687,8 @@ static int protected_subnet_find(uint32_t network, uint8_t depth) {
     return -1;
 }
 
-int ip_protected_subnet_add(uint32_t ip_prefix, uint8_t depth) {
+// The writers of the protected-subnet side table and LPM, under lists_write_lock
+static int protected_subnet_add_locked(uint32_t ip_prefix, uint8_t depth) {
     if (!protected_lpm) {
         return -1;
     }
@@ -696,7 +760,7 @@ int ip_protected_subnet_add(uint32_t ip_prefix, uint8_t depth) {
     return 0;
 }
 
-int ip_protected_subnet_remove(uint32_t ip_prefix, uint8_t depth) {
+static int protected_subnet_remove_locked(uint32_t ip_prefix, uint8_t depth) {
     if (!protected_lpm) {
         return -1;
     }
@@ -724,6 +788,20 @@ int ip_protected_subnet_remove(uint32_t ip_prefix, uint8_t depth) {
     return 0;
 }
 
+int ip_protected_subnet_add(uint32_t ip_prefix, uint8_t depth) {
+    lists_write_begin();
+    int ret = protected_subnet_add_locked(ip_prefix, depth);
+    lists_write_end();
+    return ret;
+}
+
+int ip_protected_subnet_remove(uint32_t ip_prefix, uint8_t depth) {
+    lists_write_begin();
+    int ret = protected_subnet_remove_locked(ip_prefix, depth);
+    lists_write_end();
+    return ret;
+}
+
 bool ip_protected_subnet_lookup(uint32_t dst_ip, uint32_t *net_be_out) {
     if (!protected_lpm) {
         return false;
@@ -743,7 +821,7 @@ bool ip_protected_subnet_lookup(uint32_t dst_ip, uint32_t *net_be_out) {
     return true;
 }
 
-void ip_protected_subnet_clear(void) {
+static void protected_subnet_clear_locked(void) {
     if (!protected_lpm) {
         return;
     }
@@ -759,6 +837,12 @@ void ip_protected_subnet_clear(void) {
     }
     protected_subnet_entries = 0;
     RTE_LOG(INFO, IPLIST, "Protected subnets cleared\n");
+}
+
+void ip_protected_subnet_clear(void) {
+    lists_write_begin();
+    protected_subnet_clear_locked();
+    lists_write_end();
 }
 
 uint32_t ip_protected_subnet_count(void) {
@@ -1449,11 +1533,6 @@ bool ip_protected_proto_rate_check(int32_t pos, uint8_t protocol,
     return true;  // Allow
 }
 
-void legitimate_ip_add(uint32_t src_ip) {
-    // Stub: add to whitelist in bypass mode
-    ip_whitelist_add(src_ip, WL_MODE_BYPASS);
-}
-
 uint8_t profile_proto_action(const struct protection_profile *p, uint8_t proto) {
     if (!p) return PROFILE_PROTO_ALLOW;
     (void)proto;
@@ -1494,11 +1573,236 @@ uint32_t profile_proto_rate_limit(const struct protection_profile *p,
     return 0;  // No rate limit
 }
 
-uint32_t legitimate_ip_cleanup(void) {
-    /* Stub: no expiry tracking in stub implementation */
+void ip_protected_proto_counters_reset(void) {
+    /* Stub: no per-protocol rate counters in stub implementation */
+}
+
+// ==================== Legitimate Sources ====================
+//
+// The table of sources that returned a valid SYN cookie (see ip_lists.h).
+// Every packet lcore adds to it (the lcore that validates a cookie), and the
+// main lcore expires entries, all without a lock. A lookup is safe on every
+// lcore, but no decision makes one: syn_proxy_should_challenge() challenges a
+// marked source like any other (see ip_lists.h). legitimate_ip_add() used to
+// whitelist the source in bypass mode, with no expiry: Stage 5 then accepted
+// all its later packets at once, so the segments of its proxied connection
+// skipped Stage 9 and went out untranslated (every challenged connection
+// broke), and the source skipped every protection from then on.
+//
+// The table is an array of 64-bit words, each one entry: the source IP
+// (network byte order) in the high half and the tick its proof expires in the
+// low half; 0 is an empty word. Words are read and written whole, with
+// atomics: a reader sees a whole entry or none. An add and the cleanup change
+// a word only by compare-and-swap, so they change it only while it holds what
+// they read (legitimate_ip_clear() stores 0 into every word).
+//
+// The array is split into sets of LEGIT_WAYS words, one cache line each. A
+// source lives only in the set its hash picks, keyed with a random value at
+// init so that a sender cannot aim its sources at another source's set, and a
+// lookup reads that one line. An add renews the source's own word if the set
+// has one; otherwise it takes an empty or expired word, or else the word that
+// expires first. When another lcore changes the chosen word first, the swap
+// fails and the add looks again, twice in all; then it gives up, and the
+// source is simply not marked.
+//
+// Expiry is in ticks of 2^legit_tick_shift TSC cycles, between 1/16 and 1/8
+// of a second. A word is valid while 0 < expiry - now <= legit_ttl_ticks +
+// LEGIT_CLOCK_SLACK in 32-bit wrapping arithmetic, which holds across the wrap
+// of the 32-bit tick (every 8 years or more). The slack is for a reader whose
+// clock lags the writer's: a cleanup pass reads the clock once and meets
+// words added after the tick moved on, and lcores read their TSCs at slightly
+// different moments. Without it such a word, its expiry just over the TTL
+// ahead, looked like garbage, and the cleanup removed a fresh entry. A word
+// further ahead is garbage; legitimate_ip_cleanup() clears it and every
+// expired word, so none stays long enough to look valid after a wrap.
+
+#define LEGIT_WAYS            8        // Words per set: one 64-byte cache line
+#define LEGIT_CLEANUP_BUDGET  16384    // Words one legitimate_ip_cleanup() call examines
+#define LEGIT_CLOCK_SLACK     64       // Ticks, 4 to 8 s
+
+static uint64_t *legit_words = NULL;
+static uint32_t legit_nwords = 0;        // A power of two, at least LEGIT_WAYS
+static uint32_t legit_set_mask = 0;      // Number of sets - 1
+static uint64_t legit_key = 0;           // Hash key, random at init
+static uint32_t legit_ttl_ticks = 0;
+static unsigned int legit_tick_shift = 0;
+static uint32_t legit_cleanup_pos = 0;   // Where the next cleanup resumes (main lcore only)
+
+// Test seam (see ip_lists.h): this weak default reads the TSC
+__attribute__((weak)) uint64_t legitimate_ip_clock(void) {
+    return rte_get_tsc_cycles();
+}
+
+// Test seam (see ip_lists.h): this weak default does nothing
+__attribute__((weak)) void legitimate_ip_add_seam(void) {
+}
+
+static inline uint32_t legit_now(void) {
+    return (uint32_t)(legitimate_ip_clock() >> legit_tick_shift);
+}
+
+static inline bool legit_word_valid(uint64_t w, uint32_t now) {
+    return w != 0 && (uint32_t)((uint32_t)w - now - 1) < legit_ttl_ticks + LEGIT_CLOCK_SLACK;
+}
+
+// The 64-bit finalizer of MurmurHash3 (fmix64), which hyperloglog.c uses too:
+// every output bit depends on every input bit, so structured addresses
+// (consecutive, or differing in one byte) spread over the sets
+static inline uint64_t legit_fmix64(uint64_t h) {
+    h ^= h >> 33;
+    h *= 0xff51afd7ed558ccdULL;
+    h ^= h >> 33;
+    h *= 0xc4ceb9fe1a85ec53ULL;
+    h ^= h >> 33;
+    return h;
+}
+
+static inline uint64_t *legit_set(uint32_t src_ip) {
+    uint64_t h = legit_fmix64((uint64_t)src_ip ^ legit_key);
+    return &legit_words[(size_t)((uint32_t)h & legit_set_mask) * LEGIT_WAYS];
+}
+
+int legitimate_ip_init(uint32_t table_size, uint32_t ttl_sec) {
+    legitimate_ip_free();
+
+    if (table_size == 0) table_size = LEGITIMATE_DEFAULT_TABLE_SIZE;
+    if (table_size > LEGITIMATE_MAX_TABLE_SIZE) table_size = LEGITIMATE_MAX_TABLE_SIZE;
+    if (table_size < LEGIT_WAYS) table_size = LEGIT_WAYS;
+    if (ttl_sec == 0) ttl_sec = LEGITIMATE_DEFAULT_TTL_SEC;
+    if (ttl_sec > LEGITIMATE_MAX_TTL_SEC) ttl_sec = LEGITIMATE_MAX_TTL_SEC;
+
+    uint32_t nwords = rte_align32pow2(table_size);
+    uint64_t *words = rte_zmalloc("legitimate_sources", (size_t)nwords * sizeof(uint64_t),
+                                  RTE_CACHE_LINE_SIZE);
+    if (!words) {
+        RTE_LOG(ERR, IPLIST, "Failed to allocate the legitimate-source table (%u entries)\n",
+                nwords);
+        return -1;
+    }
+
+    // A tick of 2^shift cycles, 2^bits <= hz < 2^(bits + 1): 1/16 to 1/8 s
+    uint64_t hz = rte_get_tsc_hz();
+    unsigned int bits = hz ? 63u - (unsigned int)__builtin_clzll(hz) : 0;
+    legit_tick_shift = bits > 3 ? bits - 3 : 0;
+    uint64_t ticks = ((uint64_t)ttl_sec * hz + (1ull << legit_tick_shift) - 1) >> legit_tick_shift;
+    legit_ttl_ticks = ticks ? (uint32_t)ticks : 1;
+    legit_key = rte_rand();
+    legit_set_mask = nwords / LEGIT_WAYS - 1;
+    legit_cleanup_pos = 0;
+    legit_nwords = nwords;
+    legit_words = words;
+
+    RTE_LOG(INFO, IPLIST, "Legitimate-source table: %u entries, TTL %u s\n", nwords, ttl_sec);
     return 0;
 }
 
-void ip_protected_proto_counters_reset(void) {
-    /* Stub: no per-protocol rate counters in stub implementation */
+void legitimate_ip_free(void) {
+    uint64_t *words = legit_words;
+    legit_words = NULL;
+    legit_nwords = 0;
+    legit_set_mask = 0;
+    legit_cleanup_pos = 0;
+    if (words) {
+        rte_free(words);
+    }
+}
+
+void legitimate_ip_add(uint32_t src_ip) {
+    if (unlikely(legit_words == NULL) || src_ip == 0) {
+        return;
+    }
+    uint64_t *set = legit_set(src_ip);
+    const uint32_t now = legit_now();
+    const uint64_t want = ((uint64_t)src_ip << 32) | (uint32_t)(now + legit_ttl_ticks);
+
+    for (int attempt = 0; attempt < 2; attempt++) {
+        int pick = 0;
+        uint64_t pick_word = 0;
+        uint32_t pick_left = UINT32_MAX;   // Ticks the picked entry had left (0: free or expired)
+        for (int i = 0; i < LEGIT_WAYS; i++) {
+            uint64_t w = __atomic_load_n(&set[i], __ATOMIC_RELAXED);
+            if ((uint32_t)(w >> 32) == src_ip) {
+                pick = i;            // The source's own entry: renew it
+                pick_word = w;
+                break;
+            }
+            uint32_t left = legit_word_valid(w, now) ? (uint32_t)w - now : 0;
+            if (left < pick_left) {
+                pick = i;
+                pick_word = w;
+                pick_left = left;
+            }
+        }
+        legitimate_ip_add_seam();
+        if (pick_word == want ||
+            __atomic_compare_exchange_n(&set[pick], &pick_word, want, false,
+                                        __ATOMIC_RELAXED, __ATOMIC_RELAXED)) {
+            return;
+        }
+        // Another lcore changed the word: look again
+    }
+}
+
+bool legitimate_ip_lookup(uint32_t src_ip) {
+    if (unlikely(legit_words == NULL) || src_ip == 0) {
+        return false;
+    }
+    const uint64_t *set = legit_set(src_ip);
+    for (int i = 0; i < LEGIT_WAYS; i++) {
+        uint64_t w = __atomic_load_n(&set[i], __ATOMIC_RELAXED);
+        // The clock is read only for a word of this source, so the SYNs of
+        // other sources (a spoofed flood) cost one cache line and no TSC read
+        if ((uint32_t)(w >> 32) == src_ip && legit_word_valid(w, legit_now())) {
+            return true;
+        }
+    }
+    return false;
+}
+
+uint32_t legitimate_ip_cleanup(void) {
+    if (legit_words == NULL) {
+        return 0;
+    }
+    const uint32_t now = legit_now();
+    const uint32_t mask = legit_nwords - 1;
+    const uint32_t budget = legit_nwords < LEGIT_CLEANUP_BUDGET ? legit_nwords : LEGIT_CLEANUP_BUDGET;
+    uint32_t pos = legit_cleanup_pos;
+    uint32_t removed = 0;
+
+    for (uint32_t n = 0; n < budget; n++, pos = (pos + 1) & mask) {
+        uint64_t w = __atomic_load_n(&legit_words[pos], __ATOMIC_RELAXED);
+        // An add may renew the word meanwhile: the swap then fails and keeps it
+        if (w != 0 && !legit_word_valid(w, now) &&
+            __atomic_compare_exchange_n(&legit_words[pos], &w, 0, false,
+                                        __ATOMIC_RELAXED, __ATOMIC_RELAXED)) {
+            removed++;
+        }
+    }
+    legit_cleanup_pos = pos;
+    return removed;
+}
+
+uint32_t legitimate_ip_count(void) {
+    if (legit_words == NULL) {
+        return 0;
+    }
+    const uint32_t now = legit_now();
+    uint32_t count = 0;
+    for (uint32_t i = 0; i < legit_nwords; i++) {
+        count += legit_word_valid(__atomic_load_n(&legit_words[i], __ATOMIC_RELAXED), now);
+    }
+    return count;
+}
+
+uint32_t legitimate_ip_capacity(void) {
+    return legit_words ? legit_nwords : 0;
+}
+
+void legitimate_ip_clear(void) {
+    if (legit_words == NULL) {
+        return;
+    }
+    for (uint32_t i = 0; i < legit_nwords; i++) {
+        __atomic_store_n(&legit_words[i], 0, __ATOMIC_RELAXED);
+    }
 }

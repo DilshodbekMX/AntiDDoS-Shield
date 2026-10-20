@@ -306,6 +306,10 @@ struct signatures_cfg {
     bool     block_scans;              // Block scan patterns (default: true)
     bool     block_anomalies;          // Block protocol anomalies (default: false - handled by validation)
     bool     block_attack_tools;       // Block attack tool signatures (default: true)
+    bool     strict_syn_scan;          // Drop every SYN-only frame of 60 bytes or less, not only
+                                       // those of a source that scans; also drops stacks such as
+                                       // lwIP that send no options or MSS only (default: false;
+                                       // see signatures.h)
 };
 
 // ==================== Master Configuration ====================

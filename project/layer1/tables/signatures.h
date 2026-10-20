@@ -15,7 +15,8 @@
  *    - High response-to-request ratio
  *
  * 2. Scan Patterns
- *    - TCP SYN scan (rapid SYNs to different ports)
+ *    - TCP SYN scan (rapid SYNs to different ports): a SYN-only frame of
+ *      60 bytes or less is only an indicator, see "SYN scan" below
  *    - UDP scan (many ports, small packets)
  *    - ICMP sweep
  *
@@ -31,6 +32,43 @@
 
 // Maximum number of custom signatures
 #define SIG_MAX_CUSTOM 256
+
+/*
+ * SYN scan (signature SIG_ID_SYN_SCAN)
+ *
+ * A SYN-only TCP frame of 60 bytes or less is what raw-socket scanners send:
+ * no options (54 bytes) or MSS only (58 bytes), padded to the 60-byte Ethernet
+ * minimum. Small TCP stacks such as lwIP send the same SYN, so the frame on
+ * its own is weak evidence. signatures_check() counts every such frame
+ * (syn_scan_indicators) and drops it only when its source also shows a scan
+ * pattern in a per-source tracker of 1 s windows (SIG_SYN_SCAN_WINDOW_MS):
+ *   - SYNs of this kind to destination ports that set SIG_SYN_SCAN_PORTS of
+ *     the tracker's 16 port bits in one window, so at least that many
+ *     distinct ports (a port scan), or
+ *   - SIG_SYN_SCAN_SYNS or more of them in one window (a sweep, or a flood
+ *     from one host; the rate of Stage 9b's default per-source SYN limit).
+ * A source that meets either is dropped for the rest of that window and for
+ * all of the next, so a scan that goes on is dropped from the first SYN of
+ * each window, and a source that stops is admitted again within two windows.
+ * Only these minimal SYNs are dropped: the same source's other traffic, and
+ * any SYN with more options, is not affected.
+ *
+ * The tracker has SIG_SYN_SCAN_SLOTS fixed slots (no allocation, no growth).
+ * A slot holds one source; another source that maps to a slot whose source
+ * is scanning is not tracked (its SYN passes, counted in syn_scan_untracked),
+ * so a source can never be dropped for another source's SYNs. (An IPv6 SYN
+ * frame is at least 74 bytes and never matches, so only IPv4 sources, keyed
+ * by their full address, are tracked.)
+ *
+ * signatures_config.strict_syn_scan (layer1 config signatures.strict_syn_scan)
+ * restores the earlier rule, which dropped every such frame, and with it every
+ * connection from a stack that sends such a SYN.
+ */
+#define SIG_ID_SYN_SCAN          2001   // "TCP SYN scan"
+#define SIG_SYN_SCAN_WINDOW_MS   1000
+#define SIG_SYN_SCAN_PORTS       8      // port bits per window (at least 8 distinct ports)
+#define SIG_SYN_SCAN_SYNS        100    // SYNs per window
+#define SIG_SYN_SCAN_SLOTS       4096   // tracker slots, 8 bytes each
 
 // Signature categories
 enum sig_category {
@@ -74,18 +112,22 @@ struct signatures_config {
     bool block_scans;
     bool block_anomalies;
     bool block_attack_tools;
+    bool strict_syn_scan;    // drop every SIG_ID_SYN_SCAN frame (see above)
 };
 
 // Statistics
 struct signatures_stats {
     uint64_t packets_checked;
-    uint64_t signatures_matched;
+    uint64_t signatures_matched;     // also the SIG_ID_SYN_SCAN frames that pass (SIG_ACTION_LOG)
     uint64_t amplification_detected;
-    uint64_t scans_detected;
+    uint64_t scans_detected;         // scan matches acted on (dropped)
     uint64_t anomalies_detected;
     uint64_t attack_tools_detected;
     uint64_t packets_dropped;
     uint64_t packets_rate_limited;
+    uint64_t syn_scan_indicators;    // SIG_ID_SYN_SCAN frames, dropped or not
+    uint64_t syn_scan_dropped;       // of those, dropped (scan pattern, or strict_syn_scan)
+    uint64_t syn_scan_untracked;     // of those, not tracked: they pass (see above)
 };
 
 /**
@@ -112,7 +154,9 @@ void signatures_cleanup(void);
  * @param tcp_flags  TCP flags (0 for non-TCP)
  * @param pkt_len    Packet length
  * @param ttl        TTL value
- * @param match      Output: matched signature info (if any)
+ * @param match      Output: matched signature info (if any). A match that is
+ *                   not acted on (a SIG_ID_SYN_SCAN frame whose source shows
+ *                   no scan pattern) has action SIG_ACTION_LOG.
  * @return true if signature matched and packet should be dropped
  */
 bool signatures_check(uint8_t protocol,
@@ -184,5 +228,30 @@ uint32_t signatures_get_amplification_list(struct amplification_sig *sigs, uint3
  * @return Description string or NULL
  */
 const char* signatures_get_description(uint32_t sig_id);
+
+/**
+ * Tracker slot of a source address (diagnostics and tests). Sources that
+ * share a slot never share state: a slot records which one it holds.
+ *
+ * @param src_ip  Source IP (network byte order)
+ * @return Slot index, below SIG_SYN_SCAN_SLOTS
+ */
+uint32_t signatures_syn_scan_slot(uint32_t src_ip);
+
+/**
+ * Port bit of a destination port in a tracker slot (diagnostics and tests):
+ * the port rule counts the distinct bits a source's SYNs set in one window.
+ *
+ * @param dst_port  Destination port (host byte order)
+ * @return Bit index, below 16
+ */
+uint32_t signatures_syn_scan_port_bit(uint16_t dst_port);
+
+/**
+ * Test seam: the TSC time that places a SYN in its tracker window. The
+ * library's weak definition returns rte_get_tsc_cycles(); a unit test may
+ * link its own to hold the clock or move it by whole windows.
+ */
+uint64_t signatures_scan_clock(void);
 
 #endif // SIGNATURES_H

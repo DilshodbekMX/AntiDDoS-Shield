@@ -126,6 +126,23 @@ if get_option('build_tests')
     )
     test('packet_parser_tests', test_packet_parser, env: test_env)
 
+    # Test: Stage 6c attack signatures (requires DPDK EAL, up to four lcores): a
+    # SYN-only frame of 60 bytes or less (no options, or MSS only, as lwIP sends)
+    # passes on its own, a source that scans (many ports or many such SYNs per
+    # window) is dropped, strict_syn_scan keeps the earlier rule, and the other
+    # signatures are unchanged. Reads the shipped layer1_config.json.
+    test_signatures = executable(
+        'test_signatures',
+        files('test_signatures.c'),
+        c_args: ['-DSIG_SHIPPED_CONFIG="' + join_paths(meson.current_source_dir(),
+                 '..', '..', 'layer1', 'config', 'layer1_config.json') + '"'],
+        dependencies: [dpdk_dep, m_dep],
+        link_with: [layer1_lib, libcjson],
+        include_directories: [include_directories('../../')],
+        install: false,
+    )
+    test('signatures_tests', test_signatures, env: test_env)
+
     # Test: Layer 2 Detection (Z-score thresholds, baseline poisoning)
     test_detection = executable(
         'test_detection',
@@ -159,6 +176,20 @@ if get_option('build_tests')
         install: false,
     )
     test('syn_proxy_tests', test_syn_proxy, env: test_env)
+
+    # Test: IP lists (the whitelist's writers from several threads at once, and the
+    # legitimate-source table: bounded, expiring, never the whitelist, written from every
+    # packet lcore without a lock)
+    test_ip_lists = executable(
+        'test_ip_lists',
+        files('test_ip_lists.c'),
+        dependencies: [dpdk_dep, m_dep],
+        link_with: [layer1_lib],
+        include_directories: [include_directories('../../')],
+        link_args: ['-lpthread'],
+        install: false,
+    )
+    test('ip_lists_tests', test_ip_lists, env: test_env)
 
     # Test: Flow Table (lookup, create, rate limiting, aging)
     test_flow_table = executable(
@@ -283,5 +314,77 @@ if get_option('build_tests')
         install: false,
     )
     test('flow_pipeline_tests', test_flow_pipeline, env: test_env)
+
+    # Tables written from several lcores (shared harness: shared_table_test.h; EAL on up
+    # to four lcores, exits 77 = skip if EAL cannot init)
+
+    # Test: TCP flag rate table (Stage 9b): deleted sources' positions come back after
+    # the readers' grace period, a full table accepts new sources untracked, writers hold
+    # the writer lock (seams), concurrent adds and churn on several lcores (stress)
+    test_tcp_flag_rate = executable(
+        'test_tcp_flag_rate',
+        files('test_tcp_flag_rate.c'),
+        dependencies: [dpdk_dep, m_dep],
+        link_with: [layer1_lib],
+        include_directories: [include_directories('../../')],
+        install: false,
+    )
+    test('tcp_flag_rate_tests', test_tcp_flag_rate, env: test_env)
+
+    # Test: per-IP feature unregistration: register/unregister cycles beyond the hash
+    # size, an unregistered slot and its count-min counters released only after the
+    # readers' grace period, bounded wait for a slot, control-path walks under the
+    # control lock (seams), concurrent churn with walks and packet updates (stress)
+    test_per_ip_unregister = executable(
+        'test_per_ip_unregister',
+        files('test_per_ip_unregister.c'),
+        dependencies: [dpdk_dep, m_dep],
+        link_with: [layer1_lib],
+        include_directories: [include_directories('../../')],
+        install: false,
+    )
+    test('per_ip_unregister_tests', test_per_ip_unregister, env: test_env)
+
+    # Test: connection limits table (Stage 10 without the SYN proxy): concurrent first
+    # connections on several lcores all tracked (stress), a racing add counted on the
+    # winner's tracker, writers hold the writer lock (seams), a deleted tracker reused
+    # only after the readers' grace period, the cleanup's clock comparison
+    test_connection_limits = executable(
+        'test_connection_limits',
+        files('test_connection_limits.c'),
+        dependencies: [dpdk_dep, m_dep],
+        link_with: [layer1_lib],
+        include_directories: [include_directories('../../', '../../common')],
+        install: false,
+    )
+    test('connection_limits_tests', test_connection_limits, env: test_env)
+
+    # Test: per-source-IP statistics (not initialised by the shipped engine): entries
+    # for every hash position, updates and expiry from a non-EAL thread, a deleted
+    # entry kept for the readers' grace period, writer and control locks (seams),
+    # concurrent first packets on several lcores (stress)
+    test_src_ip_stats = executable(
+        'test_src_ip_stats',
+        files('test_src_ip_stats.c'),
+        dependencies: [dpdk_dep, m_dep],
+        link_with: [layer1_lib],
+        include_directories: [include_directories('../../')],
+        link_args: ['-lpthread'],
+        install: false,
+    )
+    test('src_ip_stats_tests', test_src_ip_stats, env: test_env)
+
+    # Test: fast-path spike detector (not initialised by the shipped engine): lookups
+    # through the registered slot, foreign lcore ids refused, windows kept for the
+    # readers' grace period, control lock (seams), concurrent churn (stress)
+    test_spike_detector = executable(
+        'test_spike_detector',
+        files('test_spike_detector.c'),
+        dependencies: [dpdk_dep, m_dep],
+        link_with: [layer1_lib],
+        include_directories: [include_directories('../../')],
+        install: false,
+    )
+    test('spike_detector_tests', test_spike_detector, env: test_env)
   endif  # dpdk_dep.found()
 endif

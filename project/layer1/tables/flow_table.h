@@ -89,7 +89,8 @@ struct flow_entry {
     uint8_t  tcp_flags_hi_to_lo;
     uint8_t  flags;
     uint8_t  initiator_dir;
-    uint8_t  _pad1[3];
+    uint8_t  vouched;              // FLOW_VOUCHED_BY_LO / _HI (see below)
+    uint8_t  _pad1[2];
 
     // === Cache Line 2: Cold data (accessed less frequently) ===
     
@@ -131,6 +132,16 @@ _Static_assert(sizeof(struct flow_entry) == 128,
 #define FLOW_FLAG_MARKED_FOR_DELETE     0x10
 #define FLOW_FLAG_SEQ_TRACKING_ENABLED  0x20  // Sequence tracking active
 #define FLOW_FLAG_HANDSHAKE_ACKED       0x40  // Handshake ACK acknowledged the responder's ISN + 1
+
+// Sides of a TCP flow (flow_entry.vouched) that have sent a segment of their
+// own, set by flow_table_update() and read by flow_table_vouches_for(): a SYN
+// without ACK (they opened the connection), or an ACK without SYN or RST,
+// which a stack sends on a connection it holds. A SYN-ACK and an RST do not
+// count: a spoofed SYN draws the first, a blind segment the second. Nor is
+// the ACK proof: a Linux server ACKs a blind segment without ACK outside the
+// window of the half-open connection a spoofed SYN opens (an open item).
+#define FLOW_VOUCHED_BY_LO              0x01  // ip_lo sent one (FLOW_DIR_LO_TO_HI)
+#define FLOW_VOUCHED_BY_HI              0x02  // ip_hi sent one (FLOW_DIR_HI_TO_LO)
 
 // RST/FIN validation result
 enum rst_fin_validation_result {
@@ -246,6 +257,13 @@ struct flow_entry* flow_table_lookup_with_hash(const struct flow_key *key,
  * Update flow counters and state.
  * Thread-safe using atomic operations.
  *
+ * Every packet moves the last-seen time, and so the flow's lifetime, except
+ * a SYN-ACK on a flow whose handshake is not verified
+ * (FLOW_FLAG_HANDSHAKE_ACKED): a server retransmits its SYN-ACK for a spoofed
+ * SYN for half a minute, and the flow of that SYN would live as long. It
+ * still updates the state and the sequence tracking, which the handshake ACK
+ * is checked against.
+ *
  * @param flow      Flow entry to update
  * @param features  Packet features
  */
@@ -293,6 +311,29 @@ void flow_table_count_packet(struct flow_entry *flow, const struct packet_featur
 void flow_table_mark_handshake_verified(struct flow_entry *flow);
 
 /**
+ * Whether a TCP flow vouches for a segment between its two hosts, which
+ * Stage 8b requires in spoofed mode (layer1_spoofed_tcp_admit()). A flow
+ * exists for any segment the pipeline let through, and a spoofed SYN plants
+ * one that the server's SYN-ACKs make two-way, so its existence proves
+ * nothing. It vouches when one of these holds:
+ * - its handshake is verified (FLOW_FLAG_HANDSHAKE_ACKED);
+ * - the segment's destination has sent a segment of its own
+ *   (FLOW_VOUCHED_BY_LO / _HI): its own SYN, or an ACK without SYN or RST.
+ *   The server's side of a planted flow sends SYN-ACKs and RSTs, but a blind
+ *   segment can draw such an ACK from a Linux server (FLOW_VOUCHED_BY_LO);
+ * - the segment completes the handshake as the flow tracked it: the
+ *   initiator's ACK of the responder's ISN + 1 on a flow past the SYN-ACK,
+ *   the check the state machine verifies a handshake with.
+ * The flow key has no ports: a flow that vouches does so for every
+ * connection between its hosts.
+ *
+ * @param flow      Flow entry (from a lookup)
+ * @param features  The segment's features (flow_direction set by that lookup)
+ * @return true if the flow vouches for the segment
+ */
+bool flow_table_vouches_for(const struct flow_entry *flow, const struct packet_features *features);
+
+/**
  * Check and apply rate limits.
  * Only applies to initiator direction (inbound attacks).
  *
@@ -320,6 +361,8 @@ int flow_table_set_limits(struct packet_features *features,
  * Age out expired flows.
  * Should be called periodically from maintenance thread.
  * NOT thread-safe with other aging calls (single caller only).
+ * Each call also checks the registered readers for a stall, and deletes
+ * nothing while one is stalled (see "Deferred Reclamation").
  *
  * @return Number of flows aged out
  */
@@ -497,9 +540,23 @@ void flow_table_dump(uint32_t max_entries);
  *   deleted entry can be taken back at once.
  * - While 256 or more deleted entries (an eviction's batch) wait, the
  *   emergency eviction is skipped: evicting more live flows would not make
- *   room any sooner. If a registered reader stops reporting, deleted entries
- *   are not reused: creates fail once the free indices run out (fail-safe:
- *   no live flow is evicted for nothing), and aging logs a warning.
+ *   room any sooner.
+ * - A registered reader that has not reported a quiescent state for more
+ *   than 2 s is stalled (it hangs, or its lcore gets no CPU). Aging, which
+ *   the maintenance lcore runs once a second, finds it 3 to 4 s after its
+ *   last report (it checks against a probe token issued at most a second
+ *   after that report, once the probe is over 2 s old), logs a WARNING with
+ *   its reader id (the lcore id) and counts it
+ *   (flow_table_reader_stall_count()). An entry deleted since its last
+ *   report is never reused before it reports again: it may still hold the
+ *   entry, and a write through that pointer would land on another flow.
+ *   While it is stalled nothing deleted can be reused, so both tables stop
+ *   deleting: aging deletes no expired flow (a flow that comes back still
+ *   finds its entry) and a create that finds no free index runs no emergency
+ *   eviction (it would only move live flows into a limbo that cannot drain).
+ *   Creates take the free indices left, then fail: new flows go untracked
+ *   until the reader reports. When it does, the next aging call logs it, the
+ *   entries that waited come back and both tables delete again.
  *
  * A reader is a thread that holds flow pointers across calls into the table.
  * Each packet loop registers its lcore id once (flow_table_reader_register())
@@ -536,6 +593,32 @@ void flow_table_reader_quiescent(unsigned int reader_id);
  * Number of deleted IPv4 flow entries waiting for their grace period.
  */
 uint32_t flow_table_limbo_count(void);
+
+/**
+ * Number of registered readers found stalled that have not reported a
+ * quiescent state since (see "Deferred Reclamation"). While it is above 0,
+ * aging deletes no flow and a create runs no emergency eviction, in both
+ * tables.
+ */
+uint32_t flow_table_readers_stalled(void);
+
+/**
+ * Whether the reader registered under reader_id is stalled now.
+ */
+bool flow_table_reader_stalled(unsigned int reader_id);
+
+/**
+ * Stalls found since the process started, over all readers: each is counted
+ * once, when aging finds it.
+ */
+uint64_t flow_table_reader_stall_count(void);
+
+/**
+ * Test seam: the clock (TSC) the stalled-reader check reads. The library's
+ * weak definition returns rte_rdtsc(); a unit test may link its own to move
+ * the check's time forward.
+ */
+uint64_t flow_table_stall_clock(void);
 
 // ==================== RST/FIN Validation ====================
 

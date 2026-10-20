@@ -145,6 +145,7 @@ void layer1_config_defaults(struct layer1_config *config) {
     config->signatures.block_scans = true;
     config->signatures.block_anomalies = false;  // Handled by validation stage
     config->signatures.block_attack_tools = true;
+    config->signatures.strict_syn_scan = false;   // minimal SYNs dropped only on a scan pattern
 
     // Global defaults
     config->log_level = 7;  // RTE_LOG_INFO
@@ -362,6 +363,7 @@ static void parse_signatures(const cJSON *obj, struct signatures_cfg *cfg) {
     cfg->block_scans = json_get_bool(obj, "block_scans", cfg->block_scans);
     cfg->block_anomalies = json_get_bool(obj, "block_anomalies", cfg->block_anomalies);
     cfg->block_attack_tools = json_get_bool(obj, "block_attack_tools", cfg->block_attack_tools);
+    cfg->strict_syn_scan = json_get_bool(obj, "strict_syn_scan", cfg->strict_syn_scan);
 }
 
 // ==================== Load Configuration ====================
@@ -610,6 +612,7 @@ static cJSON* create_signatures_json(const struct signatures_cfg *cfg) {
     cJSON_AddBoolToObject(obj, "block_scans", cfg->block_scans);
     cJSON_AddBoolToObject(obj, "block_anomalies", cfg->block_anomalies);
     cJSON_AddBoolToObject(obj, "block_attack_tools", cfg->block_attack_tools);
+    cJSON_AddBoolToObject(obj, "strict_syn_scan", cfg->strict_syn_scan);
     return obj;
 }
 

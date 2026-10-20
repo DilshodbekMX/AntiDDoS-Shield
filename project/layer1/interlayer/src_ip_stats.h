@@ -9,6 +9,17 @@
  * - WRITERS (Layer 1 data plane lcores): Per-entry atomic updates
  * - READERS (Layer 3 Python): Snapshot-based reads with version checking
  * - Hash table uses DPDK rte_hash with RW concurrency support
+ * - Every add and delete of the hash holds its writer lock (any lcore or
+ *   thread). The control-path functions (snapshots, actions and flags,
+ *   window reset, expiry, clear, print) hold a control lock as well.
+ * - An entry is indexed by its source's position in the hash. A deleted
+ *   source's entry is cleared and its position reused only after every
+ *   registered flow table reader has reported a quiescent state since the
+ *   delete (see "Deferred Reclamation" in flow_table.h), and only by
+ *   src_ip_stats_expire_old() or src_ip_stats_clear_all().
+ * - A pointer from src_ip_stats_update() or src_ip_stats_lookup() stays
+ *   valid until the caller's next quiescent report if the caller is a
+ *   registered reader; other threads must not keep it past the call.
  */
 
 #ifndef SRC_IP_STATS_H
@@ -292,5 +303,49 @@ void src_ip_stats_get_stats(struct src_ip_stats_table *out);
  * Print statistics summary
  */
 void src_ip_stats_print(void);
+
+/**
+ * Number of entries the table holds: one per position its hash can hand
+ * out (rte_hash_max_key_id()). For tests and diagnostics.
+ */
+uint32_t src_ip_stats_capacity(void);
+
+/**
+ * Number of positions the hash can hand out (rte_hash_max_key_id()). For
+ * tests and diagnostics: never more than src_ip_stats_capacity().
+ */
+uint32_t src_ip_stats_max_position(void);
+
+/**
+ * Number of deleted sources' positions waiting for the readers' grace
+ * period.
+ */
+uint32_t src_ip_stats_positions_waiting(void);
+
+// ==================== Test Seams ====================
+
+/**
+ * Points at which the module calls src_ip_stats_seam(). "Under the lock"
+ * means with the hash's writer lock held.
+ */
+enum src_ip_stats_seam_point {
+    SRCIP_SEAM_ADD = 0,         // update: a new source, under the lock, before its key is added
+    SRCIP_SEAM_EXPIRE_DELETE,   // expire: an expired source passed its recheck, under the lock, before its delete
+    SRCIP_SEAM_CONTROL,         // a control-path function holds an entry it found
+    SRCIP_SEAM_MAX
+};
+
+/**
+ * Test seam: called at each point of enum src_ip_stats_seam_point. The
+ * library's weak definition does nothing; a unit test may link its own. It
+ * must not call into this module.
+ */
+void src_ip_stats_seam(enum src_ip_stats_seam_point point);
+
+/** True while some thread holds the hash's writer lock (for tests). */
+bool src_ip_stats_writer_lock_held(void);
+
+/** True while some thread holds the control lock (for tests). */
+bool src_ip_stats_ctl_lock_held(void);
 
 #endif // SRC_IP_STATS_H

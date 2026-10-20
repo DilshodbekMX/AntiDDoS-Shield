@@ -38,6 +38,7 @@
 #include <rte_cycles.h>
 #include <rte_random.h>
 #include <rte_tcp.h>
+#include <rte_log.h>
 
 #include "../../layer1/tables/flow_table.h"
 #include "../../layer1/tables/flow_table_v6.h"
@@ -3643,10 +3644,20 @@ static inline uint32_t race_count_locked(enum flow_table_seam_point point) {
     return __atomic_load_n(&race_locked[point], __ATOMIC_ACQUIRE);
 }
 
+// flow_table_stall_clock(): the real clock, moved forward by
+// stall_clock_ahead, so that a subtest can let a reader's stall last
+// seconds without waiting for them
+static uint64_t stall_clock_ahead = 0;
+
+uint64_t flow_table_stall_clock(void) {
+    return rte_rdtsc() + __atomic_load_n(&stall_clock_ahead, __ATOMIC_RELAXED);
+}
+
 static void test_harness_reset(void) {
     race_stop();
     seed_fixed = true;
     seed_value = 0;
+    __atomic_store_n(&stall_clock_ahead, 0, __ATOMIC_RELAXED);
     __atomic_store_n(&evict_seam_action, NULL, __ATOMIC_RELEASE);
     __atomic_store_n(&age_seam_action, NULL, __ATOMIC_RELEASE);
     __atomic_store_n(&evict_claim_action, NULL, __ATOMIC_RELEASE);
@@ -5396,6 +5407,623 @@ void test_flow_table_v6_evict_rate_limit_concurrent(void) {
     flow_table_v6_cleanup();
 }
 
+// ==================== Round 5: Flows of Spoofed SYNs ====================
+
+// The server's SYN-ACK to the source of a SYN, sent count times (the first
+// and its retransmissions)
+static void send_synacks(struct flow_entry *flow, uint32_t client_ip, uint32_t server_ip,
+                         int count) {
+    struct packet_features pkt;
+    create_test_features(&pkt, server_ip, client_ip, 80, 40000, IPPROTO_TCP);
+    pkt.tcp_flags = RTE_TCP_SYN_FLAG | RTE_TCP_ACK_FLAG;
+    pkt.tcp_seq = TEST_SERVER_ISN;
+    pkt.tcp_ack = TEST_CLIENT_ISN + 1;
+    if (flow_table_lookup(&pkt) != flow) {
+        return;
+    }
+    for (int k = 0; k < count; k++) {
+        pkt.timestamp_tsc = rte_rdtsc();
+        flow_table_update(flow, &pkt);
+    }
+}
+
+void test_flow_table_synack_keeps_unverified_lifetime(void) {
+    init_default_config();
+    flow_table_init(&default_config);
+    uint64_t hz = rte_get_tsc_hz();
+
+    // A spoofed SYN 11 s ago, past the 10 s SYN timeout of this fixture; the
+    // server answers it now and retransmits its SYN-ACK
+    struct flow_entry *planted = create_half_open_flow(0x0A000001, SEAM_SERVER_IP);
+    TEST_ASSERT_NOT_NULL(planted, "Should create the half-open flow");
+    uint64_t syn_tsc = rte_rdtsc() - 11 * hz;
+    planted->last_seen_tsc = syn_tsc;
+    send_synacks(planted, 0x0A000001, SEAM_SERVER_IP, 5);
+    uint64_t server_packets = (rte_cpu_to_be_32(SEAM_SERVER_IP) < rte_cpu_to_be_32(0x0A000001)) ?
+                              planted->packets_lo_to_hi : planted->packets_hi_to_lo;
+    TEST_ASSERT_EQ(5, server_packets, "Every SYN-ACK should be counted");
+    TEST_ASSERT_EQ(FLOW_STATE_SYN_ACK_RECEIVED, planted->state, "The SYN-ACK should still move the state");
+    TEST_ASSERT(planted->last_seen_tsc == syn_tsc,
+                "A SYN-ACK should not refresh a flow whose handshake is not verified");
+
+    // A real client's flow, its handshake verified, idle 3 s: a SYN-ACK the
+    // server retransmits (its ACK was lost) refreshes it, as any packet does
+    struct flow_entry *verified = create_established_flow(0x0A000002, SEAM_SERVER_IP);
+    TEST_ASSERT_NOT_NULL(verified, "Should create established flow");
+    TEST_ASSERT(verified->flags & FLOW_FLAG_HANDSHAKE_ACKED, "The handshake should be verified");
+    uint64_t idle_since = rte_rdtsc() - 3 * hz;
+    verified->last_seen_tsc = idle_since;
+    send_synacks(verified, 0x0A000002, SEAM_SERVER_IP, 1);
+    TEST_ASSERT(verified->last_seen_tsc > idle_since, "A SYN-ACK should refresh a verified flow");
+
+    // A half-open flow whose client ACKs: the ACK refreshes it
+    struct flow_entry *half = create_half_open_flow(0x0A000003, SEAM_SERVER_IP);
+    TEST_ASSERT_NOT_NULL(half, "Should create the half-open flow");
+    send_synacks(half, 0x0A000003, SEAM_SERVER_IP, 1);
+    half->last_seen_tsc = idle_since;
+    struct packet_features ack;
+    create_test_features(&ack, 0x0A000003, SEAM_SERVER_IP, 40000, 80, IPPROTO_TCP);
+    ack.tcp_flags = RTE_TCP_ACK_FLAG;
+    ack.tcp_seq = TEST_CLIENT_ISN + 1;
+    ack.tcp_ack = TEST_SERVER_ISN + 1;
+    TEST_ASSERT(flow_table_lookup(&ack) == half, "The ACK should map to the flow");
+    flow_table_update(half, &ack);
+    TEST_ASSERT(half->last_seen_tsc > idle_since, "The client's ACK should refresh the flow");
+    TEST_ASSERT(half->flags & FLOW_FLAG_HANDSHAKE_ACKED, "The client's ACK should verify the handshake");
+
+    // The planted flow ages at the SYN timeout counted from its SYN, however
+    // many SYN-ACKs the server sent since
+    uint32_t aged = flow_table_age_flows();
+    TEST_ASSERT_EQ(1, aged, "Only the planted flow should be aged");
+    TEST_ASSERT_NULL(find_tcp_flow(0x0A000001, SEAM_SERVER_IP), "The planted flow should be aged on time");
+    TEST_ASSERT(find_tcp_flow(0x0A000002, SEAM_SERVER_IP) == verified, "The verified flow should stay");
+    TEST_ASSERT(find_tcp_flow(0x0A000003, SEAM_SERVER_IP) == half, "The ACKed flow should stay");
+
+    flow_table_cleanup();
+}
+
+void test_flow_table_v6_synack_keeps_unverified_lifetime(void) {
+    init_default_config_v6();
+    flow_table_v6_init(&default_config_v6);
+    uint64_t hz = rte_get_tsc_hz();
+
+    // As the IPv4 subtest: a SYN 11 s ago (SYN timeout 10 s), then the
+    // server's SYN-ACK and four retransmissions
+    struct flow_entry_v6 *planted = create_half_open_flow_v6(1, 0x100);
+    TEST_ASSERT_NOT_NULL(planted, "Should create the half-open IPv6 flow");
+    uint64_t syn_tsc = rte_rdtsc() - 11 * hz;
+    planted->last_seen_tsc = syn_tsc;
+    struct packet_features_v6 pkt;
+    create_test_features_v6(&pkt, 0x100, 1, 80, 40000, IPPROTO_TCP);
+    pkt.tcp_flags = RTE_TCP_SYN_FLAG | RTE_TCP_ACK_FLAG;
+    pkt.tcp_seq = TEST_SERVER_ISN;
+    pkt.tcp_ack = TEST_CLIENT_ISN + 1;
+    TEST_ASSERT(flow_table_v6_lookup(&pkt) == planted, "The SYN-ACK should map to the IPv6 flow");
+    for (int k = 0; k < 5; k++) {
+        pkt.timestamp_tsc = rte_rdtsc();
+        flow_table_v6_update(planted, &pkt);
+    }
+    TEST_ASSERT_EQ(6, flow_v6_total_packets(planted), "The SYN and every SYN-ACK should be counted");
+    TEST_ASSERT_EQ(FLOW_STATE_SYN_ACK_RECEIVED, planted->state, "The SYN-ACK should still move the IPv6 state");
+    TEST_ASSERT(planted->last_seen_tsc == syn_tsc,
+                "A SYN-ACK should not refresh an IPv6 flow whose handshake is not verified");
+
+    // A verified IPv6 flow idle 3 s is refreshed by a retransmitted SYN-ACK
+    struct flow_entry_v6 *verified = create_established_flow_v6(2, 0x100);
+    TEST_ASSERT_NOT_NULL(verified, "Should create established IPv6 flow");
+    TEST_ASSERT(verified->flags & FLOW_FLAG_HANDSHAKE_ACKED, "The IPv6 handshake should be verified");
+    uint64_t idle_since = rte_rdtsc() - 3 * hz;
+    verified->last_seen_tsc = idle_since;
+    create_test_features_v6(&pkt, 0x100, 2, 80, 40000, IPPROTO_TCP);
+    pkt.tcp_flags = RTE_TCP_SYN_FLAG | RTE_TCP_ACK_FLAG;
+    pkt.tcp_seq = TEST_SERVER_ISN;
+    pkt.tcp_ack = TEST_CLIENT_ISN + 1;
+    TEST_ASSERT(flow_table_v6_lookup(&pkt) == verified, "The SYN-ACK should map to the verified IPv6 flow");
+    flow_table_v6_update(verified, &pkt);
+    TEST_ASSERT(verified->last_seen_tsc > idle_since, "A SYN-ACK should refresh a verified IPv6 flow");
+
+    uint32_t aged = flow_table_v6_age_flows();
+    TEST_ASSERT_EQ(1, aged, "Only the planted IPv6 flow should be aged");
+    TEST_ASSERT_NULL(find_tcp_flow_v6(1, 0x100), "The planted IPv6 flow should be aged on time");
+    TEST_ASSERT(find_tcp_flow_v6(2, 0x100) == verified, "The verified IPv6 flow should stay");
+
+    flow_table_v6_cleanup();
+}
+
+// A TCP segment between client_ip and server_ip, looked up (which sets its
+// direction); returns its flow
+static struct flow_entry *tcp_segment(struct packet_features *pkt, uint32_t src, uint32_t dst,
+                                      uint8_t flags, uint32_t seq, uint32_t ack) {
+    bool from_client = (src != SEAM_SERVER_IP);
+    create_test_features(pkt, src, dst, from_client ? 40000 : 80, from_client ? 80 : 40000,
+                         IPPROTO_TCP);
+    pkt->tcp_flags = flags;
+    pkt->tcp_seq = seq;
+    pkt->tcp_ack = ack;
+    return flow_table_lookup(pkt);
+}
+
+void test_flow_table_vouches_for(void) {
+    init_default_config();
+    flow_table_init(&default_config);
+    struct packet_features pkt;
+    struct flow_entry *flow;
+
+    // A flow planted by a spoofed SYN: the server's SYN-ACKs, then a blind
+    // ACK that moves the flow on. Nothing the server sent vouches for a
+    // segment sent to it.
+    const uint32_t spoofed = 0x0A000001;
+    struct flow_entry *planted = create_half_open_flow(spoofed, SEAM_SERVER_IP);
+    TEST_ASSERT_NOT_NULL(planted, "Should create the planted flow");
+    send_synacks(planted, spoofed, SEAM_SERVER_IP, 2);
+    flow = tcp_segment(&pkt, spoofed, SEAM_SERVER_IP, RTE_TCP_ACK_FLAG, TEST_CLIENT_ISN + 1, 0x12345678);
+    TEST_ASSERT(flow == planted, "The blind ACK should map to the planted flow");
+    TEST_ASSERT(!flow_table_vouches_for(planted, &pkt), "A planted flow should not vouch for a blind ACK");
+    flow_table_update(planted, &pkt);
+    flow = tcp_segment(&pkt, spoofed, SEAM_SERVER_IP, RTE_TCP_ACK_FLAG | RTE_TCP_PSH_FLAG,
+                       TEST_CLIENT_ISN + 1, 0x12345678);
+    TEST_ASSERT(!(planted->flags & FLOW_FLAG_HANDSHAKE_ACKED), "The blind ACK should not verify the handshake");
+    TEST_ASSERT(!flow_table_vouches_for(planted, &pkt),
+                "A planted flow should not vouch for a segment to the server, even once it looks established");
+    flow = tcp_segment(&pkt, SEAM_SERVER_IP, spoofed, RTE_TCP_SYN_FLAG | RTE_TCP_ACK_FLAG,
+                       TEST_SERVER_ISN, TEST_CLIENT_ISN + 1);
+    TEST_ASSERT(flow_table_vouches_for(planted, &pkt),
+                "It vouches for the server's own SYN-ACK to the host whose SYN it answers");
+
+    // A real handshake: the client's ACK of the server's ISN + 1 completes
+    // it, and is vouched for before the update verifies it; a wrong ACK or
+    // an RST is not
+    const uint32_t client = 0x0A000002;
+    struct flow_entry *real = create_half_open_flow(client, SEAM_SERVER_IP);
+    TEST_ASSERT_NOT_NULL(real, "Should create the half-open flow");
+    send_synacks(real, client, SEAM_SERVER_IP, 1);
+    tcp_segment(&pkt, client, SEAM_SERVER_IP, RTE_TCP_ACK_FLAG, TEST_CLIENT_ISN + 1, TEST_SERVER_ISN + 2);
+    TEST_ASSERT(!flow_table_vouches_for(real, &pkt), "An ACK of the wrong number should not be vouched for");
+    tcp_segment(&pkt, client, SEAM_SERVER_IP, RTE_TCP_RST_FLAG | RTE_TCP_ACK_FLAG, TEST_CLIENT_ISN + 1,
+                TEST_SERVER_ISN + 1);
+    TEST_ASSERT(!flow_table_vouches_for(real, &pkt), "An RST should not complete the handshake");
+    tcp_segment(&pkt, client, SEAM_SERVER_IP, RTE_TCP_ACK_FLAG, TEST_CLIENT_ISN + 1, TEST_SERVER_ISN + 1);
+    TEST_ASSERT(flow_table_vouches_for(real, &pkt), "The handshake ACK should be vouched for");
+    flow_table_update(real, &pkt);
+    TEST_ASSERT(real->flags & FLOW_FLAG_HANDSHAKE_ACKED, "The handshake ACK should verify the handshake");
+    tcp_segment(&pkt, client, SEAM_SERVER_IP, RTE_TCP_ACK_FLAG | RTE_TCP_PSH_FLAG, 999, 999);
+    TEST_ASSERT(flow_table_vouches_for(real, &pkt),
+                "A verified flow should vouch for any segment between its hosts");
+
+    // The server opens a connection: its SYN vouches for the reply
+    const uint32_t remote = 0x0A000003;
+    flow = tcp_segment(&pkt, SEAM_SERVER_IP, remote, RTE_TCP_SYN_FLAG, 4000, 0);
+    TEST_ASSERT_NULL(flow, "The server's connection should have no flow yet");
+    bool created;
+    flow = flow_table_lookup_or_create(&pkt, &created);
+    TEST_ASSERT_NOT_NULL(flow, "Should create the server's flow");
+    flow_table_update(flow, &pkt);
+    tcp_segment(&pkt, remote, SEAM_SERVER_IP, RTE_TCP_SYN_FLAG | RTE_TCP_ACK_FLAG, 8000, 4001);
+    TEST_ASSERT(flow_table_vouches_for(flow, &pkt),
+                "The server's own SYN should vouch for the remote host's SYN-ACK");
+
+    // First seen mid-stream: the server's data vouches for the client's
+    // segments; the client's own segments, and the server's RST, do not
+    const uint32_t mid_client = 0x0A000004;
+    struct flow_entry *mid = create_midstream_tcp_flow(mid_client, SEAM_SERVER_IP, false);
+    TEST_ASSERT_NOT_NULL(mid, "Should create the mid-stream flow");
+    tcp_segment(&pkt, mid_client, SEAM_SERVER_IP, RTE_TCP_ACK_FLAG | RTE_TCP_PSH_FLAG, 7100, 9000);
+    TEST_ASSERT(!flow_table_vouches_for(mid, &pkt),
+                "A flow the server has said nothing on should not vouch for a segment to it");
+    flow = tcp_segment(&pkt, SEAM_SERVER_IP, mid_client, RTE_TCP_RST_FLAG, 9000, 0);
+    TEST_ASSERT(flow == mid, "The server's RST should map to the mid-stream flow");
+    flow_table_update(mid, &pkt);
+    uint8_t server_side = (rte_cpu_to_be_32(SEAM_SERVER_IP) < rte_cpu_to_be_32(mid_client)) ?
+                          FLOW_VOUCHED_BY_LO : FLOW_VOUCHED_BY_HI;
+    TEST_ASSERT_EQ(0, mid->vouched & server_side, "An RST should not vouch for its sender");
+    struct flow_entry *mid2 = create_midstream_tcp_flow(0x0A000005, SEAM_SERVER_IP, true);
+    TEST_ASSERT_NOT_NULL(mid2, "Should create the answered mid-stream flow");
+    tcp_segment(&pkt, 0x0A000005, SEAM_SERVER_IP, RTE_TCP_ACK_FLAG | RTE_TCP_PSH_FLAG, 7100, 9000);
+    TEST_ASSERT(flow_table_vouches_for(mid2, &pkt),
+                "The server's ACK should vouch for the client's later segments");
+
+    flow_table_cleanup();
+}
+
+void test_flow_table_v6_vouches_for(void) {
+    init_default_config_v6();
+    flow_table_v6_init(&default_config_v6);
+    struct packet_features_v6 pkt;
+
+    // A planted IPv6 flow: the client's SYN, two SYN-ACKs, then a blind ACK
+    struct flow_entry_v6 *planted = create_half_open_flow_v6(1, 0x100);
+    TEST_ASSERT_NOT_NULL(planted, "Should create the planted IPv6 flow");
+    create_test_features_v6(&pkt, 0x100, 1, 80, 40000, IPPROTO_TCP);
+    pkt.tcp_flags = RTE_TCP_SYN_FLAG | RTE_TCP_ACK_FLAG;
+    pkt.tcp_seq = TEST_SERVER_ISN;
+    pkt.tcp_ack = TEST_CLIENT_ISN + 1;
+    TEST_ASSERT(flow_table_v6_lookup(&pkt) == planted, "The SYN-ACK should map to the IPv6 flow");
+    TEST_ASSERT(flow_table_v6_vouches_for(planted, &pkt),
+                "It vouches for the server's SYN-ACK to the host whose SYN it answers");
+    flow_table_v6_update(planted, &pkt);
+    flow_table_v6_update(planted, &pkt);
+    create_test_features_v6(&pkt, 1, 0x100, 40000, 80, IPPROTO_TCP);
+    pkt.tcp_flags = RTE_TCP_ACK_FLAG;
+    pkt.tcp_seq = TEST_CLIENT_ISN + 1;
+    pkt.tcp_ack = 0x12345678;
+    TEST_ASSERT(flow_table_v6_lookup(&pkt) == planted, "The blind ACK should map to the IPv6 flow");
+    TEST_ASSERT(!flow_table_v6_vouches_for(planted, &pkt), "A planted IPv6 flow should not vouch for a blind ACK");
+    flow_table_v6_update(planted, &pkt);
+    TEST_ASSERT(!flow_table_v6_vouches_for(planted, &pkt),
+                "A planted IPv6 flow should not vouch for a segment to the server once it looks established");
+
+    // The real handshake ACK is vouched for, and verifies the flow
+    struct flow_entry_v6 *real = create_half_open_flow_v6(2, 0x100);
+    TEST_ASSERT_NOT_NULL(real, "Should create the half-open IPv6 flow");
+    create_test_features_v6(&pkt, 0x100, 2, 80, 40000, IPPROTO_TCP);
+    pkt.tcp_flags = RTE_TCP_SYN_FLAG | RTE_TCP_ACK_FLAG;
+    pkt.tcp_seq = TEST_SERVER_ISN;
+    pkt.tcp_ack = TEST_CLIENT_ISN + 1;
+    TEST_ASSERT(flow_table_v6_lookup(&pkt) == real, "The SYN-ACK should map to the IPv6 flow");
+    flow_table_v6_update(real, &pkt);
+    create_test_features_v6(&pkt, 2, 0x100, 40000, 80, IPPROTO_TCP);
+    pkt.tcp_flags = RTE_TCP_ACK_FLAG;
+    pkt.tcp_seq = TEST_CLIENT_ISN + 1;
+    pkt.tcp_ack = TEST_SERVER_ISN + 2;
+    TEST_ASSERT(flow_table_v6_lookup(&pkt) == real, "The ACK should map to the IPv6 flow");
+    TEST_ASSERT(!flow_table_v6_vouches_for(real, &pkt), "An IPv6 ACK of the wrong number should not be vouched for");
+    pkt.tcp_ack = TEST_SERVER_ISN + 1;
+    TEST_ASSERT(flow_table_v6_vouches_for(real, &pkt), "The IPv6 handshake ACK should be vouched for");
+    flow_table_v6_update(real, &pkt);
+    TEST_ASSERT(real->flags & FLOW_FLAG_HANDSHAKE_ACKED, "The IPv6 handshake ACK should verify the handshake");
+
+    // The server's data on a flow first seen mid-stream vouches for the
+    // client's segments
+    struct packet_features_v6 data;
+    bool created;
+    create_test_features_v6(&data, 0x100, 3, 80, 40000, IPPROTO_TCP);
+    data.tcp_flags = RTE_TCP_ACK_FLAG | RTE_TCP_PSH_FLAG;
+    data.tcp_seq = 9000;
+    data.tcp_ack = 7000;
+    struct flow_entry_v6 *mid = flow_table_v6_lookup_or_create(&data, &created);
+    TEST_ASSERT_NOT_NULL(mid, "Should create the mid-stream IPv6 flow");
+    flow_table_v6_update(mid, &data);
+    create_test_features_v6(&pkt, 3, 0x100, 40000, 80, IPPROTO_TCP);
+    pkt.tcp_flags = RTE_TCP_ACK_FLAG;
+    pkt.tcp_seq = 7000;
+    pkt.tcp_ack = 9100;
+    TEST_ASSERT(flow_table_v6_lookup(&pkt) == mid, "The client's ACK should map to the IPv6 flow");
+    TEST_ASSERT(flow_table_v6_vouches_for(mid, &pkt),
+                "The server's data should vouch for the client's IPv6 segments");
+
+    flow_table_v6_cleanup();
+}
+
+// ==================== Round 5: IPv6 Key Hash ====================
+
+void test_flow_table_v6_key_hash_any_alignment(void) {
+    // A seed other than 0, so that a hash leaving it out differs
+    seed_value = 0x2545F491;
+    init_default_config_v6();
+    flow_table_v6_init(&default_config_v6);
+    seed_value = 0;
+    uint32_t seed = flow_table_v6_get_hash_seed();
+
+    struct packet_features_v6 pkt;
+    create_test_features_v6(&pkt, 0x1001, 0x100, 5000, 53, IPPROTO_UDP);
+    struct flow_key_v6 key;
+    extract_flow_key_v6(&pkt, &key);
+    uint32_t words[9];
+    memcpy(words, &key, sizeof(words));
+    uint32_t expected = rte_jhash_32b(words, 9, seed);
+
+    // The key at each offset of a buffer, as a packet's bytes can hold it:
+    // the table hashes a copy, with the same value
+    uint8_t buf[sizeof(key) + 8] __attribute__((aligned(8)));
+    uint32_t wrong = 0;
+    for (unsigned int off = 0; off < 4; off++) {
+        memcpy(buf + off, &key, sizeof(key));
+        if (flow_table_v6_key_hash((const struct flow_key_v6 *)(buf + off)) != expected) {
+            wrong++;
+        }
+    }
+
+    // A flow created through the table is found under that hash's seed
+    struct flow_entry_v6 *flow = create_udp_flow_v6(0x1001);
+    struct flow_entry_v6 *found = find_flow_v6(0x1001, 0x100, IPPROTO_UDP);
+
+    TEST_ASSERT_EQ(0x2545F491, seed, "The IPv6 table should take the seam's seed");
+    TEST_ASSERT_EQ(0, wrong, "The IPv6 key hash should be the seeded jhash of the key at any alignment");
+    TEST_ASSERT_NOT_NULL(flow, "Should create the IPv6 flow");
+    TEST_ASSERT(found == flow, "The IPv6 flow should be found");
+
+    flow_table_v6_cleanup();
+}
+
+// ==================== Round 5: Stalled Readers ====================
+
+// A packet lcore that stalls: it looks a flow up and holds it, then stops
+// reporting quiescent states until the main thread lets it go on (as a
+// thread does that hangs, or gets no CPU, in the middle of a burst). Each
+// step waits for the main thread's go-ahead, as held_reader does.
+static struct held_reader stalled_reader;
+
+static void stalled_reader_wait(uint32_t step) {
+    while (__atomic_load_n(&stalled_reader.step, __ATOMIC_ACQUIRE) < step) {
+        rte_pause();
+    }
+}
+
+static void stalled_reader_post(uint32_t step) {
+    __atomic_store_n(&stalled_reader.step, step, __ATOMIC_RELEASE);
+}
+
+static void *stalled_reader_thread(void *arg) {
+    (void)arg;
+    struct packet_features pkt;
+
+    stalled_reader.rc = flow_table_reader_register(TEST_READER_2);
+    create_test_features(&pkt, 0x0A000001, SEAM_SERVER_IP, 5000, 53, IPPROTO_UDP);
+    stalled_reader.flow = flow_table_lookup(&pkt);
+    stalled_reader_post(1);         // holds the flow, and stalls
+    stalled_reader_wait(2);
+    flow_table_reader_quiescent(TEST_READER_2);
+    stalled_reader_post(3);         // reported again
+    stalled_reader_wait(4);
+    flow_table_reader_unregister(TEST_READER_2);
+    stalled_reader_post(5);
+    return NULL;
+}
+
+// The flow table's log (FLOWTBL is RTE_LOGTYPE_USER4), at WARNING and above,
+// captured in memory
+struct log_capture {
+    char *buf;
+    size_t len;
+    FILE *stream;
+    FILE *old_stream;
+    int old_level;
+};
+
+static void log_capture_start(struct log_capture *c) {
+    memset(c, 0, sizeof(*c));
+    c->old_stream = rte_log_get_stream();
+    c->old_level = rte_log_get_level(RTE_LOGTYPE_USER4);
+    c->stream = open_memstream(&c->buf, &c->len);
+    if (c->stream) {
+        rte_openlog_stream(c->stream);
+        rte_log_set_level(RTE_LOGTYPE_USER4, RTE_LOG_WARNING);
+    }
+}
+
+static void log_capture_stop(struct log_capture *c) {
+    if (c->stream) {
+        rte_openlog_stream(c->old_stream);
+        rte_log_set_level(RTE_LOGTYPE_USER4, (uint32_t)c->old_level);
+        fclose(c->stream);
+        c->stream = NULL;
+        free(c->buf);
+        c->buf = NULL;
+    }
+}
+
+void test_flow_table_stalled_reader_detected(void) {
+    init_default_config();
+    default_config.max_flows = 16;
+    flow_table_init(&default_config);
+    uint64_t hz = rte_get_tsc_hz();
+
+    // The flow the other thread will hold, 4 that go idle later and 11
+    // protected flows: the table is full
+    struct flow_entry *target = create_udp_flow(0x0A000001);
+    TEST_ASSERT_NOT_NULL(target, "Should create flow");
+    struct flow_entry *idle[4];
+    for (uint32_t i = 0; i < 4; i++) {
+        idle[i] = create_udp_flow(0x0A000010 + i);
+        TEST_ASSERT_NOT_NULL(idle[i], "Should create flow");
+    }
+    for (uint32_t i = 0; i < 11; i++) {
+        TEST_ASSERT_NOT_NULL(create_established_flow(0x0B000001 + i, SEAM_SERVER_IP),
+                             "Should create established flow");
+    }
+    uint64_t stalls_before = flow_table_reader_stall_count();
+
+    memset(&stalled_reader, 0, sizeof(stalled_reader));
+    stalled_reader.rc = -1;
+    pthread_t thread;
+    pthread_attr_t attr;
+    thread_attr_on_worker_cpu(&attr, 0);
+    int rc = pthread_create(&thread, &attr, stalled_reader_thread, NULL);
+    pthread_attr_destroy(&attr);
+    TEST_ASSERT_EQ(0, rc, "pthread_create should succeed");
+
+    // Every step runs before any assertion, so that the thread always ends
+    struct log_capture log;
+    log_capture_start(&log);
+    stalled_reader_wait(1);
+
+    // Aging now: the reader has not reported for a moment only
+    uint32_t aged_fresh = flow_table_age_flows();
+    uint32_t stalled_fresh = flow_table_readers_stalled();
+
+    // 3 s later by the check's clock: it is stalled. Aging deletes nothing
+    // while it is, though 4 flows are idle past their timeout.
+    __atomic_store_n(&stall_clock_ahead, 3 * hz, __ATOMIC_RELAXED);
+    uint32_t aged_at_stall = flow_table_age_flows();
+    bool reader_stalled = flow_table_reader_stalled(TEST_READER_2);
+    uint32_t stalled_count = flow_table_readers_stalled();
+    uint64_t stalls_found = flow_table_reader_stall_count() - stalls_before;
+    for (uint32_t i = 0; i < 4; i++) {
+        idle[i]->last_seen_tsc = rte_rdtsc() - 120 * hz;
+    }
+    __atomic_store_n(&stall_clock_ahead, 6 * hz, __ATOMIC_RELAXED);
+    uint32_t aged_while_stalled = flow_table_age_flows();
+    uint32_t idle_kept = 0;
+    for (uint32_t i = 0; i < 4; i++) {
+        if (find_flow(0x0A000010 + i, SEAM_SERVER_IP, IPPROTO_UDP) == idle[i]) {
+            idle_kept++;
+        }
+    }
+    uint64_t stalls_after_second_check = flow_table_reader_stall_count() - stalls_before;
+    char warning[96];
+    snprintf(warning, sizeof(warning),
+             "Flow table reader on lcore %u has not reported a quiescent state", TEST_READER_2);
+    bool warned = false;
+    if (log.stream && fflush(log.stream) == 0 && log.buf != NULL) {
+        warned = strstr(log.buf, warning) != NULL;
+    }
+
+    // The table is full: a create finds no free index and, the reader
+    // stalled, runs no eviction (the rate limit has lapsed)
+    rte_delay_ms(EVICT_RATE_LIMIT_WAIT_MS);
+    struct flow_table_stats st_before, st_after;
+    flow_table_get_detailed_stats(&st_before);
+    struct flow_entry *refused = create_udp_flow(0x0C000001);
+    flow_table_get_detailed_stats(&st_after);
+
+    // It reports again: the next aging call finds it so, and deletes again
+    stalled_reader_post(2);
+    stalled_reader_wait(3);
+    uint32_t aged_after_report = flow_table_age_flows();
+    bool still_stalled = flow_table_reader_stalled(TEST_READER_2);
+    uint32_t stalled_after = flow_table_readers_stalled();
+    stalled_reader_post(4);
+    stalled_reader_wait(5);
+    pthread_join(thread, NULL);
+    log_capture_stop(&log);
+    __atomic_store_n(&stall_clock_ahead, 0, __ATOMIC_RELAXED);
+
+    // The deleted entries come back once the reader is gone
+    uint32_t reused = 0;
+    for (uint32_t i = 0; i < 4; i++) {
+        if (create_udp_flow(0x0D000001 + i) != NULL) {
+            reused++;
+        }
+    }
+    printf("  aged %u fresh, %u at the stall, %u while stalled, %u after the report; %u idle kept\n",
+           aged_fresh, aged_at_stall, aged_while_stalled, aged_after_report, idle_kept);
+    fflush(stdout);
+
+    TEST_ASSERT_EQ(0, stalled_reader.rc, "The other thread's reader registration should succeed");
+    TEST_ASSERT(stalled_reader.flow == target, "The other thread should hold the flow");
+    TEST_ASSERT_EQ(0, aged_fresh, "Nothing should be idle at first");
+    TEST_ASSERT_EQ(0, stalled_fresh, "A reader that has just reported should not be stalled");
+    TEST_ASSERT(reader_stalled, "A reader silent for 3 s should be found stalled");
+    TEST_ASSERT_EQ(1, stalled_count, "One reader should be stalled");
+    TEST_ASSERT_EQ(1, stalls_found, "The stall should be counted");
+    TEST_ASSERT(warned, "The stall should be logged at WARNING with the reader's lcore id");
+    TEST_ASSERT_EQ(0, aged_at_stall, "Aging should delete nothing once a reader is stalled");
+    TEST_ASSERT_EQ(0, aged_while_stalled, "Aging should delete no idle flow while a reader is stalled");
+    TEST_ASSERT_EQ(4, idle_kept, "The idle flows should keep their entries while a reader is stalled");
+    TEST_ASSERT_EQ(1, stalls_after_second_check, "A stall should be counted once");
+    TEST_ASSERT_NULL(refused, "A create should fail on a full table while a reader is stalled");
+    TEST_ASSERT_EQ(st_before.deletes, st_after.deletes,
+                   "No live flow should be evicted while a reader is stalled");
+    TEST_ASSERT(!still_stalled, "A reader that reported again should no longer be stalled");
+    TEST_ASSERT_EQ(0, stalled_after, "No reader should be stalled after its report");
+    TEST_ASSERT_EQ(4, aged_after_report, "Aging should delete the idle flows once the reader reported");
+    TEST_ASSERT_EQ(4, reused, "Their entries should be reused once the reader is gone");
+
+    flow_table_cleanup();
+}
+
+void test_flow_table_v6_aging_pauses_while_reader_stalled(void) {
+    init_default_config_v6();
+    default_config_v6.max_flows = 16;
+    flow_table_v6_init(&default_config_v6);
+    uint64_t hz = rte_get_tsc_hz();
+
+    // A registered reader that never reports: stalled once 2 s pass by the
+    // check's clock, which the IPv6 aging also runs
+    TEST_ASSERT_EQ(0, flow_table_reader_register(TEST_READER), "Reader registration should succeed");
+    struct flow_entry_v6 *idle = create_udp_flow_v6(0x1001);
+    TEST_ASSERT_NOT_NULL(idle, "Should create IPv6 flow");
+    uint64_t stalls_before = flow_table_reader_stall_count();
+    uint32_t aged_fresh = flow_table_v6_age_flows();
+    __atomic_store_n(&stall_clock_ahead, 3 * hz, __ATOMIC_RELAXED);
+    idle->last_seen_tsc = rte_rdtsc() - 120 * hz;
+    uint32_t aged_while_stalled = flow_table_v6_age_flows();
+    bool stalled = flow_table_reader_stalled(TEST_READER);
+    uint64_t stalls_found = flow_table_reader_stall_count() - stalls_before;
+    struct flow_entry_v6 *kept = find_flow_v6(0x1001, 0x100, IPPROTO_UDP);
+
+    // Its report ends the stall, and IPv6 aging deletes again
+    flow_table_reader_quiescent(TEST_READER);
+    uint32_t aged_after = flow_table_v6_age_flows();
+    bool stalled_after = flow_table_reader_stalled(TEST_READER);
+    flow_table_reader_unregister(TEST_READER);
+    __atomic_store_n(&stall_clock_ahead, 0, __ATOMIC_RELAXED);
+
+    TEST_ASSERT_EQ(0, aged_fresh, "Nothing should be idle at first");
+    TEST_ASSERT(stalled, "A silent IPv6-side reader should be found stalled by IPv6 aging");
+    TEST_ASSERT_EQ(1, stalls_found, "The stall should be counted");
+    TEST_ASSERT_EQ(0, aged_while_stalled, "IPv6 aging should delete nothing while a reader is stalled");
+    TEST_ASSERT(kept == idle, "The idle IPv6 flow should keep its entry while a reader is stalled");
+    TEST_ASSERT(!stalled_after, "The reader's report should end its stall");
+    TEST_ASSERT_EQ(1, aged_after, "IPv6 aging should delete the idle flow after the report");
+
+    flow_table_v6_cleanup();
+}
+
+void test_flow_table_unregister_ends_stall(void) {
+    init_default_config();
+    default_config.max_flows = 16;
+    flow_table_init(&default_config);
+    uint64_t hz = rte_get_tsc_hz();
+
+    // A reader found stalled, then unregistered without reporting (its lcore
+    // left its loop): it holds nothing, and the stall ends at once
+    TEST_ASSERT_EQ(0, flow_table_reader_register(TEST_READER), "Reader registration should succeed");
+    flow_table_age_flows();
+    __atomic_store_n(&stall_clock_ahead, 3 * hz, __ATOMIC_RELAXED);
+    flow_table_age_flows();
+    bool stalled = flow_table_reader_stalled(TEST_READER);
+    flow_table_reader_unregister(TEST_READER);
+    uint32_t stalled_after = flow_table_readers_stalled();
+    bool reader_after = flow_table_reader_stalled(TEST_READER);
+
+    // Another stall of a reader is counted again
+    uint64_t stalls_before = flow_table_reader_stall_count();
+    TEST_ASSERT_EQ(0, flow_table_reader_register(TEST_READER), "Reader registration should succeed");
+    flow_table_age_flows();
+    __atomic_store_n(&stall_clock_ahead, 6 * hz, __ATOMIC_RELAXED);
+    flow_table_age_flows();
+    uint64_t stalls_again = flow_table_reader_stall_count() - stalls_before;
+    flow_table_reader_unregister(TEST_READER);
+    __atomic_store_n(&stall_clock_ahead, 0, __ATOMIC_RELAXED);
+
+    TEST_ASSERT(stalled, "The silent reader should be found stalled");
+    TEST_ASSERT_EQ(0, stalled_after, "Unregistering a stalled reader should end its stall");
+    TEST_ASSERT(!reader_after, "The unregistered reader should not be stalled");
+    TEST_ASSERT_EQ(1, stalls_again, "A new stall should be counted");
+    TEST_ASSERT_EQ(0, flow_table_readers_stalled(), "No reader should be stalled at the end");
+
+    flow_table_cleanup();
+}
+
+void test_flow_table_stall_check_spares_its_own_lcore(void) {
+    init_default_config();
+    default_config.max_flows = 16;
+    flow_table_init(&default_config);
+    uint64_t hz = rte_get_tsc_hz();
+
+    // The maintenance lcore is a reader too, and runs the check between its
+    // own reports: however long the check's clock says it has been since,
+    // it is not stalled. Another silent reader is.
+    unsigned int self = rte_lcore_id();
+    TEST_ASSERT_EQ(0, flow_table_reader_register(self), "This lcore's reader registration should succeed");
+    TEST_ASSERT_EQ(0, flow_table_reader_register(TEST_READER), "Reader registration should succeed");
+    flow_table_age_flows();
+    __atomic_store_n(&stall_clock_ahead, 3 * hz, __ATOMIC_RELAXED);
+    flow_table_age_flows();
+    bool self_stalled = flow_table_reader_stalled(self);
+    bool other_stalled = flow_table_reader_stalled(TEST_READER);
+    flow_table_reader_unregister(TEST_READER);
+    flow_table_reader_unregister(self);
+    __atomic_store_n(&stall_clock_ahead, 0, __ATOMIC_RELAXED);
+
+    TEST_ASSERT(!self_stalled, "The lcore running the check should not be found stalled");
+    TEST_ASSERT(other_stalled, "Another silent reader should be found stalled");
+    TEST_ASSERT_EQ(0, flow_table_readers_stalled(), "No reader should be stalled at the end");
+
+    flow_table_cleanup();
+}
+
 // ==================== Main ====================
 
 // Up to four lcores, each on its own CPU from this process's affinity mask
@@ -5622,6 +6250,22 @@ int main(int argc, char **argv) {
     RUN_TEST(test_flow_table_v6_evict_rate_limited);
     RUN_TEST(test_flow_table_v6_concurrent_create_evict_age);
     RUN_TEST(test_flow_table_v6_evict_rate_limit_concurrent);
+
+    // Round 5: flows of spoofed SYNs (lifetime, Stage 8b's vouching rule)
+    RUN_TEST(test_flow_table_synack_keeps_unverified_lifetime);
+    RUN_TEST(test_flow_table_v6_synack_keeps_unverified_lifetime);
+    RUN_TEST(test_flow_table_vouches_for);
+    RUN_TEST(test_flow_table_v6_vouches_for);
+
+    // Round 5: the IPv6 key hash at any alignment
+    RUN_TEST(test_flow_table_v6_key_hash_any_alignment);
+
+    // Round 5: stalled readers (after the eviction tests: see
+    // EVICT_RATE_LIMIT_WAIT_MS)
+    RUN_TEST(test_flow_table_stalled_reader_detected);
+    RUN_TEST(test_flow_table_v6_aging_pauses_while_reader_stalled);
+    RUN_TEST(test_flow_table_unregister_ends_stall);
+    RUN_TEST(test_flow_table_stall_check_spares_its_own_lcore);
 
     printf("\n========================================\n");
     printf("  Results: %d passed, %d failed, %d total\n",

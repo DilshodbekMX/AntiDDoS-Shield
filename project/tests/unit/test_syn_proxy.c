@@ -14,6 +14,9 @@
  * - Interleavings of two lcores, made deterministic by the race seams of
  *   syn_proxy.h, and a thread without an lcore id
  * - The close of proxied connections, and the cleanup's scan budget
+ * - RST validation against the receiver's next sequence, the close timeouts
+ *   (CLOSING and the TIME_WAIT), and the sources a valid cookie marks
+ *   legitimate
  */
 
 #include <stdio.h>
@@ -41,6 +44,7 @@
 #include "../../layer1/layer1.h"
 #include "../../layer1/tables/syn_proxy.h"
 #include "../../layer1/tables/flow_table.h"
+#include "../../layer1/tables/ip_lists.h"
 #include "../../layer1/datapath/packet_parser.h"
 #include "../../layer1/config/layer1_config.h"
 #include "../../common/types.h"
@@ -132,6 +136,13 @@ uint64_t syn_proxy_cleanup_clock(void) {
     return cleanup_clock_held ? cleanup_clock_held : rte_get_tsc_cycles();
 }
 
+// legitimate_ip_clock() of this binary: the TSC, or a time a subtest holds
+static uint64_t legit_clock_held = 0;
+
+uint64_t legitimate_ip_clock(void) {
+    return legit_clock_held ? legit_clock_held : rte_get_tsc_cycles();
+}
+
 // A failed assertion returns before the subtest's own cleanup call, which
 // left the module initialized for the next subtest (its init then returns
 // early on the stale state). Release it here so every subtest starts clean,
@@ -144,8 +155,11 @@ uint64_t syn_proxy_cleanup_clock(void) {
     seam_action = NULL; \
     synack_clock_held = 0; \
     cleanup_clock_held = 0; \
+    legit_clock_held = 0; \
     if (tests_failed > failed_before) { \
         syn_proxy_cleanup(); \
+        legitimate_ip_free(); \
+        ip_lists_cleanup(); \
     } \
     if (tests_run - tests_failed - tests_passed == 1) { \
         tests_passed++; \
@@ -2005,14 +2019,23 @@ void test_syn_proxy_spoofed_mode_admits_proxy_connections(void) {
     TEST_ASSERT(!layer1_spoofed_tcp_admit(&ack, false),
                 "With the SYN proxy disabled for the destination its entry should not count");
 
-    // A flow vouches for its connection, whatever the SYN proxy
+    // A flow that vouches for its connection does so whatever the SYN proxy.
+    // The flow of a lone SYN does not (a spoofed SYN plants one): here the
+    // server has answered beyond a SYN-ACK (see flow_table_vouches_for()).
     struct packet_features flow_syn = tcp_features(0x0A090002, server, 41004, 80,
                                                    RTE_TCP_SYN_FLAG, 100, 0);
     bool created = false;
-    TEST_ASSERT(flow_table_lookup_or_create(&flow_syn, &created) != NULL && created,
-                "Flow should be created");
+    struct flow_entry *flow = flow_table_lookup_or_create(&flow_syn, &created);
+    TEST_ASSERT(flow != NULL && created, "Flow should be created");
+    flow_table_update(flow, &flow_syn);
     struct packet_features flow_ack = tcp_features(0x0A090002, server, 41004, 80,
                                                    RTE_TCP_ACK_FLAG, 101, 9);
+    TEST_ASSERT(!layer1_spoofed_tcp_admit(&flow_ack, false),
+                "The flow of a lone SYN should not admit a blind ACK");
+    struct packet_features server_ack = tcp_features(server, 0x0A090002, 80, 41004,
+                                                     RTE_TCP_ACK_FLAG, 9, 101);
+    TEST_ASSERT(flow_table_lookup(&server_ack) == flow, "The server's ACK should map to the flow");
+    flow_table_update(flow, &server_ack);
     TEST_ASSERT(layer1_spoofed_tcp_admit(&flow_ack, false), "A segment with a flow should be admitted");
 
     // A pure SYN always goes on to the SYN proxy, which challenges it
@@ -2130,6 +2153,10 @@ void test_syn_proxy_spoofed_mode_bypassed_needs_handshake(void) {
     TEST_ASSERT(layer1_spoofed_tcp_admit(&seg, true), "The client's FIN should be admitted");
     seg.tcp_flags = RTE_TCP_RST_FLAG;
     TEST_ASSERT(layer1_spoofed_tcp_admit(&seg, true), "The client's RST should be admitted");
+    // The server acknowledges the client's 1448 bytes, and the client resets
+    // at that number, its next sequence (an RST elsewhere ends no entry)
+    send_tcp(DIRECTION_OUTBOUND, server, client, 80, 46002, RTE_TCP_ACK_FLAG,
+             5000001 + 1448, 1649, NULL, &res);
     send_tcp(DIRECTION_INBOUND, client, server, 46002, 80, RTE_TCP_RST_FLAG, 1649, 0, NULL, &res);
     TEST_ASSERT_EQ(SYN_PROXY_FORWARD, res.action, "The client's RST should be forwarded");
     seg = tcp_features(client, server, 46002, 80, RTE_TCP_ACK_FLAG, 1649, 5000001 + 1448);
@@ -2781,6 +2808,7 @@ static void send_seg(uint8_t direction, uint32_t src_ip, uint32_t dst_ip,
     }
     struct packet_features f = tcp_features(src_ip, dst_ip, src_port, dst_port,
                                             tcp_flags, seq, ack);
+    f.payload_len = payload_len;   // As the parser sets it (packet_features.c)
     syn_proxy_process_packet(m, &f, direction, test_pool, res, 0, NULL);
     if (fwd_seq) *fwd_seq = rte_be_to_cpu_32(reply_tcp_hdr(m)->sent_seq);
     if (fwd_ack) *fwd_ack = rte_be_to_cpu_32(reply_tcp_hdr(m)->recv_ack);
@@ -2867,16 +2895,29 @@ static uint64_t connections_closed(void) {
     return stats.connections_closed;
 }
 
+// A cleanup pass with its clock held past the TIME_WAIT of every entry whose
+// last segment came before now (SYN_PROXY_TIME_WAIT_SEC + 1 s; below the
+// connect timeout of 5 s plus one, the close timeout and the idle timeout of
+// these tests). Returns the entries it released.
+static uint32_t cleanup_past_time_wait(void) {
+    cleanup_clock_held = rte_get_tsc_cycles() + (uint64_t)(SYN_PROXY_TIME_WAIT_SEC + 1) * rte_get_tsc_hz();
+    uint32_t cleaned = syn_proxy_cleanup_connections();
+    cleanup_clock_held = 0;
+    return cleaned;
+}
+
 #define FIN_ACK  (RTE_TCP_FIN_FLAG | RTE_TCP_ACK_FLAG)
 #define RST_ACK  (RTE_TCP_RST_FLAG | RTE_TCP_ACK_FLAG)
 
 // The client closes first: its FIN, the server's FIN with the ACK of the
 // client's, and the client's last ACK. Each is translated and forwarded, and
-// the last ACK releases the entry. Once the client's FIN+ACK went to the ACK
-// branch, which forwarded it and kept the entry (SERVER_FIN after the server's
-// FIN) until the idle timeout, 300 s shipped. This is the FIN+ACK case of the
-// round-3 white-box check (proxied_close.c: open, exchange data, close, one
-// cleanup pass), with the acknowledgement numbers a TCP stack sends.
+// the last ACK completes the close: the entry is counted as closed and kept
+// for the TIME_WAIT (CLOSED), then released by the cleanup. Once the client's
+// FIN+ACK went to the ACK branch, which forwarded it and kept the entry
+// (SERVER_FIN after the server's FIN) until the idle timeout, 300 s shipped.
+// This is the FIN+ACK case of the round-3 white-box check (proxied_close.c:
+// open, exchange data, close, one cleanup pass), with the acknowledgement
+// numbers a TCP stack sends.
 void test_syn_proxy_proxied_client_closes_first(void) {
     init_default_config();
     syn_proxy_init(&default_config);
@@ -2914,11 +2955,17 @@ void test_syn_proxy_proxied_client_closes_first(void) {
     TEST_ASSERT(res.packet_modified, "The last ACK should be translated");
     TEST_ASSERT_EQ(c2s(&pc, 1102), seq, "The last ACK should carry the server's numbering");
     TEST_ASSERT_EQ(70202, ack, "The last ACK should acknowledge the server's FIN");
+    TEST_ASSERT_EQ(1, connections_closed(), "The completed close should count as closed");
+    TEST_ASSERT(has_entry(&pc), "The completed close should keep the entry for the TIME_WAIT");
+
+    // Within the TIME_WAIT a cleanup pass leaves it; past it a pass releases it
+    TEST_ASSERT_EQ(0, syn_proxy_cleanup_connections(), "The cleanup should find nothing to delete");
+    TEST_ASSERT_EQ(1, cleanup_past_time_wait(), "Past the TIME_WAIT the cleanup should release the entry");
     TEST_ASSERT(!has_entry(&pc), "The last ACK after both FINs should release the entry");
     TEST_ASSERT_EQ(0, connections_active(), "No entry should remain");
     TEST_ASSERT_EQ(1, connections_closed(), "The release should count as closed");
 
-    // A cleanup pass has nothing left of it, and the 4-tuple can be proxied again
+    // Nothing is left of it, and the 4-tuple can be proxied again
     TEST_ASSERT_EQ(0, syn_proxy_cleanup_connections(), "The cleanup should find nothing to delete");
     TEST_ASSERT_EQ(SYN_PROXY_REPLY, cookie_handshake(0x0A100071, RACE_SERVER, 45001, 80, 9000, NULL),
                    "The released 4-tuple should open a new server connection");
@@ -2926,7 +2973,8 @@ void test_syn_proxy_proxied_client_closes_first(void) {
 }
 
 // The server closes first: its last 50 bytes with its FIN, the client's FIN
-// with the ACK of both, and the server's last ACK, which releases the entry
+// with the ACK of both, and the server's last ACK, which completes the close
+// (released after the TIME_WAIT)
 void test_syn_proxy_proxied_server_closes_first(void) {
     init_default_config();
     syn_proxy_init(&default_config);
@@ -2955,6 +3003,8 @@ void test_syn_proxy_proxied_server_closes_first(void) {
     TEST_ASSERT_EQ(SYN_PROXY_FORWARD, res.action, "The last ACK should be forwarded");
     TEST_ASSERT_EQ(s2c(&pc, 80252), seq, "The last ACK should carry the client's numbering");
     TEST_ASSERT_EQ(2102, ack, "The last ACK should acknowledge the client's FIN");
+    TEST_ASSERT(has_entry(&pc), "The completed close should keep the entry for the TIME_WAIT");
+    TEST_ASSERT_EQ(1, cleanup_past_time_wait(), "Past the TIME_WAIT the cleanup should release the entry");
     TEST_ASSERT(!has_entry(&pc), "The last ACK after both FINs should release the entry");
     TEST_ASSERT_EQ(0, connections_active(), "No entry should remain");
     TEST_ASSERT_EQ(1, connections_closed(), "The release should count as closed");
@@ -2962,8 +3012,9 @@ void test_syn_proxy_proxied_server_closes_first(void) {
 }
 
 // Both sides close at once: their FINs cross, each acknowledges the other's,
-// and the second of those ACKs releases the entry. The client's FIN carries
-// its last 30 bytes, so the server acknowledges 3101 + 30 + 1.
+// and the second of those ACKs completes the close (released after the
+// TIME_WAIT). The client's FIN carries its last 30 bytes, so the server
+// acknowledges 3101 + 30 + 1.
 void test_syn_proxy_proxied_simultaneous_close(void) {
     init_default_config();
     syn_proxy_init(&default_config);
@@ -2990,6 +3041,8 @@ void test_syn_proxy_proxied_simultaneous_close(void) {
 
     server_seg(&pc, RTE_TCP_ACK_FLAG, 90202, c2s(&pc, 3132), 0, &res, NULL, NULL);
     TEST_ASSERT_EQ(SYN_PROXY_FORWARD, res.action, "The server's ACK should be forwarded");
+    TEST_ASSERT_EQ(1, connections_closed(), "The completed close should count as closed");
+    TEST_ASSERT_EQ(1, cleanup_past_time_wait(), "Past the TIME_WAIT the cleanup should release the entry");
     TEST_ASSERT(!has_entry(&pc), "The ACK of the second FIN should release the entry");
     TEST_ASSERT_EQ(0, connections_active(), "No entry should remain");
     TEST_ASSERT_EQ(1, connections_closed(), "The release should count as closed");
@@ -2998,8 +3051,9 @@ void test_syn_proxy_proxied_simultaneous_close(void) {
 
 // The server sends its FIN before it has the client's last data: the client's
 // FIN is not acknowledged yet. The client's ACK of the server's FIN must not
-// release the entry: the client's retransmitted data and FIN are still
-// translated, and the server's ACK of them releases it.
+// complete the close: the client's retransmitted data and FIN are still
+// translated, and the server's ACK of them completes it (the entry is released
+// after the TIME_WAIT).
 void test_syn_proxy_proxied_close_waits_for_both_acks(void) {
     init_default_config();
     syn_proxy_init(&default_config);
@@ -3042,6 +3096,8 @@ void test_syn_proxy_proxied_close_waits_for_both_acks(void) {
 
     server_seg(&pc, RTE_TCP_ACK_FLAG, 100002, c2s(&pc, 4102), 0, &res, NULL, NULL);
     TEST_ASSERT_EQ(SYN_PROXY_FORWARD, res.action, "The server's ACK should be forwarded");
+    TEST_ASSERT_EQ(1, connections_closed(), "The completed close should count as closed");
+    TEST_ASSERT_EQ(1, cleanup_past_time_wait(), "Past the TIME_WAIT the cleanup should release the entry");
     TEST_ASSERT(!has_entry(&pc), "The ACK of the client's FIN should release the entry");
     TEST_ASSERT_EQ(1, connections_closed(), "The release should count as closed");
 
@@ -3059,6 +3115,8 @@ void test_syn_proxy_proxied_close_waits_for_both_acks(void) {
     server_seg(&pc, RTE_TCP_ACK_FLAG | RTE_TCP_PSH_FLAG, 150001, c2s(&pc, 7002), 100, &res, &seq, NULL);
     TEST_ASSERT_EQ(s2c(&pc, 150001), seq, "The retransmitted data should carry the client's numbering");
     client_seg(&pc, RTE_TCP_ACK_FLAG, 7002, s2c(&pc, 150102), 0, &res, NULL, NULL);
+    TEST_ASSERT_EQ(2, connections_closed(), "Each completed close should count as closed");
+    TEST_ASSERT_EQ(1, cleanup_past_time_wait(), "Past the TIME_WAIT the cleanup should release the entry");
     TEST_ASSERT(!has_entry(&pc), "The ACK of the server's FIN should release the entry");
     TEST_ASSERT_EQ(2, connections_closed(), "Each release should count as closed");
     syn_proxy_cleanup();
@@ -3111,7 +3169,8 @@ void test_syn_proxy_proxied_reset_with_ack(void) {
 // Under attack every new connection is proxied. Connections that end must free
 // their entries: once each entry stayed for the idle timeout, so a table of
 // max_connections filled after that many connections and valid cookies were
-// then dropped (table_full_drops).
+// then dropped (table_full_drops). A completed close keeps its entry only for
+// the TIME_WAIT (the cleanup's clock is held past it), an RST frees it at once.
 void test_syn_proxy_proxied_close_frees_table(void) {
     init_default_config();
     default_config.max_connections = 16;
@@ -3130,6 +3189,7 @@ void test_syn_proxy_proxied_close_frees_table(void) {
             client_seg(&pc, FIN_ACK, isn + 101, s2c(&pc, server_isn + 201), 0, &res, NULL, NULL);
             server_seg(&pc, FIN_ACK, server_isn + 201, c2s(&pc, isn + 102), 0, &res, NULL, NULL);
             client_seg(&pc, RTE_TCP_ACK_FLAG, isn + 102, s2c(&pc, server_isn + 202), 0, &res, NULL, NULL);
+            TEST_ASSERT_EQ(1, cleanup_past_time_wait(), "The TIME_WAIT should end in the cleanup");
         } else {
             client_seg(&pc, RST_ACK, isn + 101, s2c(&pc, server_isn + 201), 0, &res, NULL, NULL);
         }
@@ -3145,8 +3205,9 @@ void test_syn_proxy_proxied_close_frees_table(void) {
 
 // Both sides sent FIN and the last ACK is missing: the entry stays CLOSING so
 // that a late last ACK is still translated, and the cleanup releases it once no
-// segment came for connect_timeout_ms (the cleanup clock seam stands in for
-// the wait). The last case is the round-3 probe's close, whose ACKs carry
+// segment came for the close timeout (SYN_PROXY_CLOSING_TIMEOUT_SEC; the
+// cleanup clock seam stands in for the wait, held from times taken right after
+// the segments). The last case is the round-3 probe's close, whose ACKs carry
 // acknowledgement numbers 0 and 1 and so acknowledge neither FIN.
 void test_syn_proxy_proxied_closing_waits_for_last_ack(void) {
     init_default_config();
@@ -3173,23 +3234,27 @@ void test_syn_proxy_proxied_closing_waits_for_last_ack(void) {
     server_seg(&a, FIN_ACK, 120201, c2s(&a, 8102), 0, &res, NULL, NULL);
     client_seg(&b, FIN_ACK, 9101, s2c(&b, 130201), 0, &res, NULL, NULL);
     server_seg(&b, FIN_ACK, 130201, c2s(&b, 9102), 0, &res, NULL, NULL);
+    const uint64_t t_b = rte_get_tsc_cycles();
     // The probe's close: client data, FIN+ACK, server FIN+ACK, last ACK
     client_seg(&p, RTE_TCP_ACK_FLAG | RTE_TCP_PSH_FLAG, 5001, 0, 0, &res, NULL, NULL);
     client_seg(&p, FIN_ACK, 5001, 0, 0, &res, NULL, NULL);
     server_seg(&p, FIN_ACK, 900001, 1, 0, &res, NULL, NULL);
     client_seg(&p, RTE_TCP_ACK_FLAG, 5002, 0, 0, &res, NULL, NULL);
     TEST_ASSERT_EQ(SYN_PROXY_FORWARD, res.action, "The probe's last ACK should be forwarded");
+    const uint64_t t_p = rte_get_tsc_cycles();
 
     // A pass now finds no entry due: segments came less than 5 s ago
     TEST_ASSERT_EQ(0, syn_proxy_cleanup_connections(), "A closing entry should wait for its last ACK");
     TEST_ASSERT(has_entry(&a) && has_entry(&b) && has_entry(&p), "Closing entries should stay");
 
-    // a's last ACK arrives: translated, and it releases the entry
+    // a's last ACK arrives: translated, and it completes the close (CLOSED,
+    // released after the TIME_WAIT below)
     client_seg(&a, RTE_TCP_ACK_FLAG, 8102, s2c(&a, 120202), 0, &res, &seq, &ack);
+    const uint64_t t_a = rte_get_tsc_cycles();
     TEST_ASSERT(res.packet_modified, "A late last ACK should still be translated");
     TEST_ASSERT_EQ(c2s(&a, 8102), seq, "The late last ACK should carry the server's numbering");
     TEST_ASSERT_EQ(120202, ack, "The late last ACK should acknowledge the server's FIN");
-    TEST_ASSERT(!has_entry(&a), "The late last ACK should release the entry");
+    TEST_ASSERT_EQ(1, connections_closed(), "The late last ACK should complete the close");
 
     // c: both FINs, then the server resets: translated, and the entry goes
     client_seg(&c, FIN_ACK, 6101, s2c(&c, 140201), 0, &res, NULL, NULL);
@@ -3201,11 +3266,19 @@ void test_syn_proxy_proxied_closing_waits_for_last_ack(void) {
     TEST_ASSERT_EQ(6102, ack, "The server's RST should acknowledge the client's FIN");
     TEST_ASSERT(!has_entry(&c), "The server's RST should release the entry");
 
-    // b's and the probe's never come: past connect_timeout_ms the cleanup releases them
-    cleanup_clock_held = rte_get_tsc_cycles() + 3 * hz;
-    TEST_ASSERT_EQ(0, syn_proxy_cleanup_connections(), "Within connect_timeout_ms the entries should stay");
-    cleanup_clock_held = rte_get_tsc_cycles() + 7 * hz;
-    TEST_ASSERT_EQ(2, syn_proxy_cleanup_connections(), "Past connect_timeout_ms the cleanup should release them");
+    // b's and the probe's never come. Past connect_timeout_ms (5 s) they stay,
+    // as long as no segment comes for the close timeout; a stays for its
+    // TIME_WAIT and then goes
+    cleanup_clock_held = t_p + 3 * hz;
+    TEST_ASSERT_EQ(0, syn_proxy_cleanup_connections(), "Within the TIME_WAIT and the close timeout the entries should stay");
+    cleanup_clock_held = t_a + (uint64_t)(SYN_PROXY_TIME_WAIT_SEC + 1) * hz;
+    TEST_ASSERT_EQ(1, syn_proxy_cleanup_connections(), "Past its TIME_WAIT the cleanup should release the closed entry");
+    TEST_ASSERT(!has_entry(&a), "The late last ACK should release the entry");
+    TEST_ASSERT(has_entry(&b) && has_entry(&p), "Past connect_timeout_ms closing entries should stay");
+    cleanup_clock_held = t_b + (uint64_t)(SYN_PROXY_CLOSING_TIMEOUT_SEC - 1) * hz;
+    TEST_ASSERT_EQ(0, syn_proxy_cleanup_connections(), "Within the close timeout closing entries should stay");
+    cleanup_clock_held = t_p + (uint64_t)(SYN_PROXY_CLOSING_TIMEOUT_SEC + 1) * hz;
+    TEST_ASSERT_EQ(2, syn_proxy_cleanup_connections(), "Past the close timeout the cleanup should release them");
     cleanup_clock_held = 0;
     TEST_ASSERT(!has_entry(&b) && !has_entry(&p), "Both closing entries should be gone");
 
@@ -3268,6 +3341,8 @@ void test_syn_proxy_proxied_close_acks_race(void) {
     client_seg(&seam_pc, RTE_TCP_ACK_FLAG, 21102, s2c(&seam_pc, 210202), 0, &res, NULL, NULL);
     TEST_ASSERT_EQ(1, seam_calls, "The client's ACK should reach the close bookkeeping");
     TEST_ASSERT_EQ(SYN_PROXY_FORWARD, res.action, "The client's ACK should be forwarded");
+    TEST_ASSERT_EQ(1, connections_closed(), "The second acknowledgement should complete the close");
+    TEST_ASSERT_EQ(1, cleanup_past_time_wait(), "Past the TIME_WAIT the cleanup should release the entry");
     TEST_ASSERT(!has_entry(&seam_pc), "The second acknowledgement should end the entry");
     syn_proxy_get_stats(&stats);
     TEST_ASSERT_EQ(0, stats.connections_active, "No entry should remain");
@@ -3310,11 +3385,785 @@ void test_syn_proxy_proxied_close_acks_race(void) {
     client_seg(&seam_next, FIN_ACK, 24001, seam_next.cookie + 1, 0, &res, NULL, NULL);
     server_seg(&seam_next, FIN_ACK, 240001, c2s(&seam_next, 24002), 0, &res, NULL, NULL);
     client_seg(&seam_next, RTE_TCP_ACK_FLAG, 24002, s2c(&seam_next, 240002), 0, &res, NULL, NULL);
+    TEST_ASSERT_EQ(1, cleanup_past_time_wait(), "Past the TIME_WAIT the cleanup should release the entry");
     TEST_ASSERT(!has_entry(&seam_next), "The new connection's own close should release it");
     syn_proxy_get_stats(&stats);
     TEST_ASSERT_EQ(0, stats.connections_active, "No entry should remain");
     TEST_ASSERT_EQ(4, stats.connections_closed, "Each connection should count once");
     syn_proxy_cleanup();
+}
+
+// ==================== RST Validation Tests ====================
+
+// An RST of a proxied connection ends its entry only at the receiver's next
+// sequence (RFC 5961, 3.2). Once any RST matching the 4-tuple ended it, and
+// the rest of the connection then went out untranslated. From the client
+// side, an RST outside the server's window is dropped, and one in it but not
+// exact is forwarded (the server's stack answers it with a challenge ACK)
+// while the entry stays. The client that did reset answers that ACK with an
+// RST at the acknowledged number, which ends the entry. The server's RSTs are
+// always forwarded, and end the entry at the server's own next sequence or at
+// the client's.
+void test_syn_proxy_proxied_rst_needs_exact_sequence(void) {
+    init_default_config();
+    syn_proxy_init(&default_config);
+    syn_proxy_reset_stats();
+    struct proxied_conn pc;
+    struct syn_proxy_result res;
+    struct syn_proxy_stats stats;
+    uint32_t seq = 0, ack = 0;
+
+    // The client sends from 31101 and the server from 310201, each acknowledged
+    const char *err = open_proxied(&pc, 0x0A1000B1, 45031, 31000, 310000);
+    TEST_ASSERT(err == NULL, err);
+    exchange_data(&pc);
+
+    // Outside the server's window: dropped, as spoofed TCP, and the entry stays
+    client_seg(&pc, RTE_TCP_RST_FLAG, 31101 + 0x40000000u, 0, 0, &res, NULL, NULL);
+    TEST_ASSERT_EQ(SYN_PROXY_DROP, res.action, "An RST far outside the window should be dropped");
+    TEST_ASSERT_EQ(DROP_REASON_SPOOFED_TCP, res.drop_reason, "It should be dropped as spoofed TCP");
+    TEST_ASSERT(has_entry(&pc), "An RST outside the window must not end the entry");
+    client_seg(&pc, RST_ACK, 31100, s2c(&pc, 310201), 0, &res, NULL, NULL);
+    TEST_ASSERT_EQ(SYN_PROXY_DROP, res.action, "An RST below the server's next sequence should be dropped");
+    TEST_ASSERT(has_entry(&pc), "An RST below the window must not end the entry");
+
+    // In the window, not exact: forwarded and translated, the entry stays
+    client_seg(&pc, RTE_TCP_RST_FLAG, 31101 + 1000, 0, 0, &res, &seq, NULL);
+    TEST_ASSERT_EQ(SYN_PROXY_FORWARD, res.action, "An RST in the window should be forwarded");
+    TEST_ASSERT(res.packet_modified, "An RST in the window should be translated");
+    TEST_ASSERT_EQ(c2s(&pc, 31101 + 1000), seq, "It should carry the server's numbering");
+    TEST_ASSERT(has_entry(&pc), "An RST that is not exact must not end the entry");
+    syn_proxy_get_stats(&stats);
+    TEST_ASSERT_EQ(2, stats.rst_dropped, "Both RSTs outside the window should count as dropped");
+    TEST_ASSERT_EQ(1, stats.rst_unconfirmed, "The RST in the window should count as unconfirmed");
+    TEST_ASSERT_EQ(0, stats.connections_closed, "No RST so far should close the connection");
+
+    // A blind sender's RSTs change nothing: the connection goes on, translated
+    client_seg(&pc, RTE_TCP_ACK_FLAG | RTE_TCP_PSH_FLAG, 31101, s2c(&pc, 310201), 10, &res, &seq, &ack);
+    TEST_ASSERT_EQ(SYN_PROXY_FORWARD, res.action, "The connection's data should still be forwarded");
+    TEST_ASSERT_EQ(c2s(&pc, 31101), seq, "The connection's data should still be translated");
+    TEST_ASSERT_EQ(310201, ack, "Its ACK should still be translated");
+
+    // The server answers an RST in its window with a challenge ACK, here of
+    // the client's 10 bytes; a client that did reset answers it with an RST
+    // at that number: exact, and the entry ends
+    server_seg(&pc, RTE_TCP_ACK_FLAG, 310201, c2s(&pc, 31111), 0, &res, &seq, &ack);
+    TEST_ASSERT_EQ(31111, ack, "The server's challenge ACK should reach the client in its numbering");
+    client_seg(&pc, RTE_TCP_RST_FLAG, 31111, 0, 0, &res, &seq, NULL);
+    TEST_ASSERT_EQ(SYN_PROXY_FORWARD, res.action, "The client's exact RST should be forwarded");
+    TEST_ASSERT_EQ(c2s(&pc, 31111), seq, "The client's exact RST should carry the server's numbering");
+    TEST_ASSERT(!has_entry(&pc), "An RST at the server's next sequence should end the entry");
+    TEST_ASSERT_EQ(1, connections_closed(), "The exact RST should count as closed");
+
+    // The server's RSTs: always forwarded
+    err = open_proxied(&pc, 0x0A1000B2, 45032, 32000, 320000);
+    TEST_ASSERT(err == NULL, err);
+    exchange_data(&pc);
+    server_seg(&pc, RST_ACK, 320201 + 7000, c2s(&pc, 32101), 0, &res, &seq, NULL);
+    TEST_ASSERT_EQ(SYN_PROXY_FORWARD, res.action, "A server RST that is not exact should be forwarded");
+    TEST_ASSERT_EQ(s2c(&pc, 320201 + 7000), seq, "It should carry the client's numbering");
+    TEST_ASSERT(has_entry(&pc), "A server RST that is not exact must not end the entry");
+    // The server sends 300 more bytes and a keepalive probe (no data, one
+    // below its next sequence, which moves nothing), then aborts with the 300
+    // bytes unacknowledged: its RST is at its own next sequence, past the
+    // client's last ACK
+    server_seg(&pc, RTE_TCP_ACK_FLAG | RTE_TCP_PSH_FLAG, 320201, c2s(&pc, 32101), 300, &res, NULL, NULL);
+    server_seg(&pc, RTE_TCP_ACK_FLAG, 320500, c2s(&pc, 32101), 0, &res, NULL, NULL);
+    // An RST that carries data (a diagnostic) occupies no sequence space either
+    server_seg(&pc, RST_ACK, 320201 + 9000, c2s(&pc, 32101), 20, &res, NULL, NULL);
+    TEST_ASSERT_EQ(SYN_PROXY_FORWARD, res.action, "A server RST with data should be forwarded");
+    TEST_ASSERT(has_entry(&pc), "A server RST with data that is not exact must not end the entry");
+    server_seg(&pc, RST_ACK, 320501, c2s(&pc, 32101), 0, &res, &seq, NULL);
+    TEST_ASSERT_EQ(SYN_PROXY_FORWARD, res.action, "The server's abort should be forwarded");
+    TEST_ASSERT_EQ(s2c(&pc, 320501), seq, "The server's abort should carry the client's numbering");
+    TEST_ASSERT(!has_entry(&pc), "An RST at the server's own next sequence should end the entry");
+
+    // The server, with 100 bytes in flight, answers a client segment of a
+    // connection it no longer has: its RST is at that segment's ACK, the
+    // client's next expected sequence, short of the server's own
+    err = open_proxied(&pc, 0x0A1000B3, 45033, 33000, 330000);
+    TEST_ASSERT(err == NULL, err);
+    exchange_data(&pc);
+    server_seg(&pc, RTE_TCP_ACK_FLAG | RTE_TCP_PSH_FLAG, 330201, c2s(&pc, 33101), 100, &res, NULL, NULL);
+    client_seg(&pc, RTE_TCP_ACK_FLAG | RTE_TCP_PSH_FLAG, 33101, s2c(&pc, 330201), 20, &res, NULL, NULL);
+    // A blind RST+ACK in the server's window: forwarded, and its ACK field,
+    // a guess, is not taken for the client's acknowledgement
+    client_seg(&pc, RST_ACK, 33101 + 500, s2c(&pc, 330251), 0, &res, NULL, NULL);
+    TEST_ASSERT_EQ(SYN_PROXY_FORWARD, res.action, "A blind RST+ACK in the window should be forwarded");
+    TEST_ASSERT(has_entry(&pc), "A blind RST+ACK in the window must not end the entry");
+    server_seg(&pc, RTE_TCP_RST_FLAG, 330201, 0, 0, &res, &seq, NULL);
+    TEST_ASSERT_EQ(SYN_PROXY_FORWARD, res.action, "The server's RST should be forwarded");
+    TEST_ASSERT_EQ(s2c(&pc, 330201), seq, "The server's RST should carry the client's numbering");
+    TEST_ASSERT(!has_entry(&pc), "An RST at the client's next expected sequence should end the entry");
+
+    // Right after the server's SYN-ACK, before any other segment: the
+    // client's RST at its next sequence is exact (the SYN-ACK acknowledged
+    // the proxy's SYN)
+    err = open_proxied(&pc, 0x0A1000B6, 45035, 35000, 350000);
+    TEST_ASSERT(err == NULL, err);
+    client_seg(&pc, RTE_TCP_RST_FLAG, 35001, 0, 0, &res, &seq, NULL);
+    TEST_ASSERT_EQ(SYN_PROXY_FORWARD, res.action, "The client's RST should be forwarded");
+    TEST_ASSERT_EQ(c2s(&pc, 35001), seq, "It should carry the server's numbering");
+    TEST_ASSERT(!has_entry(&pc), "An RST at the server's first expected sequence should end the entry");
+
+    syn_proxy_get_stats(&stats);
+    TEST_ASSERT_EQ(4, stats.connections_closed, "Each exact RST should count as closed once");
+    TEST_ASSERT_EQ(0, stats.connections_active, "No entry should remain");
+    TEST_ASSERT_EQ(4, stats.rst_unconfirmed, "The four RSTs that were not exact should count as unconfirmed");
+    syn_proxy_cleanup();
+}
+
+// While the proxy waits on the server it is the client's peer itself (its
+// next sequence is the client's ISN + 1, its SYN-ACK's window 65535), and its
+// SYN is in SYN-SENT toward the server. An RST that is not exact is ignored:
+// dropped, and the waiting connection keeps its entry and its half-open slot.
+// Once any RST freed it.
+void test_syn_proxy_connecting_rst_needs_exact_sequence(void) {
+    int limit = half_open_limit();
+    TEST_ASSERT(limit > 1, "A source should be able to open several waiting connections");
+
+    init_default_config();
+    syn_proxy_init(&default_config);
+    syn_proxy_reset_stats();
+    const uint32_t client = 0x0A1000B4;
+    struct syn_proxy_result res;
+    struct syn_proxy_stats stats;
+    uint32_t proxy_isn = 0;
+
+    TEST_ASSERT_EQ(SYN_PROXY_REPLY, cookie_handshake(client, RACE_SERVER, 45034, 80, 1000, &proxy_isn),
+                   "Valid cookie should open a server connection");
+    struct packet_features waiting = tcp_features(client, RACE_SERVER, 45034, 80, RTE_TCP_ACK_FLAG, 1001, 1);
+
+    // The client's side: in the window but not exact, and outside it
+    send_tcp(DIRECTION_INBOUND, client, RACE_SERVER, 45034, 80, RTE_TCP_RST_FLAG, 1001 + 500, 0, NULL, &res);
+    TEST_ASSERT_EQ(SYN_PROXY_DROP, res.action, "An RST in the window but not exact should be ignored");
+    TEST_ASSERT_EQ(DROP_REASON_SPOOFED_TCP, res.drop_reason, "It should be dropped as spoofed TCP");
+    TEST_ASSERT(syn_proxy_is_proxied(&waiting, DIRECTION_INBOUND), "It must not end the waiting connection");
+    send_tcp(DIRECTION_INBOUND, client, RACE_SERVER, 45034, 80, RST_ACK, 1001 + 0x20000000u, 1, NULL, &res);
+    TEST_ASSERT_EQ(SYN_PROXY_DROP, res.action, "An RST outside the window should be dropped");
+    TEST_ASSERT(syn_proxy_is_proxied(&waiting, DIRECTION_INBOUND), "It must not end the waiting connection");
+
+    // The server's side: an RST counts only if it acknowledges the proxy's SYN
+    send_tcp(DIRECTION_OUTBOUND, RACE_SERVER, client, 80, 45034, RTE_TCP_RST_FLAG, 0, 0, NULL, &res);
+    TEST_ASSERT_EQ(SYN_PROXY_DROP, res.action, "A server RST without ACK should be dropped");
+    TEST_ASSERT(syn_proxy_is_proxied(&waiting, DIRECTION_INBOUND), "It must not end the waiting connection");
+    send_tcp(DIRECTION_OUTBOUND, RACE_SERVER, client, 80, 45034, RST_ACK, 0, proxy_isn + 7, NULL, &res);
+    TEST_ASSERT_EQ(SYN_PROXY_DROP, res.action, "A server RST acknowledging something else should be dropped");
+    TEST_ASSERT(syn_proxy_is_proxied(&waiting, DIRECTION_INBOUND), "It must not end the waiting connection");
+    syn_proxy_get_stats(&stats);
+    TEST_ASSERT_EQ(4, stats.rst_dropped, "Each of the four should count as dropped");
+    TEST_ASSERT_EQ(1, stats.connections_active, "The waiting connection should keep its entry");
+    TEST_ASSERT_EQ(limit - 1, open_until_drop(client, 46000),
+                   "The waiting connection should keep its half-open slot");
+
+    // The client's own RST, at its next sequence: passed untranslated, and
+    // the entry and its half-open slot go
+    send_tcp(DIRECTION_INBOUND, client, RACE_SERVER, 45034, 80, RTE_TCP_RST_FLAG, 1001, 0, NULL, &res);
+    TEST_ASSERT_EQ(SYN_PROXY_BYPASS, res.action, "The client's exact RST should pass untranslated");
+    TEST_ASSERT(!syn_proxy_is_proxied(&waiting, DIRECTION_INBOUND), "The client's exact RST should end the entry");
+    TEST_ASSERT_EQ(1, open_until_drop(client, 48000), "The client's exact RST should release its half-open slot");
+    syn_proxy_cleanup();
+
+    // The server refuses the proxy's SYN: an RST+ACK of the SYN ends the entry
+    init_default_config();
+    syn_proxy_init(&default_config);
+    syn_proxy_reset_stats();
+    TEST_ASSERT_EQ(SYN_PROXY_REPLY, cookie_handshake(client, RACE_SERVER, 45035, 80, 2000, &proxy_isn),
+                   "Valid cookie should open a server connection");
+    waiting = tcp_features(client, RACE_SERVER, 45035, 80, RTE_TCP_ACK_FLAG, 2001, 1);
+    send_tcp(DIRECTION_OUTBOUND, RACE_SERVER, client, 80, 45035, RST_ACK, 0, proxy_isn + 1, NULL, &res);
+    TEST_ASSERT_EQ(SYN_PROXY_DROP, res.action, "The server's refusal is the proxy's, not forwarded");
+    TEST_ASSERT(!syn_proxy_is_proxied(&waiting, DIRECTION_INBOUND),
+                "An RST that acknowledges the proxy's SYN should end the entry");
+    TEST_ASSERT_EQ(limit, open_until_drop(client, 47000), "Its half-open slot should be released");
+    syn_proxy_cleanup();
+}
+
+// The same rule for a BYPASSED connection, numbered end to end. Its windows
+// may be scaled, so an RST from the client is dropped only beyond 2^30 bytes
+// past the server's last ACK; one in such a window but not exact is forwarded
+// unmodified and the entry stays (it still vouches for the connection at
+// Stage 8b). Before the receiver has acknowledged anything, the SYN's ISN
+// decides. Once any RST freed the entry.
+void test_syn_proxy_bypassed_rst_needs_exact_sequence(void) {
+    init_default_config();
+    syn_proxy_init(&default_config);
+    syn_proxy_reset_stats();
+    const uint32_t client = 0x0A1000B5;
+    struct syn_proxy_result res;
+    struct syn_proxy_stats stats;
+
+    // Handshake, 100 bytes from the client and 200 from the server, each acknowledged
+    send_tcp(DIRECTION_INBOUND, client, RACE_SERVER, 45036, 80, RTE_TCP_SYN_FLAG, 100, 0, NULL, &res);
+    TEST_ASSERT_EQ(SYN_PROXY_BYPASS, res.action, "Normal-load SYN should be bypassed");
+    send_tcp(DIRECTION_OUTBOUND, RACE_SERVER, client, 80, 45036, RTE_TCP_SYN_FLAG | RTE_TCP_ACK_FLAG,
+             5000, 101, NULL, &res);
+    send_tcp(DIRECTION_INBOUND, client, RACE_SERVER, 45036, 80, RTE_TCP_ACK_FLAG, 101, 5001, NULL, &res);
+    send_seg(DIRECTION_INBOUND, client, RACE_SERVER, 45036, 80, RTE_TCP_ACK_FLAG | RTE_TCP_PSH_FLAG,
+             101, 5001, 100, &res, NULL, NULL);
+    send_seg(DIRECTION_OUTBOUND, RACE_SERVER, client, 80, 45036, RTE_TCP_ACK_FLAG | RTE_TCP_PSH_FLAG,
+             5001, 201, 200, &res, NULL, NULL);
+    send_tcp(DIRECTION_INBOUND, client, RACE_SERVER, 45036, 80, RTE_TCP_ACK_FLAG, 201, 5201, NULL, &res);
+    struct packet_features open_seg = tcp_features(client, RACE_SERVER, 45036, 80, RTE_TCP_ACK_FLAG, 201, 5201);
+    TEST_ASSERT(syn_proxy_admits_segment(&open_seg), "The bypassed connection should be vouched for");
+
+    // From the client: beyond any window, dropped; in one but not exact, forwarded
+    send_tcp(DIRECTION_INBOUND, client, RACE_SERVER, 45036, 80, RTE_TCP_RST_FLAG, 201 + 0x50000000u, 0, NULL, &res);
+    TEST_ASSERT_EQ(SYN_PROXY_DROP, res.action, "An RST beyond any window should be dropped");
+    TEST_ASSERT_EQ(DROP_REASON_SPOOFED_TCP, res.drop_reason, "It should be dropped as spoofed TCP");
+    send_tcp(DIRECTION_INBOUND, client, RACE_SERVER, 45036, 80, RTE_TCP_RST_FLAG, 201 + 5000, 0, NULL, &res);
+    TEST_ASSERT_EQ(SYN_PROXY_FORWARD, res.action, "An RST that may be in the window should be forwarded");
+    TEST_ASSERT(!res.packet_modified, "A bypassed connection's RST should not be translated");
+    TEST_ASSERT(syn_proxy_admits_segment(&open_seg), "An RST that is not exact must not end the entry");
+    // From the server: forwarded; not exact, so the entry stays
+    send_tcp(DIRECTION_OUTBOUND, RACE_SERVER, client, 80, 45036, RST_ACK, 5201 + 9000, 201, NULL, &res);
+    TEST_ASSERT_EQ(SYN_PROXY_FORWARD, res.action, "A server RST should be forwarded");
+    TEST_ASSERT(syn_proxy_admits_segment(&open_seg), "A server RST that is not exact must not end the entry");
+    syn_proxy_get_stats(&stats);
+    TEST_ASSERT_EQ(0, stats.connections_closed, "No RST so far should close the connection");
+
+    // The client resets at the server's next expected sequence: the entry ends
+    send_tcp(DIRECTION_INBOUND, client, RACE_SERVER, 45036, 80, RST_ACK, 201, 5201, NULL, &res);
+    TEST_ASSERT_EQ(SYN_PROXY_FORWARD, res.action, "The client's exact RST should be forwarded");
+    TEST_ASSERT(!syn_proxy_is_proxied(&open_seg, DIRECTION_INBOUND), "The client's exact RST should end the entry");
+
+    // The server aborts at its own next sequence, with 50 bytes unacknowledged
+    send_tcp(DIRECTION_INBOUND, client, RACE_SERVER, 45037, 80, RTE_TCP_SYN_FLAG, 300, 0, NULL, &res);
+    send_tcp(DIRECTION_OUTBOUND, RACE_SERVER, client, 80, 45037, RTE_TCP_SYN_FLAG | RTE_TCP_ACK_FLAG,
+             7000, 301, NULL, &res);
+    send_tcp(DIRECTION_INBOUND, client, RACE_SERVER, 45037, 80, RTE_TCP_ACK_FLAG, 301, 7001, NULL, &res);
+    send_seg(DIRECTION_OUTBOUND, RACE_SERVER, client, 80, 45037, RTE_TCP_ACK_FLAG | RTE_TCP_PSH_FLAG,
+             7001, 301, 50, &res, NULL, NULL);
+    struct packet_features second = tcp_features(client, RACE_SERVER, 45037, 80, RTE_TCP_ACK_FLAG, 301, 7001);
+    send_tcp(DIRECTION_OUTBOUND, RACE_SERVER, client, 80, 45037, RST_ACK, 7051, 301, NULL, &res);
+    TEST_ASSERT_EQ(SYN_PROXY_FORWARD, res.action, "The server's abort should be forwarded");
+    TEST_ASSERT(!syn_proxy_is_proxied(&second, DIRECTION_INBOUND),
+                "An RST at the server's own next sequence should end the entry");
+
+    // Before the server answers, the client's next sequence is its ISN + 1
+    send_tcp(DIRECTION_INBOUND, client, RACE_SERVER, 45038, 80, RTE_TCP_SYN_FLAG, 400, 0, NULL, &res);
+    struct packet_features third = tcp_features(client, RACE_SERVER, 45038, 80, RTE_TCP_ACK_FLAG, 401, 1);
+    send_tcp(DIRECTION_INBOUND, client, RACE_SERVER, 45038, 80, RTE_TCP_RST_FLAG, 405, 0, NULL, &res);
+    TEST_ASSERT_EQ(SYN_PROXY_FORWARD, res.action, "An RST before the server's answer should be forwarded");
+    TEST_ASSERT(syn_proxy_is_proxied(&third, DIRECTION_INBOUND), "An RST past the ISN + 1 must not end the entry");
+    send_tcp(DIRECTION_INBOUND, client, RACE_SERVER, 45038, 80, RTE_TCP_RST_FLAG, 401, 0, NULL, &res);
+    TEST_ASSERT(!syn_proxy_is_proxied(&third, DIRECTION_INBOUND), "An RST at the ISN + 1 should end the entry");
+
+    // The server refuses a SYN: its RST+ACK must acknowledge the SYN
+    send_tcp(DIRECTION_INBOUND, client, RACE_SERVER, 45039, 80, RTE_TCP_SYN_FLAG, 500, 0, NULL, &res);
+    struct packet_features fourth = tcp_features(client, RACE_SERVER, 45039, 80, RTE_TCP_ACK_FLAG, 501, 1);
+    send_tcp(DIRECTION_OUTBOUND, RACE_SERVER, client, 80, 45039, RST_ACK, 0, 999, NULL, &res);
+    TEST_ASSERT_EQ(SYN_PROXY_FORWARD, res.action, "A server RST should be forwarded");
+    TEST_ASSERT(syn_proxy_is_proxied(&fourth, DIRECTION_INBOUND), "An RST that does not acknowledge the SYN must not end the entry");
+    send_tcp(DIRECTION_OUTBOUND, RACE_SERVER, client, 80, 45039, RST_ACK, 0, 501, NULL, &res);
+    TEST_ASSERT(!syn_proxy_is_proxied(&fourth, DIRECTION_INBOUND), "An RST that acknowledges the SYN should end the entry");
+
+    // A SYN on an open connection's 4-tuple, with an ISN of the sender's
+    // choosing, must not make that ISN + 1 an exact RST: the numbers follow
+    // the server's acknowledgements. Once the server answers the new SYN, its
+    // ACK counts.
+    send_tcp(DIRECTION_INBOUND, client, RACE_SERVER, 45040, 80, RTE_TCP_SYN_FLAG, 600, 0, NULL, &res);
+    send_tcp(DIRECTION_OUTBOUND, RACE_SERVER, client, 80, 45040, RTE_TCP_SYN_FLAG | RTE_TCP_ACK_FLAG,
+             8000, 601, NULL, &res);
+    send_tcp(DIRECTION_INBOUND, client, RACE_SERVER, 45040, 80, RTE_TCP_ACK_FLAG, 601, 8001, NULL, &res);
+    struct packet_features fifth = tcp_features(client, RACE_SERVER, 45040, 80, RTE_TCP_ACK_FLAG, 601, 8001);
+    send_tcp(DIRECTION_INBOUND, client, RACE_SERVER, 45040, 80, RTE_TCP_SYN_FLAG, 900000, 0, NULL, &res);
+    send_tcp(DIRECTION_INBOUND, client, RACE_SERVER, 45040, 80, RTE_TCP_RST_FLAG, 900001, 0, NULL, &res);
+    TEST_ASSERT_EQ(SYN_PROXY_FORWARD, res.action, "The RST after a blind SYN should be forwarded");
+    TEST_ASSERT(syn_proxy_is_proxied(&fifth, DIRECTION_INBOUND),
+                "A SYN must not let its sender choose the number its RST is checked against");
+    send_tcp(DIRECTION_OUTBOUND, RACE_SERVER, client, 80, 45040, RTE_TCP_SYN_FLAG | RTE_TCP_ACK_FLAG,
+             9000, 900001, NULL, &res);
+    send_tcp(DIRECTION_INBOUND, client, RACE_SERVER, 45040, 80, RTE_TCP_RST_FLAG, 900001, 0, NULL, &res);
+    TEST_ASSERT(!syn_proxy_is_proxied(&fifth, DIRECTION_INBOUND),
+                "Once the server acknowledges the new SYN, an RST at its ISN + 1 should end the entry");
+
+    // The server, with 80 bytes in flight, answers a client segment of a
+    // connection it no longer has: its RST is at that segment's ACK, the
+    // client's next expected sequence, short of the server's own
+    send_tcp(DIRECTION_INBOUND, client, RACE_SERVER, 45041, 80, RTE_TCP_SYN_FLAG, 700, 0, NULL, &res);
+    send_tcp(DIRECTION_OUTBOUND, RACE_SERVER, client, 80, 45041, RTE_TCP_SYN_FLAG | RTE_TCP_ACK_FLAG,
+             10000, 701, NULL, &res);
+    send_tcp(DIRECTION_INBOUND, client, RACE_SERVER, 45041, 80, RTE_TCP_ACK_FLAG, 701, 10001, NULL, &res);
+    send_seg(DIRECTION_OUTBOUND, RACE_SERVER, client, 80, 45041, RTE_TCP_ACK_FLAG | RTE_TCP_PSH_FLAG,
+             10001, 701, 80, &res, NULL, NULL);
+    send_seg(DIRECTION_INBOUND, client, RACE_SERVER, 45041, 80, RTE_TCP_ACK_FLAG | RTE_TCP_PSH_FLAG,
+             701, 10001, 20, &res, NULL, NULL);
+    struct packet_features sixth = tcp_features(client, RACE_SERVER, 45041, 80, RTE_TCP_ACK_FLAG, 721, 10001);
+    send_tcp(DIRECTION_OUTBOUND, RACE_SERVER, client, 80, 45041, RTE_TCP_RST_FLAG, 10001, 0, NULL, &res);
+    TEST_ASSERT_EQ(SYN_PROXY_FORWARD, res.action, "The server's RST should be forwarded");
+    TEST_ASSERT(!syn_proxy_is_proxied(&sixth, DIRECTION_INBOUND),
+                "An RST at the client's next expected sequence should end the entry");
+
+    syn_proxy_get_stats(&stats);
+    TEST_ASSERT_EQ(6, stats.connections_closed, "Each exact RST should count as closed once");
+    TEST_ASSERT_EQ(1, stats.rst_dropped, "The RST beyond any window should count as dropped");
+    TEST_ASSERT_EQ(5, stats.rst_unconfirmed, "The five RSTs that were not exact should count as unconfirmed");
+    TEST_ASSERT_EQ(0, stats.connections_active, "No entry should remain");
+    syn_proxy_cleanup();
+}
+
+// A sender may fill the receiver's whole window before the receiver
+// acknowledges any of it: its next sequence is then 65535 bytes past the
+// receiver's last ACK (a proxied connection's windows are not scaled), and
+// its abort, an RST there, is exact for a receiver that got every byte. That
+// RST is forwarded, not dropped as spoofed TCP; one a byte further is beyond
+// any window the sender can have reached, and is dropped.
+void test_syn_proxy_proxied_rst_at_window_edge(void) {
+    init_default_config();
+    syn_proxy_init(&default_config);
+    syn_proxy_reset_stats();
+    struct proxied_conn pc;
+    struct syn_proxy_result res;
+    struct syn_proxy_stats stats;
+    uint32_t seq = 0;
+
+    // The server has acknowledged the client up to 37101
+    const char *err = open_proxied(&pc, 0x0A1000B7, 45042, 37000, 370000);
+    TEST_ASSERT(err == NULL, err);
+    exchange_data(&pc);
+
+    // The client fills the window: 65535 bytes from 37101, none acknowledged yet
+    for (uint32_t off = 0; off < 65535u; off += 1460u) {
+        const uint16_t len = (uint16_t)RTE_MIN(1460u, 65535u - off);
+        client_seg(&pc, RTE_TCP_ACK_FLAG | RTE_TCP_PSH_FLAG, 37101 + off, s2c(&pc, 370201), len,
+                   &res, NULL, NULL);
+        TEST_ASSERT_EQ(SYN_PROXY_FORWARD, res.action, "The client's data should be forwarded");
+    }
+
+    // A byte past the full window: beyond what the client can have sent
+    client_seg(&pc, RTE_TCP_RST_FLAG, 37101 + 65536, 0, 0, &res, NULL, NULL);
+    TEST_ASSERT_EQ(SYN_PROXY_DROP, res.action, "An RST past the full window should be dropped");
+    TEST_ASSERT(has_entry(&pc), "An RST past the full window must not end the entry");
+
+    // The client aborts at its next sequence, a full window past the server's last ACK
+    client_seg(&pc, RST_ACK, 37101 + 65535, s2c(&pc, 370201), 0, &res, &seq, NULL);
+    TEST_ASSERT_EQ(SYN_PROXY_FORWARD, res.action, "The client's RST a full window ahead should be forwarded");
+    TEST_ASSERT_EQ(c2s(&pc, 37101 + 65535), seq, "It should carry the server's numbering");
+    TEST_ASSERT(has_entry(&pc), "Not exact as far as the proxy knows: the entry stays");
+
+    // The server, which got every byte, acknowledges them: the RST is now exact
+    server_seg(&pc, RTE_TCP_ACK_FLAG, 370201, c2s(&pc, 37101 + 65535), 0, &res, NULL, NULL);
+    client_seg(&pc, RTE_TCP_RST_FLAG, 37101 + 65535, 0, 0, &res, NULL, NULL);
+    TEST_ASSERT_EQ(SYN_PROXY_FORWARD, res.action, "The exact RST should be forwarded");
+    TEST_ASSERT(!has_entry(&pc), "The exact RST should end the entry");
+
+    syn_proxy_get_stats(&stats);
+    TEST_ASSERT_EQ(1, stats.rst_dropped, "Only the RST past the window should count as dropped");
+    TEST_ASSERT_EQ(1, stats.rst_unconfirmed, "The RST a full window ahead should count as unconfirmed");
+    TEST_ASSERT_EQ(1, stats.connections_closed, "The exact RST should count as closed");
+    syn_proxy_cleanup();
+}
+
+// ==================== Close Timeout Tests ====================
+
+// The skeptic's lossy close: the client half-closes and the server
+// acknowledges it; the server's last 50 bytes and its FIN are lost beyond the
+// proxy, and the server retransmits them 6 s later (its backoff after two
+// losses at a 3 s RTO). Through the gap the entry is CLOSING, longer than
+// connect_timeout_ms (5 s): the retransmission must still be translated, or
+// the client never gets those bytes. Once the cleanup deleted a CLOSING entry
+// after connect_timeout_ms without a segment.
+void test_syn_proxy_proxied_closing_survives_retransmission_gap(void) {
+    init_default_config();
+    syn_proxy_init(&default_config);   // connect_timeout_ms 5000
+    syn_proxy_reset_stats();
+    struct proxied_conn pc;
+    struct syn_proxy_result res;
+    struct syn_proxy_stats stats;
+    uint32_t seq = 0, ack = 0;
+    const uint64_t hz = rte_get_tsc_hz();
+
+    const char *err = open_proxied(&pc, 0x0A1000B6, 45041, 36000, 360000);
+    TEST_ASSERT(err == NULL, err);
+    exchange_data(&pc);
+    client_seg(&pc, FIN_ACK, 36101, s2c(&pc, 360201), 0, &res, NULL, NULL);
+    server_seg(&pc, RTE_TCP_ACK_FLAG, 360201, c2s(&pc, 36102), 0, &res, NULL, NULL);
+    // Lost beyond the proxy
+    server_seg(&pc, FIN_ACK | RTE_TCP_PSH_FLAG, 360201, c2s(&pc, 36102), 50, &res, NULL, NULL);
+    const uint64_t t_lost = rte_get_tsc_cycles();
+
+    cleanup_clock_held = t_lost + 6 * hz;
+    TEST_ASSERT_EQ(0, syn_proxy_cleanup_connections(), "A closing entry should outlive connect_timeout_ms");
+    cleanup_clock_held = 0;
+    TEST_ASSERT(has_entry(&pc), "The closing entry should stay through the gap");
+
+    // The retransmission is translated, and the client's ACK of it completes the close
+    server_seg(&pc, FIN_ACK | RTE_TCP_PSH_FLAG, 360201, c2s(&pc, 36102), 50, &res, &seq, &ack);
+    TEST_ASSERT_EQ(SYN_PROXY_FORWARD, res.action, "The retransmitted data and FIN should be forwarded");
+    TEST_ASSERT(res.packet_modified, "The retransmitted data and FIN should be translated");
+    TEST_ASSERT_EQ(s2c(&pc, 360201), seq, "They should carry the client's numbering");
+    TEST_ASSERT_EQ(36102, ack, "They should acknowledge the client's FIN in its numbering");
+    client_seg(&pc, RTE_TCP_ACK_FLAG, 36102, s2c(&pc, 360252), 0, &res, &seq, &ack);
+    TEST_ASSERT_EQ(360252, ack, "The client's last ACK should reach the server in its numbering");
+    TEST_ASSERT_EQ(1, connections_closed(), "The client's last ACK should complete the close");
+    TEST_ASSERT_EQ(1, cleanup_past_time_wait(), "Past the TIME_WAIT the cleanup should release the entry");
+
+    // A close that never completes still ends, once the close timeout passes
+    err = open_proxied(&pc, 0x0A1000B7, 45042, 37000, 370000);
+    TEST_ASSERT(err == NULL, err);
+    exchange_data(&pc);
+    client_seg(&pc, FIN_ACK, 37101, s2c(&pc, 370201), 0, &res, NULL, NULL);
+    server_seg(&pc, FIN_ACK, 370201, c2s(&pc, 37101), 0, &res, NULL, NULL);
+    const uint64_t t_fins = rte_get_tsc_cycles();
+    cleanup_clock_held = t_fins + (uint64_t)(SYN_PROXY_CLOSING_TIMEOUT_SEC - 1) * hz;
+    TEST_ASSERT_EQ(0, syn_proxy_cleanup_connections(), "Within the close timeout the entry should stay");
+    cleanup_clock_held = t_fins + (uint64_t)(SYN_PROXY_CLOSING_TIMEOUT_SEC + 1) * hz;
+    TEST_ASSERT_EQ(1, syn_proxy_cleanup_connections(), "Past the close timeout the cleanup should release it");
+    cleanup_clock_held = 0;
+    TEST_ASSERT(!has_entry(&pc), "The unfinished close should be gone");
+
+    syn_proxy_get_stats(&stats);
+    TEST_ASSERT_EQ(0, stats.connections_active, "No entry should remain");
+    TEST_ASSERT_EQ(1, stats.connections_closed, "Only the completed close should count as closed");
+    TEST_ASSERT_EQ(0, stats.connections_timeout, "A closing entry is not an idle timeout");
+    syn_proxy_cleanup();
+}
+
+// The last ACK of a close is lost beyond the proxy: the server retransmits
+// its FIN, and the client, in TIME_WAIT, acknowledges it again. The entry
+// stays CLOSED for SYN_PROXY_TIME_WAIT_SEC after its last segment, so both are
+// still translated. Once the last ACK freed the entry, and the retransmitted
+// FIN went out in the server's numbering. A new SYN on the 4-tuple ends the
+// TIME_WAIT at once, and an exact RST ends it too; the close counts once.
+void test_syn_proxy_proxied_time_wait_translates_retransmission(void) {
+    init_default_config();
+    syn_proxy_init(&default_config);
+    syn_proxy_reset_stats();
+    struct proxied_conn pc;
+    struct syn_proxy_result res;
+    struct syn_proxy_stats stats;
+    uint32_t seq = 0, ack = 0;
+    const uint32_t client = 0x0A1000B8;
+
+    const char *err = open_proxied(&pc, client, 45043, 38000, 380000);
+    TEST_ASSERT(err == NULL, err);
+    exchange_data(&pc);
+    client_seg(&pc, FIN_ACK, 38101, s2c(&pc, 380201), 0, &res, NULL, NULL);
+    server_seg(&pc, FIN_ACK, 380201, c2s(&pc, 38102), 0, &res, NULL, NULL);
+    client_seg(&pc, RTE_TCP_ACK_FLAG, 38102, s2c(&pc, 380202), 0, &res, NULL, NULL);  // Lost beyond
+    TEST_ASSERT_EQ(1, connections_closed(), "The last ACK should complete the close");
+
+    server_seg(&pc, FIN_ACK, 380201, c2s(&pc, 38102), 0, &res, &seq, &ack);
+    TEST_ASSERT_EQ(SYN_PROXY_FORWARD, res.action, "The retransmitted FIN should be forwarded");
+    TEST_ASSERT(res.packet_modified, "The retransmitted FIN should be translated");
+    TEST_ASSERT_EQ(s2c(&pc, 380201), seq, "The retransmitted FIN should carry the client's numbering");
+    TEST_ASSERT_EQ(38102, ack, "The retransmitted FIN should acknowledge the client's FIN in its numbering");
+    client_seg(&pc, RTE_TCP_ACK_FLAG, 38102, s2c(&pc, 380202), 0, &res, &seq, &ack);
+    TEST_ASSERT_EQ(SYN_PROXY_FORWARD, res.action, "The answer to it should be forwarded");
+    TEST_ASSERT_EQ(SYN_PROXY_CLOSED, res.conn_state, "The entry should be in its TIME_WAIT (CLOSED)");
+    TEST_ASSERT_EQ(c2s(&pc, 38102), seq, "The answer should carry the server's numbering");
+    TEST_ASSERT_EQ(380202, ack, "The answer should acknowledge the server's FIN in its numbering");
+    TEST_ASSERT_EQ(1, connections_closed(), "The close should count once");
+
+    TEST_ASSERT_EQ(0, syn_proxy_cleanup_connections(), "Within the TIME_WAIT the entry should stay");
+    TEST_ASSERT_EQ(1, cleanup_past_time_wait(), "Past the TIME_WAIT the cleanup should release the entry");
+    TEST_ASSERT(!has_entry(&pc), "The TIME_WAIT should end");
+    syn_proxy_get_stats(&stats);
+    TEST_ASSERT_EQ(0, stats.connections_active, "No entry should remain");
+    TEST_ASSERT_EQ(1, stats.connections_closed, "The release should not count the close again");
+    TEST_ASSERT_EQ(0, stats.connections_timeout, "The TIME_WAIT is not an idle timeout");
+
+    // A new connection on the 4-tuple during the TIME_WAIT: the old entry
+    // gives way at once, and the close is not counted again
+    err = open_proxied(&pc, client, 45044, 39000, 390000);
+    TEST_ASSERT(err == NULL, err);
+    client_seg(&pc, FIN_ACK, 39001, s2c(&pc, 390001), 0, &res, NULL, NULL);
+    server_seg(&pc, FIN_ACK, 390001, c2s(&pc, 39002), 0, &res, NULL, NULL);
+    client_seg(&pc, RTE_TCP_ACK_FLAG, 39002, s2c(&pc, 390002), 0, &res, NULL, NULL);
+    TEST_ASSERT(has_entry(&pc), "The closed connection should be in its TIME_WAIT");
+    TEST_ASSERT_EQ(SYN_PROXY_REPLY, cookie_handshake(client, RACE_SERVER, 45044, 80, 50000, NULL),
+                   "A new connection on the 4-tuple should open during the TIME_WAIT");
+    syn_proxy_get_stats(&stats);
+    TEST_ASSERT_EQ(2, stats.connections_closed, "Each close should count once");
+    TEST_ASSERT_EQ(1, stats.connections_active, "Only the new connection should hold an entry");
+    syn_proxy_cleanup();
+
+    // An exact RST during the TIME_WAIT ends it, and the close counts once
+    init_default_config();
+    syn_proxy_init(&default_config);
+    syn_proxy_reset_stats();
+    err = open_proxied(&pc, client, 45045, 40000, 400000);
+    TEST_ASSERT(err == NULL, err);
+    exchange_data(&pc);
+    client_seg(&pc, FIN_ACK, 40101, s2c(&pc, 400201), 0, &res, NULL, NULL);
+    server_seg(&pc, FIN_ACK, 400201, c2s(&pc, 40102), 0, &res, NULL, NULL);
+    client_seg(&pc, RTE_TCP_ACK_FLAG, 40102, s2c(&pc, 400202), 0, &res, NULL, NULL);
+    client_seg(&pc, RTE_TCP_RST_FLAG, 40102, 0, 0, &res, &seq, NULL);
+    TEST_ASSERT_EQ(SYN_PROXY_FORWARD, res.action, "An exact RST in the TIME_WAIT should be forwarded");
+    TEST_ASSERT_EQ(c2s(&pc, 40102), seq, "It should carry the server's numbering");
+    TEST_ASSERT(!has_entry(&pc), "An exact RST should end the TIME_WAIT");
+    syn_proxy_get_stats(&stats);
+    TEST_ASSERT_EQ(1, stats.connections_closed, "The close should count once");
+    TEST_ASSERT_EQ(0, stats.connections_active, "No entry should remain");
+    syn_proxy_cleanup();
+}
+
+// With an idle timeout shorter than the close timeout and the TIME_WAIT, a
+// CLOSING and a CLOSED entry wait at most the idle timeout: a closing
+// connection never holds its entry longer than an idle established one would
+void test_syn_proxy_proxied_close_timeouts_capped_by_idle(void) {
+    init_default_config();
+    default_config.idle_timeout_sec = 2;
+    syn_proxy_init(&default_config);
+    syn_proxy_reset_stats();
+    struct proxied_conn a, b;
+    struct syn_proxy_result res;
+    const uint64_t hz = rte_get_tsc_hz();
+
+    const char *err = open_proxied(&a, 0x0A100090, 45090, 8000, 150000);
+    TEST_ASSERT(err == NULL, err);
+    err = open_proxied(&b, 0x0A100091, 45091, 9000, 160000);
+    TEST_ASSERT(err == NULL, err);
+    exchange_data(&a);
+    exchange_data(&b);
+
+    // a: both FINs, the last ACK missing (CLOSING); b: its close complete (CLOSED)
+    client_seg(&a, FIN_ACK, 8101, s2c(&a, 150201), 0, &res, NULL, NULL);
+    server_seg(&a, FIN_ACK, 150201, c2s(&a, 8102), 0, &res, NULL, NULL);
+    client_seg(&b, FIN_ACK, 9101, s2c(&b, 160201), 0, &res, NULL, NULL);
+    server_seg(&b, FIN_ACK, 160201, c2s(&b, 9102), 0, &res, NULL, NULL);
+    client_seg(&b, RTE_TCP_ACK_FLAG, 9102, s2c(&b, 160202), 0, &res, NULL, NULL);
+    const uint64_t t = rte_get_tsc_cycles();
+    TEST_ASSERT_EQ(1, connections_closed(), "b's last ACK should complete its close");
+
+    cleanup_clock_held = t + hz;
+    TEST_ASSERT_EQ(0, syn_proxy_cleanup_connections(), "Within the idle timeout both entries should stay");
+    TEST_ASSERT(has_entry(&a) && has_entry(&b), "Both entries should stay within the idle timeout");
+    cleanup_clock_held = t + 3 * hz;
+    TEST_ASSERT_EQ(2, syn_proxy_cleanup_connections(),
+                   "Past the idle timeout both should go, before the close timeout and the TIME_WAIT");
+    TEST_ASSERT(!has_entry(&a) && !has_entry(&b), "No entry should outlive the idle timeout");
+    cleanup_clock_held = 0;
+    TEST_ASSERT_EQ(0, connections_active(), "No entry should remain");
+    TEST_ASSERT_EQ(1, connections_closed(), "The cleanup should count no close");
+    syn_proxy_cleanup();
+}
+
+// ==================== Legitimate Source Tests ====================
+
+// A source that returned a valid cookie is marked legitimate for the TTL, in a
+// table of its own, and nothing goes on the whitelist. The mark changes no
+// decision: under attack (a TCP anomaly, or spoofed mode) the source's next
+// SYNs are challenged like any other source's, and a challenged SYN makes no
+// entry. Its own SYNs do not renew the mark; past the TTL it is gone, and a
+// new valid cookie marks the source again. The valid cookie used to whitelist
+// the source in bypass mode, for good; then, for the TTL, it let the source's
+// SYNs skip the challenge, which let one source fill the table (see
+// test_syn_proxy_legitimate_source_cannot_fill_table).
+void test_syn_proxy_legitimate_source_still_challenged(void) {
+    struct ip_lists_config lists = {
+        .max_whitelist_entries = 64, .max_blacklist_entries = 64,
+        .max_protected_entries = 64, .max_whitelist_cidrs = 64,
+    };
+    TEST_ASSERT_EQ(0, ip_lists_init(&lists), "IP lists should initialize");
+    TEST_ASSERT_EQ(0, spoofed_rate_init(1024), "The legitimate-source table should be created");
+    init_default_config();
+    syn_proxy_init(&default_config);
+    syn_proxy_reset_stats();
+    const uint32_t client = 0x0A1000C1, other = 0x0A1000C2;
+    const uint32_t client_be = rte_cpu_to_be_32(client);
+    const uint64_t hz = rte_get_tsc_hz();
+    const struct per_ip_anomaly_snapshot spoofed_anom = {
+        .valid = true,
+        .spoofed_mode = true,
+        .anomaly_protocol = PROTO_CAT_TCP,
+    };
+    struct syn_proxy_result res;
+    struct syn_proxy_stats stats;
+    uint32_t cookie;
+
+    // Under attack an unknown source is challenged; its valid cookie marks
+    // it legitimate and whitelists nothing
+    TEST_ASSERT(get_cookie(client, RACE_SERVER, 45051, 80, 1000, &cookie), "An unknown source should be challenged");
+    TEST_ASSERT(!legitimate_ip_lookup(client_be), "An unknown source should not be legitimate");
+    const uint64_t proof = rte_get_tsc_cycles();
+    legit_clock_held = proof;
+    send_cookie_ack(client, RACE_SERVER, 45051, 80, 1000, cookie, &res);
+    if (res.reply_pkt) {
+        rte_pktmbuf_free(res.reply_pkt);
+    }
+    TEST_ASSERT_EQ(SYN_PROXY_REPLY, res.action, "The valid cookie should open a server connection");
+    TEST_ASSERT(legitimate_ip_lookup(client_be), "A valid cookie should mark the source legitimate");
+    uint8_t wl_mode;
+    TEST_ASSERT(!ip_whitelist_lookup(client_be, &wl_mode), "A valid cookie must not whitelist the source");
+    TEST_ASSERT_EQ(0, ip_whitelist_count(), "The whitelist should stay empty");
+
+    // Its next SYNs are challenged, under a TCP anomaly and in spoofed mode,
+    // and a challenged SYN makes no entry
+    send_tcp(DIRECTION_INBOUND, client, RACE_SERVER, 45052, 80, RTE_TCP_SYN_FLAG, 2000, 0, &tcp_flood_anom, &res);
+    bool answered = res.reply_pkt != NULL;
+    if (res.reply_pkt) {
+        rte_pktmbuf_free(res.reply_pkt);
+    }
+    TEST_ASSERT_EQ(SYN_PROXY_REPLY, res.action, "A legitimate source's SYN should be challenged under a TCP anomaly");
+    TEST_ASSERT(answered, "A SYN-ACK cookie should answer it");
+    struct packet_features next = tcp_features(client, RACE_SERVER, 45052, 80, RTE_TCP_ACK_FLAG, 2001, 1);
+    TEST_ASSERT(!syn_proxy_is_proxied(&next, DIRECTION_INBOUND), "A challenged SYN should make no entry");
+    send_tcp(DIRECTION_INBOUND, client, RACE_SERVER, 45053, 80, RTE_TCP_SYN_FLAG, 3000, 0, &spoofed_anom, &res);
+    answered = res.reply_pkt != NULL;
+    if (res.reply_pkt) {
+        rte_pktmbuf_free(res.reply_pkt);
+    }
+    TEST_ASSERT_EQ(SYN_PROXY_REPLY, res.action, "A legitimate source's SYN should be challenged in spoofed mode");
+    TEST_ASSERT(answered, "A SYN-ACK cookie should answer it in spoofed mode");
+    send_tcp(DIRECTION_INBOUND, other, RACE_SERVER, 45054, 80, RTE_TCP_SYN_FLAG, 4000, 0, &spoofed_anom, &res);
+    bool other_challenged = res.reply_pkt != NULL && res.action == SYN_PROXY_REPLY;
+    if (res.reply_pkt) {
+        rte_pktmbuf_free(res.reply_pkt);
+    }
+    TEST_ASSERT(other_challenged, "Another source should be challenged in spoofed mode");
+    syn_proxy_get_stats(&stats);
+    TEST_ASSERT_EQ(2, stats.challenged_spoofed_mode, "Both spoofed-mode SYNs should be counted as challenged");
+    TEST_ASSERT_EQ(1, stats.connections_active, "Only the cookie's connection should hold an entry");
+
+    // Its SYNs do not renew the mark: within the TTL the source is still
+    // marked, past the TTL (from the cookie) it is not, and its SYN is
+    // challenged throughout
+    legit_clock_held = proof + (uint64_t)(LEGITIMATE_DEFAULT_TTL_SEC - 1) * hz;
+    send_tcp(DIRECTION_INBOUND, client, RACE_SERVER, 45055, 80, RTE_TCP_SYN_FLAG, 5000, 0, &tcp_flood_anom, &res);
+    answered = res.reply_pkt != NULL;
+    if (res.reply_pkt) {
+        rte_pktmbuf_free(res.reply_pkt);
+    }
+    TEST_ASSERT(answered && res.action == SYN_PROXY_REPLY, "Within the TTL the source's SYN should be challenged");
+    TEST_ASSERT(legitimate_ip_lookup(client_be), "Within the TTL the source should still be marked");
+    legit_clock_held = proof + (uint64_t)(LEGITIMATE_DEFAULT_TTL_SEC + 1) * hz;
+    TEST_ASSERT(!legitimate_ip_lookup(client_be), "Past the TTL the source should no longer be legitimate");
+    TEST_ASSERT(get_cookie(client, RACE_SERVER, 45056, 80, 6000, &cookie),
+                "Past the TTL the source's SYN should be challenged");
+
+    // A new valid cookie makes it legitimate again, for another TTL
+    send_cookie_ack(client, RACE_SERVER, 45056, 80, 6000, cookie, &res);
+    if (res.reply_pkt) {
+        rte_pktmbuf_free(res.reply_pkt);
+    }
+    TEST_ASSERT(legitimate_ip_lookup(client_be), "A new valid cookie should make the source legitimate again");
+    TEST_ASSERT_EQ(1, legitimate_ip_count(), "The source should hold one entry");
+    legit_clock_held += (uint64_t)(LEGITIMATE_DEFAULT_TTL_SEC + 1) * hz;
+    TEST_ASSERT_EQ(1, legitimate_ip_cleanup(), "The cleanup should remove the expired entry");
+    TEST_ASSERT_EQ(0, legitimate_ip_count(), "No legitimate source should remain");
+    legit_clock_held = 0;
+
+    syn_proxy_cleanup();
+    spoofed_rate_cleanup();
+    TEST_ASSERT(!legitimate_ip_lookup(client_be), "Without the table no source should be legitimate");
+    ip_lists_cleanup();
+}
+
+static void restore_challenge_threshold(void);
+
+// Above the challenge threshold (Check 4, the SYN rate) a legitimate source's
+// SYN is challenged too, as another source's is
+void test_syn_proxy_legitimate_source_rate_challenged(void) {
+    TEST_ASSERT_EQ(0, spoofed_rate_init(1024), "The legitimate-source table should be created");
+    init_default_config();
+    default_config.challenge_threshold = 50;
+    syn_proxy_init(&default_config);
+    syn_proxy_reset_stats();
+    const uint32_t client = 0x0A1000D1, other = 0x0A1000D2;
+    legitimate_ip_add(rte_cpu_to_be_32(client));   // As its valid cookie does
+    const bool marked = legitimate_ip_lookup(rte_cpu_to_be_32(client));
+    struct syn_proxy_result res;
+    struct syn_proxy_stats stats;
+
+    // 200 SYNs at once: the rate stays above 50 SYN/s for the rest of this
+    // window and, by the previous window's share, well into the next
+    const int flood = count_challenged(0x0A1000E0, 30000, 200);
+    syn_proxy_get_stats(&stats);
+    const uint64_t active_before = stats.connections_active;   // The flood's first, bypassed SYNs
+    send_tcp(DIRECTION_INBOUND, client, RACE_SERVER, 45061, 80, RTE_TCP_SYN_FLAG, 7000, 0, NULL, &res);
+    const bool client_challenged = res.action == SYN_PROXY_REPLY || res.action == SYN_PROXY_REPLY_INPLACE;
+    if (res.reply_pkt) {
+        rte_pktmbuf_free(res.reply_pkt);
+    }
+    send_tcp(DIRECTION_INBOUND, other, RACE_SERVER, 45062, 80, RTE_TCP_SYN_FLAG, 8000, 0, NULL, &res);
+    const bool other_challenged = res.action == SYN_PROXY_REPLY || res.action == SYN_PROXY_REPLY_INPLACE;
+    if (res.reply_pkt) {
+        rte_pktmbuf_free(res.reply_pkt);
+    }
+    syn_proxy_get_stats(&stats);
+    syn_proxy_cleanup();
+    spoofed_rate_cleanup();
+    restore_challenge_threshold();
+
+    TEST_ASSERT(marked, "The source should be marked legitimate");
+    TEST_ASSERT(flood > 0, "SYNs above the threshold should be challenged");
+    TEST_ASSERT(other_challenged, "Another source's SYN should be challenged for the SYN rate");
+    TEST_ASSERT(client_challenged, "A legitimate source's SYN should be challenged for the SYN rate too");
+    TEST_ASSERT_EQ(active_before, stats.connections_active, "The two challenged SYNs should make no entry");
+}
+
+// One source completes one cookie handshake under attack and then sends SYNs
+// on new ports. Each is challenged and makes no entry, so the table keeps
+// room: another client's valid cookie still opens its connection, and its
+// retry is challenged too. When a valid cookie let its source's SYNs skip the
+// challenge for the TTL, each exempt SYN made a BYPASSED entry (an unanswered
+// one stays for the idle timeout), the source filled the table, and every
+// other client's valid cookie was dropped (table_full_drops).
+void test_syn_proxy_legitimate_source_cannot_fill_table(void) {
+    struct ip_lists_config lists = {
+        .max_whitelist_entries = 64, .max_blacklist_entries = 64,
+        .max_protected_entries = 64, .max_whitelist_cidrs = 64,
+    };
+    TEST_ASSERT_EQ(0, ip_lists_init(&lists), "IP lists should initialize");
+    TEST_ASSERT_EQ(0, spoofed_rate_init(0), "The legitimate-source table should be created");
+    init_default_config();
+    default_config.max_connections = 256;
+    syn_proxy_init(&default_config);
+    syn_proxy_reset_stats();
+    const uint32_t attacker = 0x0B000001, other = 0x0B000002;
+    struct syn_proxy_result res;
+    struct syn_proxy_stats st;
+
+    // Under a TCP anomaly every source is challenged; the attacker completes
+    // one handshake from its real address, which marks it legitimate
+    TEST_ASSERT_EQ(SYN_PROXY_REPLY, cookie_handshake(attacker, RACE_SERVER, 30000, 80, 1000, NULL),
+                   "The attacker's cookie handshake should open a server connection");
+    TEST_ASSERT(legitimate_ip_lookup(rte_cpu_to_be_32(attacker)), "Its valid cookie should mark it legitimate");
+
+    // Then twice the table's size in SYNs on new ports, under the same anomaly
+    int challenged = 0, bypassed = 0;
+    for (int i = 0; i < 512; i++) {
+        send_tcp(DIRECTION_INBOUND, attacker, RACE_SERVER, (uint16_t)(30001 + i), 80,
+                 RTE_TCP_SYN_FLAG, 5000u + (uint32_t)i, 0, &tcp_flood_anom, &res);
+        if (res.reply_pkt) {
+            rte_pktmbuf_free(res.reply_pkt);
+            res.reply_pkt = NULL;
+        }
+        if (res.action == SYN_PROXY_REPLY || res.action == SYN_PROXY_REPLY_INPLACE) {
+            challenged++;
+        } else if (res.action == SYN_PROXY_BYPASS) {
+            bypassed++;
+        }
+    }
+    syn_proxy_get_stats(&st);
+    TEST_ASSERT_EQ(512, challenged, "Every SYN of the legitimate source should be challenged");
+    TEST_ASSERT_EQ(0, bypassed, "None of its SYNs should be bypassed");
+    TEST_ASSERT_EQ(1, st.connections_active, "Only its one proxied connection should hold an entry");
+
+    // Another client completes a cookie handshake: the table has room
+    const uint64_t full0 = st.table_full_drops;
+    TEST_ASSERT_EQ(SYN_PROXY_REPLY, cookie_handshake(other, RACE_SERVER, 40000, 80, 2000, NULL),
+                   "Another client's valid cookie should still open its connection");
+    syn_proxy_get_stats(&st);
+    TEST_ASSERT_EQ(full0, st.table_full_drops, "No valid cookie should be dropped for a full table");
+    TEST_ASSERT_EQ(2, st.connections_active, "Both proxied connections should hold an entry");
+
+    // Its retry under the anomaly is challenged as well, and makes no entry
+    send_tcp(DIRECTION_INBOUND, other, RACE_SERVER, 40001, 80, RTE_TCP_SYN_FLAG, 3000, 0,
+             &tcp_flood_anom, &res);
+    const bool retry_challenged = res.reply_pkt != NULL && res.action == SYN_PROXY_REPLY;
+    if (res.reply_pkt) {
+        rte_pktmbuf_free(res.reply_pkt);
+    }
+    syn_proxy_get_stats(&st);
+    TEST_ASSERT(retry_challenged, "The other client's next SYN should be challenged");
+    TEST_ASSERT_EQ(2, st.connections_active, "The challenged retry should make no entry");
+
+    syn_proxy_cleanup();
+    spoofed_rate_cleanup();
+    ip_lists_cleanup();
 }
 
 // ==================== Allocation Race Tests (race seams) ====================
@@ -3559,11 +4408,13 @@ void test_syn_proxy_cleanup_scan_budget_carries_over(void) {
 // ==================== Cleanup Generation Check Test ====================
 
 // At the cleanup's first candidate (SYN_PROXY_SEAM_CLEANUP), both connections
-// it found due are reset and two new ones take their slots
+// it found due are reset and two new ones take their slots. The clients reset
+// at their next sequence, the ISN + 1 of their SYNs (fill_with_bypassed()
+// sends ISN 1000): an RST elsewhere is not exact and ends no entry.
 static void seam_reset_both_and_reuse(void) {
     struct syn_proxy_result r;
-    send_tcp(DIRECTION_INBOUND, 0x0A100091, RACE_SERVER, 44091, 80, RTE_TCP_RST_FLAG, 101, 0, NULL, &r);
-    send_tcp(DIRECTION_INBOUND, 0x0A100091, RACE_SERVER, 44092, 80, RTE_TCP_RST_FLAG, 101, 0, NULL, &r);
+    send_tcp(DIRECTION_INBOUND, 0x0A100091, RACE_SERVER, 44091, 80, RTE_TCP_RST_FLAG, 1001, 0, NULL, &r);
+    send_tcp(DIRECTION_INBOUND, 0x0A100091, RACE_SERVER, 44092, 80, RTE_TCP_RST_FLAG, 1001, 0, NULL, &r);
     fill_with_bypassed(0x0A100092, RACE_SERVER, 44093, 2);
 }
 
@@ -3890,6 +4741,18 @@ int main(int argc, char **argv) {
     RUN_TEST(test_syn_proxy_proxied_close_frees_table);
     RUN_TEST(test_syn_proxy_proxied_closing_waits_for_last_ack);
     RUN_TEST(test_syn_proxy_proxied_close_acks_race);
+
+    // RST validation, close timeouts and legitimate sources
+    RUN_TEST(test_syn_proxy_proxied_rst_needs_exact_sequence);
+    RUN_TEST(test_syn_proxy_connecting_rst_needs_exact_sequence);
+    RUN_TEST(test_syn_proxy_bypassed_rst_needs_exact_sequence);
+    RUN_TEST(test_syn_proxy_proxied_rst_at_window_edge);
+    RUN_TEST(test_syn_proxy_proxied_closing_survives_retransmission_gap);
+    RUN_TEST(test_syn_proxy_proxied_time_wait_translates_retransmission);
+    RUN_TEST(test_syn_proxy_proxied_close_timeouts_capped_by_idle);
+    RUN_TEST(test_syn_proxy_legitimate_source_still_challenged);
+    RUN_TEST(test_syn_proxy_legitimate_source_rate_challenged);
+    RUN_TEST(test_syn_proxy_legitimate_source_cannot_fill_table);
 
     // Allocation race, cleanup scan budget and the cleanup's generation check
     RUN_TEST(test_syn_proxy_alloc_claim_spares_retired_key);

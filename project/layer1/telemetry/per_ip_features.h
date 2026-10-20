@@ -57,6 +57,15 @@
  * - Fast path: Per-lcore counters (no atomics needed)
  * - Control path: Aggregates per-lcore counters
  * - HLL/CMS updates: Lock-free atomic operations
+ * - Lookups take no lock. Registration, unregistration and the control-path
+ *   readers that walk the table (snapshots, window resets, statistics) hold
+ *   one control lock, so a walk never meets a slot being released.
+ * - An unregistered IP's slot, its count-min counters and its hash position
+ *   are released only after every registered flow table reader has reported
+ *   a quiescent state since the unregistration (see "Deferred Reclamation"
+ *   in flow_table.h): a packet lcore may still use the slot it looked up.
+ *   A thread that is not a registered reader must not keep a pointer from
+ *   per_ip_features_lookup() beyond the call it uses it in.
  */
 
 // ==================== Configuration ====================
@@ -350,6 +359,10 @@ int per_ip_features_register(uint32_t dst_ip);
  * Unregister a protected IP
  * Called when a protected IP is removed
  *
+ * The IP is no longer found at once; its slot is reused, and its count-min
+ * counters and hash position are freed, once the readers' grace period is
+ * over (see "Thread Safety" above).
+ *
  * @param dst_ip  Protected IP (network byte order)
  * @return 0 on success, -1 if not found
  */
@@ -596,5 +609,36 @@ void per_ip_features_print_stats(void);
  * Get memory usage
  */
 size_t per_ip_features_memory_usage(void);
+
+// ==================== Test Seams ====================
+
+/**
+ * Points at which the control path calls per_ip_features_seam(): moments at
+ * which another thread could register or unregister the same slot.
+ */
+enum per_ip_features_seam_point {
+    PERIP_SEAM_SNAPSHOT = 0,    // snapshot_all: holds a slot it found, before reading it
+    PERIP_SEAM_RESET,           // reset_all_windows: holds a slot it found, before resetting it
+    PERIP_SEAM_UNREGISTER,      // unregister: found the slot, before deleting its key
+    PERIP_SEAM_MAX
+};
+
+/**
+ * Test seam: called at each point of enum per_ip_features_seam_point. The
+ * library's weak definition does nothing; a unit test may link its own.
+ * It runs with the control lock held: an override must not call the
+ * functions that take it.
+ */
+void per_ip_features_seam(enum per_ip_features_seam_point point);
+
+/**
+ * True while some thread holds the control lock (for tests).
+ */
+bool per_ip_features_ctl_lock_held(void);
+
+/**
+ * Number of unregistered slots waiting for the readers' grace period.
+ */
+uint32_t per_ip_features_slots_waiting(void);
 
 #endif // PER_IP_FEATURES_H

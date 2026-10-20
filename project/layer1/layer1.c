@@ -386,7 +386,13 @@ bool layer1_effective_spoofed_mode(const struct per_ip_anomaly_snapshot *ip_anom
  * Stage 8b admission of a TCP packet to a destination in spoofed mode. A SYN
  * goes on to the SYN proxy (Stage 9), which challenges it. Any other segment
  * goes on only if something already vouches for its connection:
- * - a flow entry;
+ * - a flow entry that vouches for it (flow_table_vouches_for()): its
+ *   handshake is verified, the server has sent the client a segment of its
+ *   own (its own SYN, or an ACK without SYN or RST: FLOW_VOUCHED_BY_LO),
+ *   or the segment is the client's ACK of the server's ISN + 1 as the flow
+ *   tracked it. A flow alone is not enough: a spoofed SYN plants one, which
+ *   the server's SYN-ACKs make two-way, and the flow key has no ports, so it
+ *   would admit any segment between the two hosts;
  * - a SYN proxy entry for its 4-tuple that vouches for it
  *   (syn_proxy_admits_segment()): a proxied (challenged) connection, or a
  *   bypassed one whose client has acknowledged the server's ISN + 1. Stage 9
@@ -396,11 +402,14 @@ bool layer1_effective_spoofed_mode(const struct per_ip_anomaly_snapshot *ip_anom
  *   created on a full table). Stage 9 then handles the packet from the entry
  *   (translation, or forwarding unmodified);
  * - a valid SYN cookie in its ACK: the handshake completion, which has neither.
- * Without a flow, a spoofed segment passes only if it matches the 4-tuple of a
- * connection the proxy vouches for, or returns a cookie the proxy issued to
- * its 4-tuple. An entry planted by an unchallenged spoofed SYN admits nothing:
- * the sender never sees the server's SYN-ACK, and its blind segments do not
- * move the flow of that SYN (track_proxy_flow()).
+ * A spoofed segment passes only if its destination has sent the flow a
+ * segment of its own (or the flow's handshake is verified), matches the
+ * 4-tuple of a connection the proxy vouches for, or returns a cookie the
+ * proxy issued to its 4-tuple. The entry an unchallenged spoofed SYN plants
+ * admits nothing, nor does its flow while the server has sent only SYN-ACKs
+ * (whose retransmissions do not keep it alive, flow_table_update()) and RSTs;
+ * but a blind segment without ACK outside the window of that half-open
+ * connection draws a pure ACK from a Linux server, and the flow then vouches.
  *
  * @param syn_proxy_on  false when the destination profile disables the SYN
  *                      proxy; Stage 9 then skips it, so its entries and
@@ -416,9 +425,10 @@ bool layer1_spoofed_tcp_admit(struct packet_features *features, bool syn_proxy_o
         return true;
     }
 
-    // All non-SYN TCP during spoofed mode: require existing flow
-    // Flow exists -> legitimate return traffic (SYN-ACK, data, RST, FIN): pass through
-    if (flow_table_lookup(features)) {
+    // All non-SYN TCP during spoofed mode: require a flow that vouches for
+    // the segment (see above), not just one that exists
+    struct flow_entry *flow = flow_table_lookup(features);
+    if (flow && flow_table_vouches_for(flow, features)) {
         return true;
     }
 
@@ -487,7 +497,13 @@ static inline void drop_unhandled_proxy_action(struct lcore_stats *lstats,
  * for an unverified bypassed segment one SYN proxy lookup.
  *
  * - Outbound: the protected server's packets. Create or update the flow, as
- *   the outbound path does for packets the proxy does not hold.
+ *   the outbound path does for packets the proxy does not hold, except for
+ *   the SYN-ACK of a BYPASSED connection: it only updates a flow that
+ *   exists, which keeps its lifetime unless the handshake is verified
+ *   (flow_table_update()). A server retransmits that SYN-ACK for half a
+ *   minute when the SYN was spoofed; recreating the flow of the SYN each
+ *   time once it aged would keep it alive as long. The client's verified ACK
+ *   creates the flow when it is missing (below).
  * - Inbound, proxied connection (any state but BYPASSED): its client
  *   returned a valid cookie, which a blind sender cannot. Create or update
  *   the flow and record the verified handshake
@@ -496,16 +512,38 @@ static inline void drop_unhandled_proxy_action(struct lcore_stats *lstats,
  *   flow (FLOW_FLAG_HANDSHAKE_ACKED from the handshake the table saw) or by
  *   the proxy (syn_proxy_admits_segment(): the client's ACK of the server's
  *   ISN + 1, or a segment after it). A blind ACK after a spoofed SYN must not
- *   move the flow of that SYN: Stage 8b admits any segment with a flow, so
- *   that flow would vouch for the entry the proxy refuses to vouch for.
+ *   move the flow of that SYN: it would keep it alive and make it look
+ *   established, while the proxy refuses to vouch for the entry.
+ * - An RST the proxy forwarded without ending its entry (rst_unconfirmed: not
+ *   at the receiver's next sequence, see "RST validation" in syn_proxy.c) is
+ *   only counted on an existing flow, as Stage 11 counts an RST outside the
+ *   window (flow_table_count_packet()): a guess that cannot end the proxy
+ *   entry must not tear the flow down either. Not even counted on the
+ *   unverified flow of a bypassed connection, for the reason above.
  */
 static void track_proxy_flow(struct packet_features *features,
-                             enum syn_proxy_state conn_state, int direction) {
+                             enum syn_proxy_state conn_state, int direction,
+                             bool rst_unconfirmed) {
     bool created = false;
     struct flow_entry *flow;
 
+    if (unlikely(rst_unconfirmed)) {
+        flow = flow_table_lookup(features);
+        if (flow && (direction == DIRECTION_OUTBOUND || conn_state != SYN_PROXY_BYPASSED ||
+                     (__atomic_load_n(&flow->flags, __ATOMIC_RELAXED) & FLOW_FLAG_HANDSHAKE_ACKED))) {
+            flow_table_count_packet(flow, features);
+        }
+        return;
+    }
+
     if (direction == DIRECTION_OUTBOUND) {
-        flow = flow_table_lookup_or_create(features, &created);
+        bool synack = (features->tcp_flags & (TCP_FLAG_SYN | TCP_FLAG_ACK)) ==
+                      (TCP_FLAG_SYN | TCP_FLAG_ACK);
+        if (synack && conn_state == SYN_PROXY_BYPASSED) {
+            flow = flow_table_lookup(features);
+        } else {
+            flow = flow_table_lookup_or_create(features, &created);
+        }
         if (flow) {
             flow_table_update(flow, features);
         }
@@ -718,6 +756,9 @@ static int process_inbound_packet(struct rte_mbuf *m, uint16_t port_id,
     }
 
     // ========== Stage 5: Whitelist (Bypass or Track-and-Allow) ==========
+    // Only the operator's list. A source that returned a valid SYN cookie is
+    // not whitelisted: it is marked in the legitimate-source table, which no
+    // decision reads (its next SYNs are challenged at Stage 9 like any other).
     {
         uint8_t wl_mode = 0;
         if (ip_whitelist_lookup(features->src_ip, &wl_mode)) {
@@ -884,6 +925,15 @@ static int process_inbound_packet(struct rte_mbuf *m, uint16_t port_id,
             case SYN_PROXY_DROP:
                 lstats->l1_packets_dropped++;
 
+                if (proxy_result.drop_reason == DROP_REASON_SPOOFED_TCP) {
+                    // An RST outside its connection's window (the SYN proxy's
+                    // RST validation): counted as Stage 8b counts spoofed TCP
+                    lstats->l1_drop_spoofed_tcp++;
+                    result->action = L1_ACTION_DROP;
+                    result->drop_reason = DROP_REASON_SPOOFED_TCP;
+                    return 0;
+                }
+
                 record_attack_event(features, EVENT_COOKIE_INVALID, SEVERITY_HIGH,
                                    DROP_REASON_COOKIE_INVALID, "Invalid SYN cookie - potential attack");
 
@@ -917,7 +967,7 @@ static int process_inbound_packet(struct rte_mbuf *m, uint16_t port_id,
                 // A valid cookie: the client completed its handshake with the
                 // proxy, and the connection gets its flow now
                 if (proxy_result.conn_state == SYN_PROXY_CONNECTING) {
-                    track_proxy_flow(features, proxy_result.conn_state, DIRECTION_INBOUND);
+                    track_proxy_flow(features, proxy_result.conn_state, DIRECTION_INBOUND, false);
                 }
 
                 result->action = L1_ACTION_REPLY;
@@ -934,7 +984,8 @@ static int process_inbound_packet(struct rte_mbuf *m, uint16_t port_id,
 
             case SYN_PROXY_FORWARD:
                 // A proxied or bypassed connection: keep its flow current
-                track_proxy_flow(features, proxy_result.conn_state, DIRECTION_INBOUND);
+                track_proxy_flow(features, proxy_result.conn_state, DIRECTION_INBOUND,
+                                 proxy_result.rst_unconfirmed);
                 if (proxy_result.packet_modified) {
                     result->action = L1_ACTION_ACCEPT_MODIFIED;
                 } else {
@@ -1140,7 +1191,14 @@ static int process_inbound_packet(struct rte_mbuf *m, uint16_t port_id,
         uint32_t hash = rte_hash_crc(&features->src_ip, 4, features->dst_ip);
         uint8_t hash_pct = (hash & 0xFF) * 100 / 256;  // 0-99
 
-        if (hash_pct < drop_pct) {
+        // Not while a flow table reader is stalled (flow_table_readers_stalled(),
+        // logged at WARNING when found). The table then reuses no deleted
+        // entry and pauses aging and emergency eviction, so creates fail once
+        // the free entries run out whatever the traffic: a failure that says
+        // nothing about this source. Dropping would deny every new client the
+        // hash picks for an internal fault, so the packet goes on untracked to
+        // Stage 12, as the share not dropped does.
+        if (hash_pct < drop_pct && flow_table_readers_stalled() == 0) {
             lstats->l1_packets_dropped++;
             result->action = L1_ACTION_DROP;
             result->drop_reason = DROP_REASON_FLOW_TABLE_FULL;
@@ -1380,14 +1438,15 @@ static int process_outbound_packet(struct rte_mbuf *m, uint16_t port_id,
 
                 // The server's SYN-ACK of a proxied connection: the proxy
                 // answers it, and it is the server's side of the flow
-                track_proxy_flow(features, proxy_result.conn_state, DIRECTION_OUTBOUND);
+                track_proxy_flow(features, proxy_result.conn_state, DIRECTION_OUTBOUND, false);
                 lstats->l1_syn_proxy_established++;
                 result->action = L1_ACTION_REPLY;
                 return 0;
 
             case SYN_PROXY_FORWARD:
                 // A proxied or bypassed connection: keep its flow current
-                track_proxy_flow(features, proxy_result.conn_state, DIRECTION_OUTBOUND);
+                track_proxy_flow(features, proxy_result.conn_state, DIRECTION_OUTBOUND,
+                                 proxy_result.rst_unconfirmed);
                 if (proxy_result.packet_modified) {
                     result->action = L1_ACTION_ACCEPT_MODIFIED;
                 } else {
@@ -1605,10 +1664,20 @@ int layer1_process_packet_ex(struct rte_mbuf *m,
                 return 0;
             }
 
+            // The two addresses, copied out of the mbuf. It usually holds
+            // them at 2 mod 4 (after the 14-byte Ethernet header), and the
+            // hashes of the tables below read their keys as 32- or 64-bit
+            // words (rte_jhash_32b, rte_hash_crc): read in place, that is a
+            // misaligned load, undefined behaviour. The copies are aligned
+            // (union ip_addr) and hash to the same values.
+            union ip_addr src6, dst6;
+            memcpy(src6.v6, ip6->src_addr.a, 16);
+            memcpy(dst6.v6, ip6->dst_addr.a, 16);
+
             // --- Stage 5: Whitelist (Bypass or Track-and-Allow) ---
             {
                 uint8_t wl_v6_mode = 0;
-                if (ip_whitelist_v6_lookup_mode(ip6->src_addr.a, &wl_v6_mode)) {
+                if (ip_whitelist_v6_lookup_mode(src6.v6, &wl_v6_mode)) {
                     lstats->l1_whitelist_hits++;
                     if (wl_v6_mode == WL_MODE_V6_TRACK) {
                         // Track mode: run all stages for telemetry, never drop
@@ -1629,10 +1698,10 @@ int layer1_process_packet_ex(struct rte_mbuf *m,
             const struct protection_profile *dst_profile_v6 = NULL;
             int32_t dst_profile_pos_v6 = -1;
             bool is_protected_v6 = ip_protected_v6_lookup_profile_pos(
-                ip6->dst_addr.a, &dst_profile_v6, &dst_profile_pos_v6);
+                dst6.v6, &dst_profile_v6, &dst_profile_pos_v6);
 
             // --- Stage 4: Blacklist ---
-            if (ip_blacklist_v6_lookup(ip6->src_addr.a)) {
+            if (ip_blacklist_v6_lookup(src6.v6)) {
                 lstats->l1_packets_dropped++;
                 lstats->l1_drop_blacklist++;
                 result->action = L1_ACTION_DROP;
@@ -1670,8 +1739,8 @@ int layer1_process_packet_ex(struct rte_mbuf *m,
             pf6.packet_size = (uint16_t)pkt_len;
             pf6.ip_len = rte_be_to_cpu_16(ip6->payload_len) + sizeof(struct rte_ipv6_hdr);
             pf6.ipv6_flow_label = rte_be_to_cpu_32(ip6->vtc_flow) & 0xFFFFF;
-            rte_memcpy(pf6.src_ip.v6, ip6->src_addr.a, 16);
-            rte_memcpy(pf6.dst_ip.v6, ip6->dst_addr.a, 16);
+            pf6.src_ip = src6;
+            pf6.dst_ip = dst6;
 
             // Extract ports from TCP/UDP header
             uint8_t *l4_hdr = (uint8_t *)ip6 + ext_hdr_offset;
@@ -1729,8 +1798,8 @@ int layer1_process_packet_ex(struct rte_mbuf *m,
             // We derive 32-bit CRC hashes of the full 128-bit addresses as proxy
             // keys so the existing IPv4-keyed backends provide IPv6 coverage.
             // Hash collisions are astronomically rare and harmless (fail-open).
-            uint32_t src_v6_hash = rte_hash_crc(ip6->src_addr.a, 16, 0x5a6b7c8d);
-            uint32_t dst_v6_hash = rte_hash_crc(ip6->dst_addr.a, 16, 0x5a6b7c8d);
+            uint32_t src_v6_hash = rte_hash_crc(src6.v6, 16, 0x5a6b7c8d);
+            uint32_t dst_v6_hash = rte_hash_crc(dst6.v6, 16, 0x5a6b7c8d);
 
             // --- Stage 6c: Attack Signature Detection ---
             {
@@ -1792,15 +1861,17 @@ int layer1_process_packet_ex(struct rte_mbuf *m,
 
             // --- Stage 8b: Spoofed TCP Flood Detection (IPv6) ---
             // IPv6 uses only global anomaly state -- no per-IP profile yet.
-            // When in spoofed mode, non-SYN TCP packets with no existing flow
-            // (and no valid SYN cookie) are dropped as likely spoofed source.
+            // When in spoofed mode, non-SYN TCP packets with no flow that
+            // vouches for them (flow_table_v6_vouches_for(), as IPv4 Stage 8b
+            // requires: a flow planted by a spoofed SYN vouches for nothing)
+            // and no valid SYN cookie are dropped as likely spoofed source.
             if (proto == IPPROTO_TCP && anomaly_is_spoofed_mode() &&
                 remaining >= sizeof(struct rte_tcp_hdr)) {
                 bool is_syn_v6 = (pf6.tcp_flags & RTE_TCP_SYN_FLAG) &&
                                  !(pf6.tcp_flags & RTE_TCP_ACK_FLAG);
                 if (!is_syn_v6) {
                     struct flow_entry_v6 *existing_v6 = flow_table_v6_lookup(&pf6);
-                    if (!existing_v6) {
+                    if (!existing_v6 || !flow_table_v6_vouches_for(existing_v6, &pf6)) {
                         bool has_valid_cookie_v6 = false;
                         if (pf6.tcp_flags & RTE_TCP_ACK_FLAG) {
                             uint16_t mss_v6_out;
@@ -1823,7 +1894,7 @@ int layer1_process_packet_ex(struct rte_mbuf *m,
             // --- Stage 3c: Per-protected-IP features tracking ---
             // Skip tracking protocols/ports that the profile will DROP at Stage 4e
             // so Layer 2 baselines are not polluted by already-blocked traffic.
-            struct per_ip_features_v6 *pif6 = per_ip_features_v6_lookup(ip6->dst_addr.a);
+            struct per_ip_features_v6 *pif6 = per_ip_features_v6_lookup(dst6.v6);
             if (pif6) {
                 bool will_drop_v6 = false;
                 if (dst_profile_v6) {
@@ -1840,7 +1911,7 @@ int layer1_process_packet_ex(struct rte_mbuf *m,
                         pf6.tcp_flags, pf6.packet_size, false);
                     // HLL/CMS: source-IP cardinality, port diversity, flow concentration
                     // (separate from counter update to avoid double-counting)
-                    per_ip_hll_cms_v6_update(pif6, ip6->src_addr.a, pf6.src_port,
+                    per_ip_hll_cms_v6_update(pif6, src6.v6, pf6.src_port,
                         pf6.dst_port, src_v6_hash);
                 }
             }
@@ -2409,6 +2480,21 @@ uint32_t layer1_age_flows(void) {
 
 // ==================== Initialization ====================
 
+// The Stage 6c settings of a layer1 config, as layer1_init() passes them on
+// (the pipeline tests compile this file in and check the mapping)
+static struct signatures_config layer1_signatures_config(const struct layer1_config *cfg) {
+    struct signatures_config sig_cfg = {
+        .enabled = cfg->signatures.enabled,
+        .log_matches = cfg->signatures.log_matches,
+        .block_amplification = cfg->signatures.block_amplification,
+        .block_scans = cfg->signatures.block_scans,
+        .block_anomalies = cfg->signatures.block_anomalies,
+        .block_attack_tools = cfg->signatures.block_attack_tools,
+        .strict_syn_scan = cfg->signatures.strict_syn_scan,
+    };
+    return sig_cfg;
+}
+
 int layer1_init(uint32_t max_flows, const char *config_file) {
     struct layer1_config cfg;
     struct flow_table_config flow_cfg;
@@ -2801,21 +2887,16 @@ int layer1_init(uint32_t max_flows, const char *config_file) {
 
     // Initialize Attack Signatures Detection (Stage 6c)
     {
-        struct signatures_config sig_cfg = {
-            .enabled = cfg.signatures.enabled,
-            .log_matches = cfg.signatures.log_matches,
-            .block_amplification = cfg.signatures.block_amplification,
-            .block_scans = cfg.signatures.block_scans,
-            .block_anomalies = cfg.signatures.block_anomalies,
-            .block_attack_tools = cfg.signatures.block_attack_tools,
-        };
+        struct signatures_config sig_cfg = layer1_signatures_config(&cfg);
         if (signatures_init(&sig_cfg) < 0) {
             RTE_LOG(WARNING, L1, "Signatures init failed - continuing without signature detection\n");
         } else if (cfg.signatures.enabled) {
-            RTE_LOG(INFO, L1, "Attack signatures enabled (amplification=%s, scans=%s, tools=%s)\n",
+            RTE_LOG(INFO, L1, "Attack signatures enabled (amplification=%s, scans=%s, tools=%s, "
+                    "minimal SYNs=%s)\n",
                     sig_cfg.block_amplification ? "block" : "log",
                     sig_cfg.block_scans ? "block" : "log",
-                    sig_cfg.block_attack_tools ? "block" : "log");
+                    sig_cfg.block_attack_tools ? "block" : "log",
+                    sig_cfg.strict_syn_scan ? "block" : "block on a scan pattern");
         }
     }
 

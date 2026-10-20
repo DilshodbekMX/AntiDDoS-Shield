@@ -164,12 +164,16 @@ static inline void flow_used_v6_clear(uint32_t idx) {
     __atomic_fetch_and(&flow_used_v6[idx >> 6], ~(1ULL << (idx & 63)), __ATOMIC_RELEASE);
 }
 
-// Hash function for IPv6 flow keys
+// Hash function for IPv6 flow keys: 36 bytes = 9 uint32_t (2x16 bytes for
+// IPs + 4 bytes protocol/padding), read from an aligned copy. The key is a
+// packed struct (alignment 1), so a uint32_t read of it in place may be
+// misaligned, undefined behaviour; the copy hashes the same words.
 static inline uint32_t flow_key_v6_hash(const void *key, uint32_t key_len __rte_unused,
                                          uint32_t init_val)
 {
-    const uint32_t *k = (const uint32_t *)key;
-    // Hash 36 bytes = 9 uint32_t (2x16 bytes for IPs + 4 bytes protocol/padding)
+    uint32_t k[9];
+    _Static_assert(sizeof(struct flow_key_v6) == sizeof(k), "the IPv6 flow key is 9 words");
+    memcpy(k, key, sizeof(k));
     return rte_jhash_32b(k, 9, init_val);
 }
 
@@ -552,13 +556,15 @@ static inline struct flow_entry_v6* flow_table_v6_lookup_or_create_internal(
         // lcores, the lcore whose compare-and-swap moves last_evict_tsc_v6
         // runs it (a later clock already stored must not pass the limit),
         // and none while a batch of deleted entries still waits for its
-        // grace period. Without it a full IPv6 table refused every new flow.
+        // grace period or a reader is stalled. Without it a full IPv6 table
+        // refused every new flow.
         static uint64_t evict_attempts_v6 = 0;
         static uint64_t last_evict_tsc_v6 = 0;
         uint64_t evict_now = rte_rdtsc();
         uint64_t min_interval = tsc_hz_v6 / 10;  // 100ms
         uint64_t last_evict = __atomic_load_n(&last_evict_tsc_v6, __ATOMIC_RELAXED);
         if (flow_limbo_waiting(&limbo_v6) < FLOW_EVICT_BATCH_V6 &&
+            flow_table_readers_stalled() == 0 &&
             evict_now > last_evict && evict_now - last_evict > min_interval &&
             __atomic_compare_exchange_n(&last_evict_tsc_v6, &last_evict, evict_now, false,
                                         __ATOMIC_RELAXED, __ATOMIC_RELAXED)) {
@@ -679,17 +685,20 @@ struct flow_entry_v6* flow_table_v6_lookup_or_create_tsc(
 // ==================== Flow Update ====================
 
 // The part of an update every packet gets: the update count, the last-seen
-// time and the counters of its direction, plus (with_tcp_flags, a constant
-// at each call) the TCP flags seen in that direction
+// time (unless refresh is false) and the counters of its direction, plus
+// (with_tcp_flags, a constant at each call) the TCP flags seen in that
+// direction
 static inline void flow_v6_count_packet_internal(struct flow_entry_v6 *flow,
                                                  const struct packet_features_v6 *features,
-                                                 bool with_tcp_flags)
+                                                 bool with_tcp_flags, bool refresh)
 {
     struct flow_table_v6_stats *lstats = get_flow_v6_lcore_stats();
     FLOW_V6_STAT_INC(lstats, updates);
 
-    uint64_t now_tsc = features->timestamp_tsc ? features->timestamp_tsc : rte_rdtsc();
-    __atomic_store_n(&flow->last_seen_tsc, now_tsc, __ATOMIC_RELEASE);
+    if (likely(refresh)) {
+        uint64_t now_tsc = features->timestamp_tsc ? features->timestamp_tsc : rte_rdtsc();
+        __atomic_store_n(&flow->last_seen_tsc, now_tsc, __ATOMIC_RELEASE);
+    }
 
     // Update direction-specific counters
     if (features->flow_direction == FLOW_DIR_LO_TO_HI) {
@@ -714,7 +723,37 @@ void flow_table_v6_count_packet(struct flow_entry_v6 *flow,
         return;
     }
     // No TCP flags either (see flow_table_count_packet())
-    flow_v6_count_packet_internal(flow, features, false);
+    flow_v6_count_packet_internal(flow, features, false, true);
+}
+
+bool flow_table_v6_vouches_for(const struct flow_entry_v6 *flow,
+                               const struct packet_features_v6 *features)
+{
+    if (unlikely(!flow || !features)) {
+        return false;
+    }
+
+    // As flow_table_vouches_for(): a verified handshake, a destination that
+    // has sent a segment of its own (FLOW_VOUCHED_BY_LO), or the segment
+    // that completes the handshake the flow tracked
+    if (__atomic_load_n(&flow->flags, __ATOMIC_RELAXED) & FLOW_FLAG_HANDSHAKE_ACKED) {
+        return true;
+    }
+    uint8_t dst_side = (features->flow_direction == FLOW_DIR_LO_TO_HI) ? FLOW_VOUCHED_BY_HI
+                                                                        : FLOW_VOUCHED_BY_LO;
+    if (__atomic_load_n(&flow->vouched, __ATOMIC_RELAXED) & dst_side) {
+        return true;
+    }
+    if (features->protocol != IPPROTO_TCP ||
+        (features->tcp_flags & (TCP_FLAG_SYN | TCP_FLAG_ACK | TCP_FLAG_RST)) != TCP_FLAG_ACK ||
+        features->flow_direction != flow->initiator_dir ||
+        __atomic_load_n(&flow->state, __ATOMIC_ACQUIRE) != FLOW_STATE_SYN_ACK_RECEIVED) {
+        return false;
+    }
+    uint32_t responder_next = (features->flow_direction == FLOW_DIR_LO_TO_HI) ?
+        __atomic_load_n(&flow->seq_hi_to_lo, __ATOMIC_RELAXED) :
+        __atomic_load_n(&flow->seq_lo_to_hi, __ATOMIC_RELAXED);
+    return features->tcp_ack == responder_next;
 }
 
 void flow_table_v6_update(struct flow_entry_v6 *flow,
@@ -724,13 +763,29 @@ void flow_table_v6_update(struct flow_entry_v6 *flow,
         return;
     }
 
-    flow_v6_count_packet_internal(flow, features, true);
+    // As in flow_table_update(): a SYN-ACK does not extend the life of a
+    // flow whose handshake is not verified
+    bool tcp = (features->protocol == IPPROTO_TCP);
+    bool refresh = !(tcp &&
+                     (features->tcp_flags & (TCP_FLAG_SYN | TCP_FLAG_ACK)) ==
+                         (TCP_FLAG_SYN | TCP_FLAG_ACK) &&
+                     !(__atomic_load_n(&flow->flags, __ATOMIC_RELAXED) & FLOW_FLAG_HANDSHAKE_ACKED));
+    flow_v6_count_packet_internal(flow, features, true, refresh);
 
     // TCP state machine (same as IPv4)
-    if (features->protocol == IPPROTO_TCP) {
+    if (tcp) {
         uint8_t flags = features->tcp_flags;
         bool is_initiator = (features->flow_direction == flow->initiator_dir);
         uint8_t current_state = __atomic_load_n(&flow->state, __ATOMIC_ACQUIRE);
+
+        // The sender vouches for a connection (see FLOW_VOUCHED_BY_LO); set once
+        if (flow_tcp_segment_vouches(flags)) {
+            uint8_t side = (features->flow_direction == FLOW_DIR_LO_TO_HI) ? FLOW_VOUCHED_BY_LO
+                                                                            : FLOW_VOUCHED_BY_HI;
+            if (!(__atomic_load_n(&flow->vouched, __ATOMIC_RELAXED) & side)) {
+                __atomic_fetch_or(&flow->vouched, side, __ATOMIC_RELAXED);
+            }
+        }
 
         // Track sequence numbers
         if (features->flow_direction == FLOW_DIR_LO_TO_HI) {
@@ -1008,8 +1063,16 @@ uint32_t flow_table_v6_age_flows(void)
     // Entries deleted earlier whose grace period is over go back to the free
     // indices (a create that finds none free takes them back too)
     flow_reclaim_v6(RECLAIM_AGING_MAX_V6);
-    flow_limbo_check_stall(&limbo_v6, now_tsc, seconds_to_tsc_v6(LIMBO_STALL_SEC_V6),
+
+    // Readers that stopped reporting, as in flow_table_age_flows(): while
+    // one is stalled aging deletes nothing
+    uint64_t watch_tsc = flow_table_stall_clock();
+    flow_readers_watch(watch_tsc, seconds_to_tsc_v6(LIMBO_STALL_SEC_V6));
+    flow_limbo_check_stall(&limbo_v6, watch_tsc, seconds_to_tsc_v6(LIMBO_STALL_SEC_V6),
                            "IPv6 flow table");
+    if (unlikely(flow_table_readers_stalled() > 0)) {
+        return 0;
+    }
 
     // Adaptive timeout based on occupancy. Count the flows in the hash:
     // max_flows minus the free ring count would also count the free indices
@@ -1419,6 +1482,11 @@ uint32_t flow_table_v6_emergency_evict(uint32_t count_needed)
 uint32_t flow_table_v6_get_hash_seed(void)
 {
     return hash_seed_v6;
+}
+
+uint32_t flow_table_v6_key_hash(const struct flow_key_v6 *key)
+{
+    return (initialized_v6 && key) ? rte_hash_hash(flow_hash_v6, key) : 0;
 }
 
 bool flow_table_v6_writer_lock_held(void)

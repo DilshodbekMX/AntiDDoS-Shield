@@ -1,8 +1,10 @@
 #include "signatures.h"
+#include <rte_cycles.h>
 #include <rte_lcore.h>
 #include <rte_malloc.h>
 #include <rte_log.h>
 #include <rte_spinlock.h>
+#include <rte_telemetry.h>
 #include <string.h>
 #include <stdio.h>
 
@@ -25,6 +27,8 @@
 #define SIG_ID_SCAN_BASE           2000
 #define SIG_ID_ANOMALY_BASE        3000
 #define SIG_ID_TOOL_BASE           4000
+
+_Static_assert(SIG_ID_SYN_SCAN == SIG_ID_SCAN_BASE + 1, "SIG_ID_SYN_SCAN is scan signature 1");
 
 // Known amplification ports and their characteristics
 static struct amplification_sig amplification_sigs[] = {
@@ -74,9 +78,166 @@ struct sig_lcore_stats {
     uint64_t attack_tools_detected;
     uint64_t packets_dropped;
     uint64_t packets_rate_limited;
+    uint64_t syn_scan_indicators;
+    uint64_t syn_scan_dropped;
+    uint64_t syn_scan_untracked;
 } __rte_cache_aligned;
 
 static struct sig_lcore_stats lcore_sig_stats[RTE_MAX_LCORE];
+
+// ==================== SYN Scan Tracker ====================
+//
+// Per-source evidence for SIG_ID_SYN_SCAN (see signatures.h). Each slot is
+// one 64-bit word, updated only by compare-and-swap, so every reader sees a
+// whole state of one source and no update can mix two sources:
+//   bits 44..63  the source's hash bits 12..31 (the slot index is bits 0..11)
+//   bits 28..43  window number, modulo 65536
+//   bit  27      HOT: this window met a threshold
+//   bit  26      CARRIED: the previous window met one
+//   bits 16..25  SYNs in this window (at most SIG_SYN_SCAN_SYNS)
+//   bits  0..15  destination ports seen in this window, one bit per hash
+// The hash is a bijection of the 32-bit address, so slot and tag together
+// name exactly one source. 0 is an empty slot (a state counts at least 1 SYN).
+// Only SIG_ID_SYN_SCAN frames touch the table.
+
+#define SCAN_SLOT_BITS     12
+#define SCAN_TAG_SHIFT     44
+#define SCAN_EPOCH_SHIFT   28
+#define SCAN_HOT           (1ULL << 27)
+#define SCAN_CARRIED       (1ULL << 26)
+#define SCAN_COUNT_SHIFT   16
+#define SCAN_COUNT_MASK    0x3FFULL
+#define SCAN_PORTS_MASK    0xFFFFULL
+#define SCAN_CAS_ATTEMPTS  4   // then the SYN is not tracked: bounded work per packet
+
+_Static_assert(SIG_SYN_SCAN_SLOTS == (1u << SCAN_SLOT_BITS), "slot index is hash bits 0..11");
+_Static_assert(SCAN_TAG_SHIFT + (32 - SCAN_SLOT_BITS) == 64, "the tag fills bits 44..63");
+_Static_assert(SIG_SYN_SCAN_SYNS >= 2 && SIG_SYN_SCAN_SYNS <= SCAN_COUNT_MASK,
+               "the count field holds SIG_SYN_SCAN_SYNS, and one SYN is never a scan");
+_Static_assert(SIG_SYN_SCAN_PORTS >= 2 && SIG_SYN_SCAN_PORTS <= 16,
+               "the port bitmap has 16 bits, and one port is never a scan");
+
+enum scan_verdict {
+    SCAN_PASS = 0,     // tracked, no scan pattern
+    SCAN_DROP,         // tracked, the source shows a scan pattern
+    SCAN_UNTRACKED     // not tracked (slot held by another scanning source, or contention)
+};
+
+static uint64_t scan_slots[SIG_SYN_SCAN_SLOTS] __rte_cache_aligned;
+static uint64_t scan_window_tsc = 1;           // TSC cycles per window, set by signatures_init()
+static uint64_t scan_window_inv = UINT64_MAX;  // 2^64 / scan_window_tsc, rounded down
+
+// Test seam (see signatures.h): this weak default reads the TSC
+__attribute__((weak)) uint64_t signatures_scan_clock(void) {
+    return rte_get_tsc_cycles();
+}
+
+// Window number of a TSC time. The reciprocal saves a 64-bit division per
+// SYN; it can place a SYN just after a window boundary in the window before
+// (by under now / 2^64 windows, about 50 us after three days at 4 GHz)
+static inline uint16_t scan_epoch_at(uint64_t tsc) {
+#ifdef __SIZEOF_INT128__
+    return (uint16_t)(((unsigned __int128)tsc * scan_window_inv) >> 64);
+#else
+    return (uint16_t)(tsc / scan_window_tsc);
+#endif
+}
+
+// MurmurHash3's 32-bit finalizer: every step is invertible, so distinct
+// addresses never share a hash. No seed: a collision can only leave a source
+// untracked (its SYNs pass), never give it another source's state.
+static inline uint32_t scan_hash(uint32_t x) {
+    x ^= x >> 16;
+    x *= 0x85ebca6bu;
+    x ^= x >> 13;
+    x *= 0xc2b2ae35u;
+    x ^= x >> 16;
+    return x;
+}
+
+uint32_t signatures_syn_scan_slot(uint32_t src_ip) {
+    return scan_hash(src_ip) & (SIG_SYN_SCAN_SLOTS - 1);
+}
+
+// The top 4 bits of a multiplicative hash: neighbouring ports spread out
+static inline uint32_t scan_port_index(uint16_t dst_port) {
+    return ((uint32_t)dst_port * 0x9E3779B1u) >> 28;
+}
+
+uint32_t signatures_syn_scan_port_bit(uint16_t dst_port) {
+    return scan_port_index(dst_port);
+}
+
+static inline uint16_t scan_epoch_of(uint64_t w) {
+    return (uint16_t)(w >> SCAN_EPOCH_SHIFT);
+}
+
+static inline uint64_t scan_word(uint32_t tag, uint16_t epoch, uint64_t flags,
+                                 uint64_t count, uint64_t ports) {
+    return ((uint64_t)tag << SCAN_TAG_SHIFT) | ((uint64_t)epoch << SCAN_EPOCH_SHIFT) |
+           flags | (count << SCAN_COUNT_SHIFT) | ports;
+}
+
+// A slot whose source is dropped now, or will be in the next window: another
+// source does not take it
+static inline bool scan_slot_live(uint64_t w, uint16_t epoch) {
+    uint16_t e = scan_epoch_of(w);
+    if (e == epoch || e == (uint16_t)(epoch + 1)) {
+        return (w & (SCAN_HOT | SCAN_CARRIED)) != 0;
+    }
+    if (e == (uint16_t)(epoch - 1)) {
+        return (w & SCAN_HOT) != 0;
+    }
+    return false;
+}
+
+// Record one SIG_ID_SYN_SCAN frame of src_ip to dst_port and judge its source
+static enum scan_verdict syn_scan_track(uint32_t src_ip, uint16_t dst_port) {
+    uint32_t h = scan_hash(src_ip);
+    uint64_t *slot = &scan_slots[h & (SIG_SYN_SCAN_SLOTS - 1)];
+    uint32_t tag = h >> SCAN_SLOT_BITS;
+    uint16_t epoch = scan_epoch_at(signatures_scan_clock());
+    uint64_t port_bit = 1ULL << scan_port_index(dst_port);
+
+    uint64_t old = __atomic_load_n(slot, __ATOMIC_RELAXED);
+    for (unsigned attempt = 0; attempt < SCAN_CAS_ATTEMPTS; attempt++) {
+        uint64_t next;
+        uint16_t e = scan_epoch_of(old);
+        bool same_source = old != 0 && (uint32_t)(old >> SCAN_TAG_SHIFT) == tag;
+
+        if (same_source && (e == epoch || e == (uint16_t)(epoch + 1))) {
+            // This window (epoch + 1: an lcore whose TSC runs ahead began the next)
+            if (old & SCAN_HOT) {
+                return SCAN_DROP;   // already judged for this window: no write
+            }
+            uint64_t count = ((old >> SCAN_COUNT_SHIFT) & SCAN_COUNT_MASK) + 1;
+            uint64_t ports = (old & SCAN_PORTS_MASK) | port_bit;
+            uint64_t flags = old & SCAN_CARRIED;
+            if (count >= SIG_SYN_SCAN_SYNS ||
+                __builtin_popcountll(ports) >= SIG_SYN_SCAN_PORTS) {
+                flags |= SCAN_HOT;
+            }
+            next = scan_word(tag, e, flags, count, ports);
+        } else if (same_source && e == (uint16_t)(epoch - 1)) {
+            // The next window: the last one's verdict carries over
+            next = scan_word(tag, epoch, (old & SCAN_HOT) ? SCAN_CARRIED : 0, 1, port_bit);
+        } else if (old != 0 && !same_source && scan_slot_live(old, epoch)) {
+            // Another source's scan holds the slot: it keeps it, and this
+            // source goes untracked (its SYN passes) rather than share state
+            return SCAN_UNTRACKED;
+        } else {
+            // Empty, stale, or another source's quiet window: take the slot
+            next = scan_word(tag, epoch, 0, 1, port_bit);
+        }
+
+        if (__atomic_compare_exchange_n(slot, &old, next, false,
+                                        __ATOMIC_RELAXED, __ATOMIC_RELAXED)) {
+            return (next & (SCAN_HOT | SCAN_CARRIED)) ? SCAN_DROP : SCAN_PASS;
+        }
+        // old now holds the slot's current word: judge again
+    }
+    return SCAN_UNTRACKED;
+}
 
 // ==================== Bitmap Operations ====================
 
@@ -131,11 +292,11 @@ uint32_t signatures_check_amplification(uint16_t src_port, uint16_t pkt_len) {
 static uint32_t check_scan_pattern(uint8_t protocol, uint8_t tcp_flags,
                                    uint16_t pkt_len) {
     if (protocol == 6) {  // TCP
-        // SYN scan: SYN flag only, small packet
+        // SYN scan: SYN flag only, small packet (no options, or MSS only).
+        // On its own an indicator: signatures_check() drops it only when the
+        // tracker sees a scan pattern from the same source
         if (tcp_flags == 0x02 && pkt_len <= 60) {
-            // This is a heuristic - actual scan detection needs
-            // tracking multiple packets from same source
-            return SIG_ID_SCAN_BASE + 1;  // Potential SYN scan
+            return SIG_ID_SYN_SCAN;  // Potential SYN scan
         }
 
         // FIN scan: FIN only
@@ -235,9 +396,35 @@ static uint32_t check_attack_tool(uint8_t protocol, uint16_t src_port,
     return 0;
 }
 
+// ==================== Telemetry ====================
+
+static int handle_signatures_telemetry(const char *cmd __rte_unused,
+                                       const char *params __rte_unused,
+                                       struct rte_tel_data *d) {
+    struct signatures_stats s;
+    signatures_get_stats(&s);
+
+    rte_tel_data_start_dict(d);
+    rte_tel_data_add_dict_int(d, "enabled", signatures_is_enabled() ? 1 : 0);
+    rte_tel_data_add_dict_int(d, "strict_syn_scan", sig_cfg.strict_syn_scan ? 1 : 0);
+    rte_tel_data_add_dict_uint(d, "packets_checked", s.packets_checked);
+    rte_tel_data_add_dict_uint(d, "signatures_matched", s.signatures_matched);
+    rte_tel_data_add_dict_uint(d, "amplification_detected", s.amplification_detected);
+    rte_tel_data_add_dict_uint(d, "scans_detected", s.scans_detected);
+    rte_tel_data_add_dict_uint(d, "anomalies_detected", s.anomalies_detected);
+    rte_tel_data_add_dict_uint(d, "attack_tools_detected", s.attack_tools_detected);
+    rte_tel_data_add_dict_uint(d, "packets_dropped", s.packets_dropped);
+    rte_tel_data_add_dict_uint(d, "syn_scan_indicators", s.syn_scan_indicators);
+    rte_tel_data_add_dict_uint(d, "syn_scan_dropped", s.syn_scan_dropped);
+    rte_tel_data_add_dict_uint(d, "syn_scan_untracked", s.syn_scan_untracked);
+    return 0;
+}
+
 // ==================== Public API ====================
 
 int signatures_init(const struct signatures_config *config) {
+    static bool telemetry_registered = false;
+
     if (sig_initialized) {
         RTE_LOG(WARNING, SIG, "Signatures already initialized\n");
         return 0;
@@ -258,12 +445,32 @@ int signatures_init(const struct signatures_config *config) {
     // Initialize per-lcore stats
     memset(lcore_sig_stats, 0, sizeof(lcore_sig_stats));
 
+    // SYN scan tracker: empty slots, windows of SIG_SYN_SCAN_WINDOW_MS. Without
+    // a TSC rate (no EAL) every cycle is its own window: nothing is dropped
+    memset(scan_slots, 0, sizeof(scan_slots));
+    scan_window_tsc = rte_get_tsc_hz() * SIG_SYN_SCAN_WINDOW_MS / 1000;
+    if (scan_window_tsc == 0) {
+        scan_window_tsc = 1;
+    }
+    scan_window_inv = UINT64_MAX / scan_window_tsc;
+
     sig_initialized = true;
 
-    RTE_LOG(INFO, SIG, "Signatures initialized (%zu amplification signatures)\n",
-            NUM_AMPLIFICATION_SIGS);
+    RTE_LOG(INFO, SIG, "Signatures initialized (%zu amplification signatures, "
+            "minimal SYNs dropped %s)\n", NUM_AMPLIFICATION_SIGS,
+            sig_cfg.strict_syn_scan ? "always (strict_syn_scan)" : "on a scan pattern");
 
     rte_spinlock_unlock(&sig_lock);
+
+    // Statistics endpoint, once per process (the callback outlives cleanup)
+    if (!telemetry_registered) {
+        if (rte_telemetry_register_cmd("/antiddos/signatures", handle_signatures_telemetry,
+                                       "Returns attack signature statistics") == 0) {
+            telemetry_registered = true;
+        } else {
+            RTE_LOG(WARNING, SIG, "Failed to register /antiddos/signatures\n");
+        }
+    }
     return 0;
 }
 
@@ -282,7 +489,6 @@ bool signatures_check(uint8_t protocol,
                       uint8_t tcp_flags, uint16_t pkt_len,
                       uint8_t ttl,
                       struct sig_match *match) {
-    (void)src_ip;
     (void)dst_ip;
 
     if (!sig_initialized || !sig_cfg.enabled) {
@@ -295,6 +501,7 @@ bool signatures_check(uint8_t protocol,
     }
 
     uint32_t sig_id = 0;
+    uint32_t indicator_id = 0;   // matched, not acted on: reported with SIG_ACTION_LOG
     enum sig_category category = 0;
     enum sig_action action = SIG_ACTION_LOG;
     const char *description = NULL;
@@ -320,6 +527,24 @@ bool signatures_check(uint8_t protocol,
     // Check scan patterns
     if (!sig_id && sig_cfg.block_scans) {
         sig_id = check_scan_pattern(protocol, tcp_flags, pkt_len);
+        if (sig_id == SIG_ID_SYN_SCAN) {
+            // The frame alone is an indicator; its source decides (signatures.h)
+            enum scan_verdict verdict = sig_cfg.strict_syn_scan ?
+                                        SCAN_DROP : syn_scan_track(src_ip, dst_port);
+            if (lcore_id < RTE_MAX_LCORE) {
+                lcore_sig_stats[lcore_id].syn_scan_indicators++;
+                if (verdict == SCAN_DROP) {
+                    lcore_sig_stats[lcore_id].syn_scan_dropped++;
+                } else if (verdict == SCAN_UNTRACKED) {
+                    lcore_sig_stats[lcore_id].syn_scan_untracked++;
+                }
+            }
+            if (verdict != SCAN_DROP) {
+                // Not a scan: the later checks still apply to the frame
+                indicator_id = sig_id;
+                sig_id = 0;
+            }
+        }
         if (sig_id) {
             category = SIG_CAT_SCAN;
             action = SIG_ACTION_DROP;
@@ -387,6 +612,17 @@ bool signatures_check(uint8_t protocol,
                 RTE_LOG(WARNING, SIG, "Signature match: id=%u cat=%d desc=%s\n",
                         sig_id, category, description ? description : "unknown");
             }
+        }
+    } else if (!sig_id && indicator_id && match) {
+        // Reported and counted, not logged: the log's 100 lines stay for drops
+        match->signature_id = indicator_id;
+        match->category = SIG_CAT_SCAN;
+        match->action = SIG_ACTION_LOG;
+        match->description = "Minimal SYN (scan indicator)";
+        match->severity = 2;
+
+        if (lcore_id < RTE_MAX_LCORE) {
+            lcore_sig_stats[lcore_id].signatures_matched++;
         }
     }
 
@@ -465,6 +701,9 @@ void signatures_get_stats(struct signatures_stats *stats) {
         stats->attack_tools_detected += lcore_sig_stats[lcore_id].attack_tools_detected;
         stats->packets_dropped += lcore_sig_stats[lcore_id].packets_dropped;
         stats->packets_rate_limited += lcore_sig_stats[lcore_id].packets_rate_limited;
+        stats->syn_scan_indicators += lcore_sig_stats[lcore_id].syn_scan_indicators;
+        stats->syn_scan_dropped += lcore_sig_stats[lcore_id].syn_scan_dropped;
+        stats->syn_scan_untracked += lcore_sig_stats[lcore_id].syn_scan_untracked;
     }
 }
 

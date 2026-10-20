@@ -180,6 +180,27 @@ struct rte_rcu_qsbr *flow_table_readers(void) {
     return v;
 }
 
+// Registered readers (flow_table_reader_register()), one bit per reader id,
+// for the stalled-reader check
+static uint64_t flow_reader_mask[(RTE_MAX_LCORE + 63) / 64];
+
+// Stalled readers (see "Deferred Reclamation" in flow_table.h). The probe is
+// a token of the readers' variable that flow_readers_watch() issues: a
+// registered reader that has not reported a quiescent state past it once
+// the stall time has passed since it was issued is stalled. miss_token[id]
+// is the probe reader id missed, 0 while it is not stalled; it and
+// stalled_now change atomically (flow_table_reader_unregister() also ends a
+// stall), the rest belongs to the call that holds lock.
+static struct {
+    rte_spinlock_t lock;
+    uint64_t probe_token;                 // 0 while none is out
+    uint64_t probe_tsc;                   // when it was issued (flow_table_stall_clock())
+    uint32_t stalled_now;                 // readers marked stalled
+    uint64_t stalls;                      // stalls found since the process started
+    uint64_t miss_token[RTE_MAX_LCORE];
+    uint64_t miss_tsc[RTE_MAX_LCORE];     // when the probe it missed was issued
+} reader_watch = { .lock = RTE_SPINLOCK_INITIALIZER };
+
 int flow_table_reader_register(unsigned int reader_id) {
     if (reader_id >= RTE_MAX_LCORE) {
         return -1;
@@ -189,6 +210,8 @@ int flow_table_reader_register(unsigned int reader_id) {
         return -1;
     }
     rte_rcu_qsbr_thread_online(v, reader_id);
+    __atomic_fetch_or(&flow_reader_mask[reader_id >> 6], 1ULL << (reader_id & 63),
+                      __ATOMIC_RELEASE);
     return 0;
 }
 
@@ -197,8 +220,14 @@ void flow_table_reader_unregister(unsigned int reader_id) {
     if (v == NULL || reader_id >= RTE_MAX_LCORE) {
         return;
     }
+    __atomic_fetch_and(&flow_reader_mask[reader_id >> 6], ~(1ULL << (reader_id & 63)),
+                       __ATOMIC_RELEASE);
     rte_rcu_qsbr_thread_offline(v, reader_id);
     rte_rcu_qsbr_thread_unregister(v, reader_id);
+    // A reader that is gone holds nothing: a stall it was marked with ends
+    if (__atomic_exchange_n(&reader_watch.miss_token[reader_id], 0, __ATOMIC_ACQ_REL) != 0) {
+        __atomic_fetch_sub(&reader_watch.stalled_now, 1, __ATOMIC_RELEASE);
+    }
 }
 
 void flow_table_reader_quiescent(unsigned int reader_id) {
@@ -206,6 +235,101 @@ void flow_table_reader_quiescent(unsigned int reader_id) {
     if (likely(v != NULL && reader_id < RTE_MAX_LCORE)) {
         rte_rcu_qsbr_quiescent(v, reader_id);
     }
+}
+
+// Test seam (see flow_table.h): this weak default is the real clock
+__attribute__((weak)) uint64_t flow_table_stall_clock(void) {
+    return rte_rdtsc();
+}
+
+// A reader's quiescent-state counter, read as rte_rcu_qsbr_check() reads it
+// (struct rte_rcu_qsbr is public in rte_rcu_qsbr.h): the last token it
+// reported a quiescent state with, or __RTE_QSBR_CNT_THR_OFFLINE
+static inline uint64_t flow_reader_count(struct rte_rcu_qsbr *v, unsigned int id) {
+    return rte_atomic_load_explicit(&v->qsbr_cnt[id].cnt, rte_memory_order_acquire);
+}
+
+void flow_readers_watch(uint64_t now_tsc, uint64_t stall_tsc) {
+    struct rte_rcu_qsbr *v = __atomic_load_n(&flow_readers_qsv, __ATOMIC_ACQUIRE);
+    if (v == NULL || !rte_spinlock_trylock(&reader_watch.lock)) {
+        return;
+    }
+
+    uint64_t probe = reader_watch.probe_token;
+    bool probe_old = probe != 0 && now_tsc > reader_watch.probe_tsc &&
+                     now_tsc - reader_watch.probe_tsc > stall_tsc;
+    uint64_t ms_tsc = rte_get_tsc_hz() / 1000;
+    // The lcore running this check (the maintenance lcore, a reader too) is
+    // not stalled: it reports again when it goes back to its RX loop
+    unsigned int self = rte_lcore_id();
+
+    for (unsigned int id = 0; id < RTE_MAX_LCORE; id++) {
+        bool registered = (__atomic_load_n(&flow_reader_mask[id >> 6], __ATOMIC_ACQUIRE) >>
+                           (id & 63)) & 1;
+        uint64_t miss = __atomic_load_n(&reader_watch.miss_token[id], __ATOMIC_ACQUIRE);
+        if (!registered && miss == 0) {
+            continue;
+        }
+        uint64_t cnt = registered ? flow_reader_count(v, id) : __RTE_QSBR_CNT_THR_OFFLINE;
+        bool offline = (cnt == __RTE_QSBR_CNT_THR_OFFLINE);
+
+        if (miss != 0) {
+            // Stalled: it reported past the probe it missed, or it is gone
+            if ((offline || cnt >= miss) &&
+                __atomic_exchange_n(&reader_watch.miss_token[id], 0, __ATOMIC_ACQ_REL) != 0) {
+                __atomic_fetch_sub(&reader_watch.stalled_now, 1, __ATOMIC_RELEASE);
+                RTE_LOG(NOTICE, FLOWTBL,
+                        "Flow table reader on lcore %u %s after a stall of at least %lu ms: "
+                        "the entries deleted meanwhile are reused again\n",
+                        id, offline ? "went offline" : "reported a quiescent state",
+                        (unsigned long)((now_tsc - reader_watch.miss_tsc[id]) / ms_tsc));
+            }
+            continue;
+        }
+
+        if (probe_old && !offline && cnt < probe && id != self) {
+            // No quiescent report since the probe, issued over the stall time
+            // ago. Counted before it is marked, so that an unregister ending
+            // the mark at once cannot take the count below zero.
+            reader_watch.miss_tsc[id] = reader_watch.probe_tsc;
+            __atomic_fetch_add(&reader_watch.stalled_now, 1, __ATOMIC_ACQ_REL);
+            uint64_t unmarked = 0;
+            if (__atomic_compare_exchange_n(&reader_watch.miss_token[id], &unmarked, probe, false,
+                                            __ATOMIC_ACQ_REL, __ATOMIC_ACQUIRE)) {
+                uint64_t total = __atomic_add_fetch(&reader_watch.stalls, 1, __ATOMIC_RELAXED);
+                RTE_LOG(WARNING, FLOWTBL,
+                        "Flow table reader on lcore %u has not reported a quiescent state for "
+                        "at least %lu ms (stall %lu): entries deleted since are not reused, and "
+                        "aging and emergency eviction pause until it reports\n",
+                        id, (unsigned long)((now_tsc - reader_watch.probe_tsc) / ms_tsc),
+                        (unsigned long)total);
+            } else {
+                __atomic_fetch_sub(&reader_watch.stalled_now, 1, __ATOMIC_RELEASE);
+            }
+        }
+    }
+
+    // The next probe: once every registered reader has reported past the
+    // last one, or once that one is old (its laggards are marked now, and a
+    // later stall is found against the next)
+    if (probe == 0 || probe_old || rte_rcu_qsbr_check(v, probe, false) == 1) {
+        reader_watch.probe_token = rte_rcu_qsbr_start(v);
+        reader_watch.probe_tsc = now_tsc;
+    }
+    rte_spinlock_unlock(&reader_watch.lock);
+}
+
+uint32_t flow_table_readers_stalled(void) {
+    return __atomic_load_n(&reader_watch.stalled_now, __ATOMIC_ACQUIRE);
+}
+
+bool flow_table_reader_stalled(unsigned int reader_id) {
+    return reader_id < RTE_MAX_LCORE &&
+           __atomic_load_n(&reader_watch.miss_token[reader_id], __ATOMIC_ACQUIRE) != 0;
+}
+
+uint64_t flow_table_reader_stall_count(void) {
+    return __atomic_load_n(&reader_watch.stalls, __ATOMIC_RELAXED);
 }
 
 int flow_limbo_init(struct flow_limbo *l, uint32_t capacity, const char *name) {
@@ -934,10 +1058,12 @@ static inline struct flow_entry* flow_table_lookup_or_create_internal(
         // No eviction while a batch of deleted entries still waits for its
         // grace period: those come back as soon as every reader has
         // reported, and evicting more live flows now would not make room any
-        // sooner (or, with a reader that stopped reporting, at all).
+        // sooner. Nor while a reader is stalled: nothing deleted comes back
+        // before it reports.
         uint64_t min_interval = rte_get_tsc_hz() / 10;  // 100ms
         uint64_t last_evict = __atomic_load_n(&last_evict_tsc, __ATOMIC_RELAXED);
         if (flow_limbo_waiting(&limbo) < FLOW_EVICT_BATCH &&
+            flow_table_readers_stalled() == 0 &&
             evict_now > last_evict && evict_now - last_evict > min_interval &&
             __atomic_compare_exchange_n(&last_evict_tsc, &last_evict, evict_now, false,
                                         __ATOMIC_RELAXED, __ATOMIC_RELAXED)) {
@@ -1080,25 +1206,28 @@ struct flow_entry* flow_table_lookup_or_create_tsc(struct packet_features *featu
 
 /**
  * The part of an update every packet gets: the update count, the last-seen
- * time and the counters of its direction, plus (with_tcp_flags, a constant
- * at each call) the TCP flags seen in that direction
+ * time (unless refresh is false) and the counters of its direction, plus
+ * (with_tcp_flags, a constant at each call) the TCP flags seen in that
+ * direction
  */
 static inline void flow_count_packet_internal(struct flow_entry *flow,
                                               const struct packet_features *features,
-                                              uint64_t now_tsc, bool with_tcp_flags) {
+                                              uint64_t now_tsc, bool with_tcp_flags,
+                                              bool refresh) {
     // Per-lcore stats - NO ATOMICS in fast path
     struct flow_table_lcore_stats *lstats = get_flow_lcore_stats();
     FLOW_STAT_INC(lstats, updates);
 
-    // Use provided TSC or get from features or read now
-    if (now_tsc == 0) {
-        now_tsc = features->timestamp_tsc ? features->timestamp_tsc : rte_rdtsc();
-    }
-
     // Use RELEASE ordering for last_seen_tsc to ensure all prior
     // packet processing is visible before the timestamp update
     // This pairs with ACQUIRE in flow_table_age_flows() for correct aging
-    __atomic_store_n(&flow->last_seen_tsc, now_tsc, __ATOMIC_RELEASE);
+    if (likely(refresh)) {
+        // Use provided TSC or get from features or read now
+        if (now_tsc == 0) {
+            now_tsc = features->timestamp_tsc ? features->timestamp_tsc : rte_rdtsc();
+        }
+        __atomic_store_n(&flow->last_seen_tsc, now_tsc, __ATOMIC_RELEASE);
+    }
 
     // Update direction-specific counters
     if (features->flow_direction == FLOW_DIR_LO_TO_HI) {
@@ -1122,7 +1251,40 @@ void flow_table_count_packet(struct flow_entry *flow, const struct packet_featur
     }
     // No TCP flags either: an ACK flag recorded here would let the RST
     // validator use the window around a peer ACK this segment never sent
-    flow_count_packet_internal(flow, features, 0, false);
+    flow_count_packet_internal(flow, features, 0, false, true);
+}
+
+bool flow_table_vouches_for(const struct flow_entry *flow, const struct packet_features *features) {
+    if (unlikely(!flow || !features)) {
+        return false;
+    }
+
+    // A verified handshake
+    if (__atomic_load_n(&flow->flags, __ATOMIC_RELAXED) & FLOW_FLAG_HANDSHAKE_ACKED) {
+        return true;
+    }
+
+    // The destination has sent a segment of its own (the side opposite the
+    // segment's own direction; FLOW_VOUCHED_BY_LO says what that proves)
+    uint8_t dst_side = (features->flow_direction == FLOW_DIR_LO_TO_HI) ? FLOW_VOUCHED_BY_HI
+                                                                        : FLOW_VOUCHED_BY_LO;
+    if (__atomic_load_n(&flow->vouched, __ATOMIC_RELAXED) & dst_side) {
+        return true;
+    }
+
+    // The segment completes the handshake the flow tracked: the initiator's
+    // ACK of the responder's ISN + 1, the responder's next sequence as
+    // tracked from its SYN-ACK (the state machine's check, before it runs)
+    if (features->protocol != IPPROTO_TCP ||
+        (features->tcp_flags & (TCP_FLAG_SYN | TCP_FLAG_ACK | TCP_FLAG_RST)) != TCP_FLAG_ACK ||
+        features->flow_direction != flow->initiator_dir ||
+        __atomic_load_n(&flow->state, __ATOMIC_ACQUIRE) != FLOW_STATE_SYN_ACK_RECEIVED) {
+        return false;
+    }
+    uint32_t responder_next = (features->flow_direction == FLOW_DIR_LO_TO_HI) ?
+        __atomic_load_n(&flow->seq_hi_to_lo, __ATOMIC_RELAXED) :
+        __atomic_load_n(&flow->seq_lo_to_hi, __ATOMIC_RELAXED);
+    return features->tcp_ack == responder_next;
 }
 
 void flow_table_mark_handshake_verified(struct flow_entry *flow) {
@@ -1158,13 +1320,31 @@ static inline void flow_table_update_internal(struct flow_entry *flow,
         return;
     }
 
-    flow_count_packet_internal(flow, features, now_tsc, true);
+    // A SYN-ACK does not extend the life of a flow whose handshake is not
+    // verified: a server retransmits its SYN-ACK to the source of a spoofed
+    // SYN for half a minute (see flow_table_update())
+    bool tcp = (features->protocol == IPPROTO_TCP);
+    bool refresh = !(tcp &&
+                     (features->tcp_flags & (TCP_FLAG_SYN | TCP_FLAG_ACK)) ==
+                         (TCP_FLAG_SYN | TCP_FLAG_ACK) &&
+                     !(__atomic_load_n(&flow->flags, __ATOMIC_RELAXED) & FLOW_FLAG_HANDSHAKE_ACKED));
+    flow_count_packet_internal(flow, features, now_tsc, true, refresh);
 
     // TCP state machine (RFC 793 compliant)
-    if (features->protocol == IPPROTO_TCP) {
+    if (tcp) {
         uint8_t flags = features->tcp_flags;
         bool is_initiator = (features->flow_direction == flow->initiator_dir);
         uint8_t current_state = __atomic_load_n(&flow->state, __ATOMIC_ACQUIRE);
+
+        // The sender vouches for a connection with its own SYN, or with a
+        // segment of one it holds (see FLOW_VOUCHED_BY_LO); set once
+        if (flow_tcp_segment_vouches(flags)) {
+            uint8_t side = (features->flow_direction == FLOW_DIR_LO_TO_HI) ? FLOW_VOUCHED_BY_LO
+                                                                            : FLOW_VOUCHED_BY_HI;
+            if (!(__atomic_load_n(&flow->vouched, __ATOMIC_RELAXED) & side)) {
+                __atomic_fetch_or(&flow->vouched, side, __ATOMIC_RELAXED);
+            }
+        }
 
         // Track sequence numbers for RST/FIN validation
         // Update expected sequence based on direction
@@ -1549,7 +1729,16 @@ uint32_t flow_table_age_flows(void) {
     // Entries deleted earlier whose grace period is over go back to the free
     // indices (a create that finds none free takes them back too)
     flow_reclaim(RECLAIM_AGING_MAX);
-    flow_limbo_check_stall(&limbo, now_tsc, seconds_to_tsc(LIMBO_STALL_SEC), "IPv4 flow table");
+
+    // Readers that stopped reporting (see "Deferred Reclamation"). While one
+    // is stalled no deleted entry can be reused before it reports, so aging
+    // deletes nothing: an expired flow that comes back still finds its entry.
+    uint64_t watch_tsc = flow_table_stall_clock();
+    flow_readers_watch(watch_tsc, seconds_to_tsc(LIMBO_STALL_SEC));
+    flow_limbo_check_stall(&limbo, watch_tsc, seconds_to_tsc(LIMBO_STALL_SEC), "IPv4 flow table");
+    if (unlikely(flow_table_readers_stalled() > 0)) {
+        return 0;
+    }
 
     // Adaptive timeout based on table occupancy. Count the flows in the hash:
     // max_flows minus the free ring count would also count the free indices

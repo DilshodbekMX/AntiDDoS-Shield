@@ -942,7 +942,12 @@ static inline hash_sig_t compute_conn_hash(const struct conn_key *key) {
 // It can also overwrite the end of a FIN the new occupant has recorded
 // (client_next_seq or server_next_seq, proxied_close_segment()); that FIN is
 // then never seen acknowledged, and the cleanup's timeouts release the entry
-// instead of its last ACK.
+// instead of its last ACK. Likewise it can overwrite a latest acknowledgement
+// or the server's next sequence (client_next_ack, server_next_ack,
+// server_snd_nxt) until the side's next segment: an RST of the new occupant
+// in between is judged against the old value, so it is forwarded without
+// ending the entry (or, from the client side, dropped), and the entry ages
+// out instead.
 
 #define CTL_STATE_MASK      0x0000000Fu
 #define CTL_ST_INIT         0x0Eu         // Claimed by the adding lcore, fields not yet valid
@@ -1159,6 +1164,9 @@ static inline struct syn_proxy_conn *alloc_connection_with_hash(
     __atomic_store_n(&conn->server_isn, 0, __ATOMIC_RELEASE);
     __atomic_store_n(&conn->client_next_seq, 0, __ATOMIC_RELAXED);
     __atomic_store_n(&conn->server_next_seq, 0, __ATOMIC_RELAXED);
+    __atomic_store_n(&conn->client_next_ack, 0, __ATOMIC_RELAXED);
+    __atomic_store_n(&conn->server_next_ack, 0, __ATOMIC_RELAXED);
+    __atomic_store_n(&conn->server_snd_nxt, 0, __ATOMIC_RELAXED);
     conn->proxy_isn = 0;
     __atomic_store_n(&conn->seq_delta_c2s, 0, __ATOMIC_RELAXED);
     __atomic_store_n(&conn->seq_delta_s2c, 0, __ATOMIC_RELAXED);
@@ -1194,7 +1202,8 @@ static inline uint32_t conn_publish(struct syn_proxy_conn *conn, uint32_t init_c
 
 // The counter a retired entry is counted in
 enum retire_reason {
-    RETIRE_CLOSED = 0,          // Ended by the packet path: connections_closed
+    RETIRE_CLOSED = 0,          // Ended by the packet path: connections_closed, unless
+                                // CLOSED (counted when its close completed)
     RETIRE_SERVER_TIMEOUT,      // CONNECTING past connect_timeout_ms: server_timeout
     RETIRE_IDLE_TIMEOUT,        // Idle past idle_timeout_sec: connections_timeout
     RETIRE_CLEANUP_CLOSED,      // CLOSING or CLOSED, deleted by the cleanup: none
@@ -1236,7 +1245,10 @@ static bool retire_entry(struct syn_proxy_conn *conn, const struct conn_key *key
     }
     switch (why) {
         case RETIRE_CLOSED:
-            __atomic_add_fetch(&g_stats.connections_closed, 1, __ATOMIC_RELAXED);
+            // A CLOSED entry was counted by the swap that completed its close
+            if (ctl_state(old) != SYN_PROXY_CLOSED) {
+                __atomic_add_fetch(&g_stats.connections_closed, 1, __ATOMIC_RELAXED);
+            }
             break;
         case RETIRE_SERVER_TIMEOUT:
             __atomic_add_fetch(&g_stats.server_timeout, 1, __ATOMIC_RELAXED);
@@ -1292,22 +1304,23 @@ static void free_connection(struct syn_proxy_conn *conn, const struct conn_key *
  *   FIN's end: the FIN's sender sends nothing after it, so no acceptable ACK
  *   goes beyond, and one short of it leaves the FIN (or data before it)
  *   unacknowledged;
- * - the segment after which both FINs are acknowledged ends the connection,
- *   and the entry is retired (counted as closed), as bypass_segment() does
- *   for a BYPASSED entry on the ACK after both FINs. Until then the entry
- *   stays: data and FINs sent before that last ACK may still be retransmitted
- *   and need translating. After it the entry is gone: if that last ACK is
- *   lost beyond the proxy, the FIN its peer retransmits finds no entry and
- *   is forwarded untranslated, the receiving stack rejects it, and the
- *   retransmitting side ends its connection by its own timeout. A
- *   connection that ends unseen ages out in the cleanup (CLOSING after
- *   connect_timeout_ms without a segment, the half-closed states after the
- *   idle timeout).
+ * - the segment after which both FINs are acknowledged completes the close:
+ *   the entry becomes CLOSED and is counted as closed, once, by the lcore
+ *   whose swap makes it CLOSED. Until then data and FINs sent before that
+ *   last ACK may still be retransmitted and need translating. CLOSED is a
+ *   TIME_WAIT for the proxy: if the last ACK is lost beyond the proxy, the
+ *   peer retransmits its FIN, and that FIN and the answer to it are still
+ *   translated. The cleanup frees a CLOSED entry once no segment came for
+ *   SYN_PROXY_TIME_WAIT_SEC; a new SYN on the 4-tuple frees it at once.
+ *   (bypass_segment() frees a BYPASSED entry on the ACK after both FINs:
+ *   bypassed packets need no translation.) A connection that ends unseen
+ *   ages out in the cleanup: CLOSING after SYN_PROXY_CLOSING_TIMEOUT_SEC
+ *   without a segment, the half-closed states after the idle timeout.
  * Nothing changes if the entry was retired since ctl was read, or is BUSY.
- * @return true if this call retired the entry
+ * @return true if this call completed the close
  */
-static bool proxied_close_segment(struct syn_proxy_conn *conn, const struct conn_key *key,
-                                  uint32_t ctl, bool from_server, uint8_t tcp_flags,
+static bool proxied_close_segment(struct syn_proxy_conn *conn, uint32_t ctl,
+                                  bool from_server, uint8_t tcp_flags,
                                   uint32_t fin_end, uint32_t ack) {
     const bool fin = (tcp_flags & TCP_FLAG_FIN) != 0;
     const bool acks = (tcp_flags & (TCP_FLAG_ACK | TCP_FLAG_SYN)) == TCP_FLAG_ACK;
@@ -1346,18 +1359,18 @@ static bool proxied_close_segment(struct syn_proxy_conn *conn, const struct conn
                        : (server_fin ? SYN_PROXY_SERVER_FIN : SYN_PROXY_ESTABLISHED);
 
         syn_proxy_race_seam(SYN_PROXY_SEAM_CLOSE);
-        if (next == SYN_PROXY_CLOSING && acked == CTL_FIN_ACKED_BOTH) {
-            uint32_t seen = c;
-            if (retire_entry(conn, key, &c, RETIRE_CLOSED)) {
+        // Both FINs acknowledged: the close is complete, CLOSED (TIME_WAIT)
+        const enum syn_proxy_state to =
+            (next == SYN_PROXY_CLOSING && acked == CTL_FIN_ACKED_BOTH) ? SYN_PROXY_CLOSED : next;
+        const uint32_t want = (c & ~(CTL_STATE_MASK | CTL_FIN_ACKED_BOTH)) | (uint32_t)to | acked;
+        if (want == c) {
+            return false;
+        }
+        if (ctl_cas(conn, &c, want)) {
+            if (to == SYN_PROXY_CLOSED) {
+                __atomic_add_fetch(&g_stats.connections_closed, 1, __ATOMIC_RELAXED);
                 return true;
             }
-            if (c == seen) {
-                return false;   // No lcore id: the cleanup ages it out
-            }
-            continue;           // The word changed: decide again
-        }
-        const uint32_t want = (c & ~(CTL_STATE_MASK | CTL_FIN_ACKED_BOTH)) | (uint32_t)next | acked;
-        if (want == c || ctl_cas(conn, &c, want)) {
             return false;
         }
         // c holds the current word: decide again
@@ -1365,11 +1378,13 @@ static bool proxied_close_segment(struct syn_proxy_conn *conn, const struct conn
 }
 
 /**
- * One segment of a BYPASSED connection: the client's (inbound) or the
- * server's. The packet itself is still forwarded unmodified.
- * - The entry is released when its connection ends: on RST, or on the ACK
- *   that follows FINs from both sides. A connection that ends unseen ages out
- *   in syn_proxy_cleanup_connections() by the idle timeout.
+ * One segment of a BYPASSED connection, not an RST (bypassed_rst()): the
+ * client's (inbound) or the server's. The packet itself is still forwarded
+ * unmodified.
+ * - The entry is released when its connection ends: on an RST at the
+ *   receiver's next sequence (bypassed_rst()), or on the ACK that follows FINs
+ *   from both sides. A connection that ends unseen ages out in
+ *   syn_proxy_cleanup_connections() by the idle timeout.
  * - A SYN-flagged segment (the client's SYN, the server's SYN-ACK) starts a
  *   new connection on the same 4-tuple, so it clears the FINs seen for the
  *   previous one.
@@ -1383,11 +1398,6 @@ static void bypass_segment(struct syn_proxy_conn *conn, const struct conn_key *k
                            uint32_t ctl, const struct packet_features *features,
                            bool inbound) {
     const uint8_t tcp_flags = features->tcp_flags;
-
-    if (tcp_flags & TCP_FLAG_RST) {
-        free_connection(conn, key, ctl);
-        return;
-    }
 
     const bool server_synack = !inbound && (tcp_flags & TCP_FLAG_SYN) && (tcp_flags & TCP_FLAG_ACK);
     const bool client_ack = inbound && (tcp_flags & TCP_FLAG_ACK) && !(tcp_flags & TCP_FLAG_SYN);
@@ -1460,6 +1470,170 @@ static inline bool bypass_segment_matters(uint32_t ctl, uint8_t tcp_flags, bool 
     }
     return (ctl & CTL_FIN_BOTH) == CTL_FIN_BOTH ||
            (inbound && (ctl & (CTL_F_ISN_SEEN | CTL_F_HS_ACKED)) == CTL_F_ISN_SEEN);
+}
+
+// ==================== RST Validation ====================
+//
+// An RST ends the entry of its 4-tuple only when it is at the receiver's next
+// expected sequence number, the rule a TCP receiver applies (RFC 5961, 3.2).
+// Before, any RST ended it, so a sender that knew the 4-tuple but none of the
+// connection's numbers made the proxy forget the connection, and the rest of
+// a proxied connection went out untranslated. For an RST:
+// - at the receiver's next sequence (exact): the entry ends, and the RST is
+//   forwarded, translated if the connection is proxied;
+// - in the receiver's window but not exact: the entry stays, and the RST is
+//   forwarded all the same, so that the receiving stack can answer it with
+//   its own challenge ACK (RFC 5961). A sender that did reset answers that
+//   ACK with an RST at the acknowledged number, which then ends the entry.
+//   The proxy sends no challenge ACK of its own;
+// - outside every window the receiver can have: dropped, the entry stays.
+// The receiver's next sequence is the last acknowledgement it sent
+// (client_next_ack, server_next_ack). For an RST from the client side, which
+// a blind sender imitates, that is the server's acknowledgement, which comes
+// from the protected side. An RST from the server side is always forwarded
+// (its window is judged against the client's acknowledgements, which a blind
+// sender can forge) and ends the entry only when exact.
+//
+// Windows: a proxied connection never scales its windows (the proxy's SYN-ACK
+// and its SYN to the server offer MSS only), so none exceeds 65535 bytes; a
+// bypassed one may scale them, up to 2^30 bytes (RFC 7323). While the proxy
+// waits on the server (CONNECTING) it is the client's peer itself, with next
+// sequence client_isn + 1 and the 65535-byte window of its SYN-ACK, and it
+// ignores (drops) an RST that is not exact. Toward the server it is then in
+// SYN-SENT, where an RST counts only if it acknowledges the proxy's SYN
+// (RFC 9293, 3.10.7.3).
+//
+// What remains: a sender that resets with data still unacknowledged sends its
+// RST at its own next sequence, past the receiver's last ACK. That RST is
+// forwarded, and the entry stays until the receiver's next segment draws an
+// exact RST, or until the idle timeout, as for a connection that ends unseen.
+
+#define PROXIED_MAX_WINDOW   65535u          // No window scaling on a proxied connection
+#define BYPASSED_MAX_WINDOW  (1u << 30)      // The largest scaled window (RFC 7323)
+
+enum rst_verdict {
+    RST_EXACT = 0,      // At the receiver's next sequence: the connection ends
+    RST_IN_WINDOW,      // In the receiver's window, or not judged: forwarded, the entry stays
+    RST_OUT_OF_WINDOW,  // Outside every window the receiver can have: dropped, the entry stays
+};
+
+// An RST's sequence number against the receiver's next expected one. A
+// sender that has filled the receiver's window before the receiver
+// acknowledged any of it is a full window past the last ACK, and its RST
+// there is exact for a receiver that got every byte: in the window, up to
+// and including max_window past it.
+static inline enum rst_verdict rst_check_seq(uint32_t seq, uint32_t rcv_nxt, uint32_t max_window) {
+    const uint32_t d = seq - rcv_nxt;
+    if (d == 0) {
+        return RST_EXACT;
+    }
+    return d <= max_window ? RST_IN_WINDOW : RST_OUT_OF_WINDOW;
+}
+
+// The latest acknowledgement of a side (client_next_ack, server_next_ack):
+// written for every segment with ACK but not RST, whose numbers are checked,
+// never trusted
+static inline void track_ack(uint32_t *next_ack, uint8_t tcp_flags, uint32_t ack) {
+    if ((tcp_flags & (TCP_FLAG_ACK | TCP_FLAG_RST)) == TCP_FLAG_ACK) {
+        __atomic_store_n(next_ack, ack, __ATOMIC_RELAXED);
+    }
+}
+
+// The server's next sequence (server_snd_nxt): the end of the latest segment
+// it sent that occupies sequence space (data, SYN or FIN), in its own
+// numbering. Only the protected side's segments move it. A segment that
+// occupies none (a pure ACK, a keepalive probe without data, one sequence
+// number below the next) and an RST move nothing. It is only stored here,
+// never read: a read would wait for the entry's second cache line on every
+// server segment of a cold entry, which the bypassed path otherwise only
+// writes. So a retransmission moves it back until the server's next new
+// segment, and an abort sent right after a retransmission is not exact: it
+// is forwarded, and the entry stays until an exact RST or the idle timeout.
+static inline void track_server_snd_nxt(struct syn_proxy_conn *conn, uint8_t tcp_flags,
+                                        uint32_t seq, uint32_t payload_len) {
+    const uint32_t len = payload_len + ((tcp_flags & TCP_FLAG_SYN) ? 1u : 0u) +
+                         ((tcp_flags & TCP_FLAG_FIN) ? 1u : 0u);
+    if (len == 0 || (tcp_flags & TCP_FLAG_RST)) {
+        return;
+    }
+    __atomic_store_n(&conn->server_snd_nxt, seq + len, __ATOMIC_RELAXED);
+}
+
+/**
+ * An RST of a proxied entry (ESTABLISHED, a closing state or CLOSED). seq is
+ * in its sender's numbering. From the server it is never out of window (see
+ * above), and it is also exact at the server's own next sequence: a stack
+ * that aborts sends its RST there, and only the protected side moves that
+ * number. A side that has acknowledged nothing (0) cannot be judged.
+ */
+static inline enum rst_verdict proxied_rst(const struct syn_proxy_conn *conn, bool from_server,
+                                           uint32_t seq) {
+    if (from_server) {
+        const uint32_t snd = __atomic_load_n(&conn->server_snd_nxt, __ATOMIC_RELAXED);
+        const uint32_t rcv = __atomic_load_n(&conn->client_next_ack, __ATOMIC_RELAXED);
+        const uint32_t seq_c = seq + (uint32_t)__atomic_load_n(&conn->seq_delta_s2c, __ATOMIC_RELAXED);
+        return ((snd != 0 && seq == snd) || (rcv != 0 && seq_c == rcv)) ? RST_EXACT : RST_IN_WINDOW;
+    }
+    const uint32_t rcv = __atomic_load_n(&conn->server_next_ack, __ATOMIC_RELAXED);
+    const uint32_t seq_s = seq + (uint32_t)__atomic_load_n(&conn->seq_delta_c2s, __ATOMIC_RELAXED);
+    return rcv != 0 ? rst_check_seq(seq_s, rcv, PROXIED_MAX_WINDOW) : RST_IN_WINDOW;
+}
+
+/**
+ * An RST of a BYPASSED entry, numbered end to end. Before the receiver has
+ * acknowledged anything its next sequence follows from the SYN that created
+ * the entry: the server's is client_isn + 1, and the client (in SYN-SENT)
+ * takes only an RST that acknowledges its SYN.
+ */
+static inline enum rst_verdict bypassed_rst_verdict(const struct syn_proxy_conn *conn,
+                                                    const struct packet_features *features,
+                                                    bool inbound) {
+    const uint32_t isn = __atomic_load_n(&conn->client_isn, __ATOMIC_RELAXED);
+    if (!inbound) {
+        const uint32_t snd = __atomic_load_n(&conn->server_snd_nxt, __ATOMIC_RELAXED);
+        const uint32_t rcv = __atomic_load_n(&conn->client_next_ack, __ATOMIC_RELAXED);
+        if ((snd != 0 && features->tcp_seq == snd) || (rcv != 0 && features->tcp_seq == rcv)) {
+            return RST_EXACT;
+        }
+        return (rcv == 0 && (features->tcp_flags & TCP_FLAG_ACK) && features->tcp_ack == isn + 1) ?
+               RST_EXACT : RST_IN_WINDOW;
+    }
+    const uint32_t rcv = __atomic_load_n(&conn->server_next_ack, __ATOMIC_RELAXED);
+    if (rcv != 0) {
+        return rst_check_seq(features->tcp_seq, rcv, BYPASSED_MAX_WINDOW);
+    }
+    return features->tcp_seq == isn + 1 ? RST_EXACT : RST_IN_WINDOW;
+}
+
+// An RST the proxy drops: from the client side and outside its receiver's
+// window, or not exact while the proxy waits on the server. Stage 9 counts
+// it as spoofed TCP. The entry stays.
+static inline void drop_rst(struct syn_proxy_result *result) {
+    result->action = SYN_PROXY_DROP;
+    result->packet_modified = false;
+    result->drop_reason = DROP_REASON_SPOOFED_TCP;
+    __atomic_add_fetch(&g_stats.rst_dropped, 1, __ATOMIC_RELAXED);
+}
+
+/**
+ * An RST of a BYPASSED entry, forwarded unmodified unless the caller drops it
+ * (RST_OUT_OF_WINDOW from the client side). An exact one ends the entry; for
+ * RST_IN_WINDOW the caller marks the result (forward_rst_unconfirmed()).
+ */
+static enum rst_verdict bypassed_rst(struct syn_proxy_conn *conn, const struct conn_key *key,
+                                     uint32_t ctl, const struct packet_features *features,
+                                     bool inbound) {
+    const enum rst_verdict v = bypassed_rst_verdict(conn, features, inbound);
+    if (v == RST_EXACT) {
+        free_connection(conn, key, ctl);
+    }
+    return v;
+}
+
+// An RST forwarded without ending its entry
+static inline void forward_rst_unconfirmed(struct syn_proxy_result *result) {
+    result->rst_unconfirmed = true;
+    __atomic_add_fetch(&g_stats.rst_unconfirmed, 1, __ATOMIC_RELAXED);
 }
 
 // ==================== Packet Generation ====================
@@ -1821,6 +1995,7 @@ static void translate_c2s(struct rte_mbuf *m,
     // client acks Y (relative to cookie_isn), server expects Y - (cookie_isn - server_isn)
     if (tcp->tcp_flags & TCP_FLAG_ACK) {
         uint32_t client_ack = rte_be_to_cpu_32(tcp->recv_ack);
+        track_ack(&conn->client_next_ack, tcp->tcp_flags, client_ack);
         uint32_t server_ack = client_ack - __atomic_load_n(&conn->seq_delta_s2c, __ATOMIC_RELAXED);  // FIXED: minus not plus
         tcp->recv_ack = rte_cpu_to_be_32(server_ack);
     }
@@ -1846,6 +2021,7 @@ static void translate_s2c(struct rte_mbuf *m,
     // Server's seq becomes client-expected seq
     // server sends seq X (relative to server_isn), client expects X + (cookie_isn - server_isn)
     uint32_t server_seq = rte_be_to_cpu_32(tcp->sent_seq);
+    track_server_snd_nxt(conn, tcp->tcp_flags, server_seq, tcp_payload_len(ip, tcp));
     uint32_t client_seq = server_seq + __atomic_load_n(&conn->seq_delta_s2c, __ATOMIC_RELAXED);  // FIXED: plus not minus
     tcp->sent_seq = rte_cpu_to_be_32(client_seq);
     
@@ -1853,6 +2029,7 @@ static void translate_s2c(struct rte_mbuf *m,
     // server acks Y (relative to proxy_isn), client expects Y - (proxy_isn - client_isn)
     if (tcp->tcp_flags & TCP_FLAG_ACK) {
         uint32_t server_ack = rte_be_to_cpu_32(tcp->recv_ack);
+        track_ack(&conn->server_next_ack, tcp->tcp_flags, server_ack);
         uint32_t client_ack = server_ack - __atomic_load_n(&conn->seq_delta_c2s, __ATOMIC_RELAXED);  // This was correct
         tcp->recv_ack = rte_cpu_to_be_32(client_ack);
     }
@@ -2076,6 +2253,21 @@ int syn_proxy_process_packet(struct rte_mbuf *m,
             result->action = SYN_PROXY_FORWARD;
             result->packet_modified = false;
             result->conn_state = SYN_PROXY_BYPASSED;
+            if (unlikely(tcp_flags & TCP_FLAG_RST)) {
+                // Ends the entry only at the server's next sequence (see "RST validation")
+                const enum rst_verdict v = bypassed_rst(conn, &key, ctl, features, true);
+                if (v == RST_OUT_OF_WINDOW) {
+                    drop_rst(result);
+                } else if (v == RST_IN_WINDOW) {
+                    forward_rst_unconfirmed(result);
+                }
+                return 0;
+            }
+            // A SYN on the 4-tuple (a new connection, or a blind sender's)
+            // changes none of the numbers an RST is checked against: those
+            // follow what the receiver acknowledges, so a sender cannot pick
+            // the ISN its RST then matches
+            track_ack(&conn->client_next_ack, tcp_flags, features->tcp_ack);
             if (bypass_segment_matters(ctl, tcp_flags, true)) {
                 bypass_segment(conn, &key, ctl, features, true);
             }
@@ -2085,10 +2277,19 @@ int syn_proxy_process_packet(struct rte_mbuf *m,
         // ----- Pure SYN Packet -----
         if ((tcp_flags & TCP_FLAG_SYN) && !(tcp_flags & TCP_FLAG_ACK)) {
             // If connection exists in CONNECTING or later, this is a retransmit
-            if (conn) {
+            if (conn && state != SYN_PROXY_CLOSED) {
                 // Client retransmitting SYN - ignore, we've already validated
                 result->action = SYN_PROXY_DROP;
                 return 0;
+            }
+            if (conn) {
+                // A new connection on the 4-tuple of one whose close is
+                // complete (CLOSED, the proxy's TIME_WAIT): the old entry
+                // gives way, and the SYN is handled as the first of a new
+                // connection. (A CLOSING entry keeps its 4-tuple: its last
+                // segments may still need translating.)
+                free_connection(conn, &key, ctl);
+                conn = NULL;
             }
 
             // Check if we should challenge this SYN with a cookie
@@ -2105,6 +2306,9 @@ int syn_proxy_process_packet(struct rte_mbuf *m,
                 struct syn_proxy_conn *bypass_conn =
                     alloc_connection_with_hash(&key, key_hash, &init_ctl);
                 if (bypass_conn) {
+                    // The SYN's ISN: the client's next sequence until the
+                    // server acknowledges (see "RST validation")
+                    __atomic_store_n(&bypass_conn->client_isn, features->tcp_seq, __ATOMIC_RELAXED);
                     conn_publish(bypass_conn, init_ctl, SYN_PROXY_BYPASSED);
                 }
                 __atomic_add_fetch(&g_stats.packets_bypassed, 1, __ATOMIC_RELAXED);
@@ -2186,8 +2390,15 @@ int syn_proxy_process_packet(struct rte_mbuf *m,
         // entry still counts in packets_proxied_c2s, as in the ACK branch.
 
         // ----- RST of a proxied connection, whatever other flags -----
+        // It ends the entry only at the receiver's next sequence (see "RST
+        // validation")
         if (conn && (tcp_flags & TCP_FLAG_RST)) {
             if (state >= SYN_PROXY_ESTABLISHED) {
+                const enum rst_verdict v = proxied_rst(conn, false, features->tcp_seq);
+                if (v == RST_OUT_OF_WINDOW) {
+                    drop_rst(result);
+                    return 0;
+                }
                 translate_c2s(m, ip, tcp, conn);
                 result->action = SYN_PROXY_FORWARD;
                 result->packet_modified = true;
@@ -2195,10 +2406,19 @@ int syn_proxy_process_packet(struct rte_mbuf *m,
                 if ((tcp_flags & TCP_FLAG_ACK) && state == SYN_PROXY_ESTABLISHED) {
                     __atomic_add_fetch(&g_stats.packets_proxied_c2s, 1, __ATOMIC_RELAXED);
                 }
+                if (v == RST_EXACT) {
+                    free_connection(conn, &key, ctl);
+                } else {
+                    forward_rst_unconfirmed(result);
+                }
+            } else if (rst_check_seq(features->tcp_seq, conn->client_isn + 1,
+                                     PROXIED_MAX_WINDOW) == RST_EXACT) {
+                // Waiting on the server: the proxy is the client's peer
+                result->action = SYN_PROXY_BYPASS;  // Not translated
+                free_connection(conn, &key, ctl);
             } else {
-                result->action = SYN_PROXY_BYPASS;  // Waiting on the server: not translated
+                drop_rst(result);
             }
-            free_connection(conn, &key, ctl);
             return 0;
         }
 
@@ -2211,7 +2431,7 @@ int syn_proxy_process_packet(struct rte_mbuf *m,
             if ((tcp_flags & TCP_FLAG_ACK) && state == SYN_PROXY_ESTABLISHED) {
                 __atomic_add_fetch(&g_stats.packets_proxied_c2s, 1, __ATOMIC_RELAXED);
             }
-            proxied_close_segment(conn, &key, ctl, false, tcp_flags,
+            proxied_close_segment(conn, ctl, false, tcp_flags,
                                   rte_be_to_cpu_32(tcp->sent_seq) + tcp_payload_len(ip, tcp) + 1,
                                   features->tcp_ack);
             return 0;
@@ -2237,15 +2457,17 @@ int syn_proxy_process_packet(struct rte_mbuf *m,
             }
 
             // Closing states - translate and forward. The client's ACK of the
-            // server's FIN may complete the close and release the entry.
+            // server's FIN may complete the close (CLOSED). In CLOSED the
+            // answer to a retransmitted FIN is translated too.
             if (state == SYN_PROXY_CLIENT_FIN ||
                 state == SYN_PROXY_SERVER_FIN ||
-                state == SYN_PROXY_CLOSING) {
+                state == SYN_PROXY_CLOSING ||
+                state == SYN_PROXY_CLOSED) {
                 translate_c2s(m, ip, tcp, conn);
                 result->action = SYN_PROXY_FORWARD;
                 result->packet_modified = true;
                 result->conn_state = state;
-                proxied_close_segment(conn, &key, ctl, false, tcp_flags, 0, features->tcp_ack);
+                proxied_close_segment(conn, ctl, false, tcp_flags, 0, features->tcp_ack);
                 return 0;
             }
             
@@ -2275,7 +2497,12 @@ int syn_proxy_process_packet(struct rte_mbuf *m,
                     return 0;
                 }
 
-                // Add to legitimate IP table (spoofed mode fast-path)
+                // The source has shown it completes handshakes: it is marked
+                // in the legitimate-source table (bounded, expiring). Nothing
+                // decides on the mark: its next SYNs are challenged like any
+                // other source's (see syn_proxy_should_challenge()). Not the
+                // whitelist either: its packets still run every stage, and
+                // this connection's still reach Stage 9 for translation.
                 legitimate_ip_add(features->src_ip);
 
                 uint32_t init_ctl;
@@ -2290,6 +2517,8 @@ int syn_proxy_process_packet(struct rte_mbuf *m,
                 // Store sequence numbers
                 conn->client_isn = features->tcp_seq - 1;
                 conn->cookie_isn = features->tcp_ack - 1;
+                // The client's handshake ACK: its next expected sequence
+                __atomic_store_n(&conn->client_next_ack, features->tcp_ack, __ATOMIC_RELAXED);
                 // Generate ISN from connection tuple + secret (not predictable rte_rand)
                 {
                     uint32_t isn_data[4];
@@ -2361,6 +2590,18 @@ int syn_proxy_process_packet(struct rte_mbuf *m,
             result->action = SYN_PROXY_FORWARD;
             result->packet_modified = false;
             result->conn_state = SYN_PROXY_BYPASSED;
+            if (unlikely(features->tcp_flags & TCP_FLAG_RST)) {
+                // Always forwarded; ends the entry only at the client's next
+                // sequence (see "RST validation")
+                if (bypassed_rst(conn, &key, ctl, features, false) != RST_EXACT) {
+                    forward_rst_unconfirmed(result);
+                }
+                return 0;
+            }
+            // The parser's payload length: the packet itself is not read here
+            track_ack(&conn->server_next_ack, features->tcp_flags, features->tcp_ack);
+            track_server_snd_nxt(conn, features->tcp_flags, features->tcp_seq,
+                                 features->payload_len);
             if (bypass_segment_matters(ctl, features->tcp_flags, false)) {
                 bypass_segment(conn, &key, ctl, features, false);
             }
@@ -2400,6 +2641,10 @@ int syn_proxy_process_packet(struct rte_mbuf *m,
                              __ATOMIC_RELAXED);
             __atomic_store_n(&conn->seq_delta_s2c, (int32_t)(conn->cookie_isn - server_isn),
                              __ATOMIC_RELAXED);
+            // The SYN-ACK's ACK and the end of its SYN: the server's next
+            // expected sequence and its own next sequence
+            __atomic_store_n(&conn->server_next_ack, features->tcp_ack, __ATOMIC_RELAXED);
+            __atomic_store_n(&conn->server_snd_nxt, server_isn + 1, __ATOMIC_RELAXED);
 
             uint64_t now = rte_get_tsc_cycles();
             __atomic_store_n(&conn->state_change_tsc, now, __ATOMIC_RELAXED);
@@ -2428,18 +2673,30 @@ int syn_proxy_process_packet(struct rte_mbuf *m,
         }
         
         // ----- RST from Server -----
+        // It ends the entry only at the client's next sequence (see "RST
+        // validation"), and is always forwarded once the connection is
+        // established
         if (tcp_flags & TCP_FLAG_RST) {
-            if (state == SYN_PROXY_ESTABLISHED ||
-                state == SYN_PROXY_CLIENT_FIN ||
-                state == SYN_PROXY_SERVER_FIN ||
-                state == SYN_PROXY_CLOSING) {
+            if (state >= SYN_PROXY_ESTABLISHED) {   // ESTABLISHED, closing states, CLOSED
+                const enum rst_verdict v = proxied_rst(conn, true, features->tcp_seq);
                 translate_s2c(m, ip, tcp, conn);
                 result->action = SYN_PROXY_FORWARD;
                 result->packet_modified = true;
+                if (v == RST_EXACT) {
+                    free_connection(conn, &key, ctl);
+                } else {
+                    forward_rst_unconfirmed(result);
+                }
+                return 0;
             }
-            free_connection(conn, &key, ctl);
-            if (result->action != SYN_PROXY_FORWARD) {
-                result->action = SYN_PROXY_DROP;
+            // Waiting on the server: the proxy's SYN is in SYN-SENT, and an
+            // RST counts only if it acknowledges that SYN. Not forwarded
+            // either way (the client's leg is the proxy's).
+            result->action = SYN_PROXY_DROP;
+            if ((tcp_flags & TCP_FLAG_ACK) && features->tcp_ack == conn->proxy_isn + 1) {
+                free_connection(conn, &key, ctl);
+            } else {
+                __atomic_add_fetch(&g_stats.rst_dropped, 1, __ATOMIC_RELAXED);
             }
             return 0;
         }
@@ -2448,7 +2705,7 @@ int syn_proxy_process_packet(struct rte_mbuf *m,
         if (tcp_flags & TCP_FLAG_FIN) {
             if (state >= SYN_PROXY_ESTABLISHED) {
                 translate_s2c(m, ip, tcp, conn);
-                proxied_close_segment(conn, &key, ctl, true, tcp_flags,
+                proxied_close_segment(conn, ctl, true, tcp_flags,
                                       rte_be_to_cpu_32(tcp->sent_seq) + tcp_payload_len(ip, tcp) + 1,
                                       features->tcp_ack);
                 result->action = SYN_PROXY_FORWARD;
@@ -2468,7 +2725,7 @@ int syn_proxy_process_packet(struct rte_mbuf *m,
             __atomic_add_fetch(&g_stats.packets_proxied_s2c, 1, __ATOMIC_RELAXED);
             if (state != SYN_PROXY_ESTABLISHED) {
                 // The server's ACK of the client's FIN may complete the close
-                proxied_close_segment(conn, &key, ctl, true, tcp_flags, 0, features->tcp_ack);
+                proxied_close_segment(conn, ctl, true, tcp_flags, 0, features->tcp_ack);
             }
             return 0;
         }
@@ -2670,10 +2927,20 @@ static inline bool circuit_breaker_enabled(void) {
  * Intelligent SYN challenge decision.
  *
  * Determines whether to challenge a SYN packet based on:
+ * 0. Spoofed attack mode (per-IP or global)
  * 1. Policy rules (explicit CHALLENGE action)
  * 2. Source IP reputation
  * 3. Global anomaly state (set by Layer 3/4)
  * 4. Current SYN rate vs threshold
+ * A source that returned a valid cookie (legitimate_ip_lookup()) is
+ * challenged like any other. Exempting it for the legitimate TTL let one
+ * source that completed one handshake fill the table under attack: every
+ * exempt SYN made a BYPASSED entry, which an unanswered SYN keeps for the
+ * idle timeout, before any per-source SYN limit (Stage 9b) and with none in
+ * spoofed mode, where its address is also the easiest to forge. Other
+ * clients' valid cookies then found no room (table_full_drops). The
+ * challenge costs a returning client only the options the cookie path does
+ * not offer (MSS only). An exemption needs a bound per source first.
  *
  * @param features  Packet features from SYN packet
  * @return true if should challenge with SYN cookie, false for normal processing
@@ -2831,6 +3098,14 @@ struct cleanup_candidate {
     uint32_t ctl;
 };
 
+// The cleanup's timeouts, in TSC cycles
+struct cleanup_timeouts {
+    uint64_t connect;    // CONNECTING: connect_timeout_ms
+    uint64_t idle;       // ESTABLISHED, BYPASSED, CLIENT_FIN, SERVER_FIN: idle_timeout_sec
+    uint64_t closing;    // CLOSING: SYN_PROXY_CLOSING_TIMEOUT_SEC, at most the idle timeout
+    uint64_t time_wait;  // CLOSED: SYN_PROXY_TIME_WAIT_SEC, at most the idle timeout
+};
+
 /**
  * Whether the cleanup deletes an entry, given its control word, and for which
  * counter. An activity time at or after now (a packet since the pass began,
@@ -2838,8 +3113,8 @@ struct cleanup_candidate {
  * unsigned difference would wrap and make an active entry look long idle.
  */
 static inline bool cleanup_due(const struct syn_proxy_conn *conn, uint32_t ctl,
-                               uint64_t now, uint64_t connect_timeout_tsc,
-                               uint64_t idle_timeout_tsc, enum retire_reason *why) {
+                               uint64_t now, const struct cleanup_timeouts *to,
+                               enum retire_reason *why) {
     // Free, being filled in, being retired, or BUSY for a moment
     if (!ctl_live(ctl) || (ctl & CTL_F_BUSY)) {
         return false;
@@ -2849,7 +3124,7 @@ static inline bool cleanup_due(const struct syn_proxy_conn *conn, uint32_t ctl,
         case SYN_PROXY_CONNECTING: {
             // Check connect timeout
             uint64_t since = __atomic_load_n(&conn->state_change_tsc, __ATOMIC_RELAXED);
-            if (since < now && now - since > connect_timeout_tsc) {
+            if (since < now && now - since > to->connect) {
                 *why = RETIRE_SERVER_TIMEOUT;
                 return true;
             }
@@ -2866,7 +3141,7 @@ static inline bool cleanup_due(const struct syn_proxy_conn *conn, uint32_t ctl,
             uint64_t last_client = __atomic_load_n(&conn->last_client_tsc, __ATOMIC_RELAXED);
             uint64_t last_server = __atomic_load_n(&conn->last_server_tsc, __ATOMIC_RELAXED);
             uint64_t last_activity = last_client > last_server ? last_client : last_server;
-            if (last_activity < now && now - last_activity > idle_timeout_tsc) {
+            if (last_activity < now && now - last_activity > to->idle) {
                 *why = RETIRE_IDLE_TIMEOUT;
                 return true;
             }
@@ -2875,17 +3150,22 @@ static inline bool cleanup_due(const struct syn_proxy_conn *conn, uint32_t ctl,
 
         case SYN_PROXY_CLOSING:
         case SYN_PROXY_CLOSED: {
-            // Both sides sent FIN, and the segment that completes the close
-            // (which retires the entry) has not been seen. A last ACK still on
-            // its way, or a FIN retransmitted for a lost one, needs
-            // translating, so the entry stays until no segment came for
-            // connect_timeout_ms, the time the proxy waits for a server's
-            // handshake. (Deleting it at once, at a pass that falls between
-            // the second FIN and the last ACK, sent that ACK untranslated.)
+            // CLOSING: both sides sent FIN, and a FIN is not acknowledged yet.
+            // Its retransmissions (and the data before it) and the last ACK
+            // need translating, so the entry stays until no segment came for
+            // the close timeout (SYN_PROXY_CLOSING_TIMEOUT_SEC). It used to be
+            // connect_timeout_ms (5 s): a last data+FIN segment retransmitted
+            // later than that went out untranslated, and the client never got
+            // its last bytes. CLOSED: the close is complete; the entry stays
+            // for the TIME_WAIT (SYN_PROXY_TIME_WAIT_SEC), so that a FIN
+            // retransmitted for a lost last ACK, and the answer to it, are
+            // still translated. Neither is counted here: a CLOSED entry was
+            // counted when its close completed.
             uint64_t last_client = __atomic_load_n(&conn->last_client_tsc, __ATOMIC_RELAXED);
             uint64_t last_server = __atomic_load_n(&conn->last_server_tsc, __ATOMIC_RELAXED);
             uint64_t last_activity = last_client > last_server ? last_client : last_server;
-            if (last_activity < now && now - last_activity > connect_timeout_tsc) {
+            uint64_t timeout = ctl_state(ctl) == SYN_PROXY_CLOSED ? to->time_wait : to->closing;
+            if (last_activity < now && now - last_activity > timeout) {
                 *why = RETIRE_CLEANUP_CLOSED;
                 return true;
             }
@@ -2906,8 +3186,7 @@ static inline bool cleanup_due(const struct syn_proxy_conn *conn, uint32_t ctl,
  * this call retired it.
  */
 static uint32_t cleanup_delete_batch(const struct cleanup_candidate *batch, uint32_t count,
-                                     uint64_t now, uint64_t connect_timeout_tsc,
-                                     uint64_t idle_timeout_tsc) {
+                                     uint64_t now, const struct cleanup_timeouts *to) {
     uint32_t deleted = 0;
 
     for (uint32_t i = 0; i < count; i++) {
@@ -2918,7 +3197,7 @@ static uint32_t cleanup_delete_batch(const struct cleanup_candidate *batch, uint
         // Retired since the scan (its slot may hold a new entry), or no
         // longer due
         if (!ctl_same_entry(ctl, batch[i].ctl) ||
-            !cleanup_due(conn, ctl, now, connect_timeout_tsc, idle_timeout_tsc, &why)) {
+            !cleanup_due(conn, ctl, now, to, &why)) {
             continue;
         }
 
@@ -2937,8 +3216,11 @@ uint32_t syn_proxy_cleanup_connections(void) {
     
     uint64_t now = syn_proxy_cleanup_clock();
     uint64_t tsc_hz = rte_get_tsc_hz();
-    uint64_t connect_timeout_tsc = (g_config.connect_timeout_ms * tsc_hz) / 1000;
-    uint64_t idle_timeout_tsc = g_config.idle_timeout_sec * tsc_hz;
+    struct cleanup_timeouts to;
+    to.connect = ((uint64_t)g_config.connect_timeout_ms * tsc_hz) / 1000;
+    to.idle = (uint64_t)g_config.idle_timeout_sec * tsc_hz;
+    to.closing = RTE_MIN((uint64_t)SYN_PROXY_CLOSING_TIMEOUT_SEC * tsc_hz, to.idle);
+    to.time_wait = RTE_MIN((uint64_t)SYN_PROXY_TIME_WAIT_SEC * tsc_hz, to.idle);
     
     uint32_t cleaned = 0;
     uint32_t collected = 0;
@@ -2972,7 +3254,7 @@ uint32_t syn_proxy_cleanup_connections(void) {
         struct syn_proxy_conn *conn = &g_conn_pool[pos];
         uint32_t ctl = ctl_load(conn);
         enum retire_reason why;
-        if (!cleanup_due(conn, ctl, now, connect_timeout_tsc, idle_timeout_tsc, &why)) {
+        if (!cleanup_due(conn, ctl, now, &to, &why)) {
             continue;
         }
         
@@ -2982,15 +3264,13 @@ uint32_t syn_proxy_cleanup_connections(void) {
         batch[batch_count].ctl = ctl;
         collected++;
         if (++batch_count == CLEANUP_BATCH_SIZE) {
-            cleaned += cleanup_delete_batch(batch, batch_count, now,
-                                            connect_timeout_tsc, idle_timeout_tsc);
+            cleaned += cleanup_delete_batch(batch, batch_count, now, &to);
             batch_count = 0;
         }
     }
     
     // Now delete the last, partial batch
-    cleaned += cleanup_delete_batch(batch, batch_count, now,
-                                    connect_timeout_tsc, idle_timeout_tsc);
+    cleaned += cleanup_delete_batch(batch, batch_count, now, &to);
 
     // Save the iterator for the next pass; start over once the scan is complete
     g_cleanup_iter = (pos < 0) ? 0 : iter;
@@ -3033,6 +3313,7 @@ void syn_proxy_clear_all(void) {
     rte_hash_reset(g_conn_hash);
     memset(g_conn_pool, 0, (size_t)g_pool_entries * sizeof(struct syn_proxy_conn));
     half_open_reset();
+    legitimate_ip_clear();
     memset(&g_stats, 0, sizeof(g_stats));
     g_entries_used = 0;
     g_cleanup_iter = 0;
@@ -3082,9 +3363,12 @@ void syn_proxy_print_stats(void) {
 // ==================== Spoofed Rate Limiter ====================
 
 int spoofed_rate_init(uint32_t legitimate_table_size) {
-    // Stub: no per-dst aggregate rate limiting yet
-    (void)legitimate_table_size;
-    return 0;
+    // No per-destination aggregate rate limiting yet (spoofed_rate_check()
+    // accepts). The legitimate-source table lives in ip_lists.c. Its TTL is
+    // the shipped legitimate_ttl_sec (300 s): the config parser reads neither
+    // legitimate_ttl_sec nor legitimate_table_size, which therefore arrives
+    // here as 0, the shipped 100000.
+    return legitimate_ip_init(legitimate_table_size, LEGITIMATE_DEFAULT_TTL_SEC);
 }
 
 enum rate_limit_action spoofed_rate_check(const struct packet_features *features,
@@ -3098,7 +3382,7 @@ enum rate_limit_action spoofed_rate_check(const struct packet_features *features
 }
 
 void spoofed_rate_cleanup(void) {
-    /* Stub: nothing to free in stub implementation */
+    legitimate_ip_free();
 }
 
 /* Weak fallbacks for checksum offload query (defined in libcore).
