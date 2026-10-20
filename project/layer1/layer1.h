@@ -247,6 +247,33 @@ int layer1_process_packet_ex(struct rte_mbuf *m,
  */
 int layer1_process_packet(struct rte_mbuf *m, uint16_t port_id);
 
+// ==================== Spoofed-Mode Decisions ====================
+// Used by the inbound pipeline; exported so unit tests can exercise them.
+
+struct per_ip_anomaly_snapshot;
+struct layer1_config;
+
+/**
+ * Effective spoofed mode for a packet of this protocol to a destination with
+ * this per-IP anomaly snapshot (Stages 8b, 9b, 10 and 12)
+ *
+ * @param l1cfg  Active config (layer1_config_get()); NULL means none is
+ *               active, and then the global circuit breaker is off
+ */
+bool layer1_effective_spoofed_mode(const struct per_ip_anomaly_snapshot *ip_anom,
+                                   uint8_t protocol,
+                                   const struct layer1_config *l1cfg);
+
+/**
+ * Stage 8b: may a TCP packet to a destination in spoofed mode go on to the
+ * SYN proxy (Stage 9)? True for a SYN, and for any other segment with a flow
+ * entry, a SYN proxy entry that vouches for it (syn_proxy_admits_segment())
+ * or a valid SYN cookie.
+ *
+ * @param syn_proxy_on  false when the destination profile disables the SYN proxy
+ */
+bool layer1_spoofed_tcp_admit(struct packet_features *features, bool syn_proxy_on);
+
 // ==================== Maintenance ====================
 
 uint32_t layer1_maintenance(void);

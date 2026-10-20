@@ -25,6 +25,8 @@
     "inbound_ack_share": 0.0001,
     "inbound_rst_share": 0.0,
     "inbound_syn_ack_share": 0.0,
+    "role_unverified": false,
+    "role_documented_attacker": false,
     "attacker_side": false,
     "role_documented": true,
     "flag_profile_suggests_source": false,
@@ -34,11 +36,9 @@
     "fpr_measurable": true,
     "verdict": "USABLE",
     "split_mode": "within",
-    "role_unverified": false,
-    "role_documented_attacker": false,
     "file": "cicddos_03-11_192-168-50-4_LDAP.json",
-    "bytes": 3874006,
-    "sha256": "f68eba147f1788d821eaf1e77148cad6888809db32d9a157e27db1b0c7a64952"
+    "bytes": 4038656,
+    "sha256": "8db170cee0e56dcb127ed5a465c9c634470237c5504c3e599a6205a937267b36"
   },
   "cicddos_03-11_192-168-50-4_MSSQL": {
     "corpus": "CIC-DDoS2019",
@@ -67,6 +67,8 @@
     "inbound_ack_share": 0.0002,
     "inbound_rst_share": 0.0,
     "inbound_syn_ack_share": 0.0,
+    "role_unverified": false,
+    "role_documented_attacker": false,
     "attacker_side": false,
     "role_documented": true,
     "flag_profile_suggests_source": false,
@@ -76,11 +78,9 @@
     "fpr_measurable": true,
     "verdict": "FLOOR-LIMITED",
     "split_mode": "within",
-    "role_unverified": false,
-    "role_documented_attacker": false,
     "file": "cicddos_03-11_192-168-50-4_MSSQL.json",
-    "bytes": 5203668,
-    "sha256": "700bed41748e76772546a2d5c344fdf6b28cb2905d90f420bb3c97bd6f3364d8"
+    "bytes": 5423131,
+    "sha256": "95317e7efc6c62c7a72e0f7acf0dbf492eebc6e649553823aefd8c50e733f225"
   },
   "cicddos_03-11_192-168-50-4_NetBIOS": {
     "corpus": "CIC-DDoS2019",
@@ -109,6 +109,8 @@
     "inbound_ack_share": 0.0001,
     "inbound_rst_share": 0.0,
     "inbound_syn_ack_share": 0.0,
+    "role_unverified": false,
+    "role_documented_attacker": false,
     "attacker_side": false,
     "role_documented": true,
     "flag_profile_suggests_source": false,
@@ -118,11 +120,9 @@
     "fpr_measurable": true,
     "verdict": "FLOOR-LIMITED",
     "split_mode": "within",
-    "role_unverified": false,
-    "role_documented_attacker": false,
     "file": "cicddos_03-11_192-168-50-4_NetBIOS.json",
-    "bytes": 3829117,
-    "sha256": "e3aeec2daf5e74cd12797f036d1076590e3c537105e67f81f00626519a32fc67"
+    "bytes": 3992291,
+    "sha256": "704fcc3559237657dba50ef2eacf2a2608f22f41ab8827b85e8ce1b5ef01d097"
   },
   "cicddos_03-11_192-168-50-4_Syn": {
     "corpus": "CIC-DDoS2019",
@@ -150,6 +150,8 @@
     "inbound_ack_share": 0.002,
     "inbound_rst_share": 0.0002,
     "inbound_syn_ack_share": 0.0,
+    "role_unverified": false,
+    "role_documented_attacker": false,
     "attacker_side": false,
     "role_documented": true,
     "flag_profile_suggests_source": false,
@@ -159,11 +161,9 @@
     "fpr_measurable": true,
     "verdict": "USABLE",
     "split_mode": "within",
-    "role_unverified": false,
-    "role_documented_attacker": false,
     "file": "cicddos_03-11_192-168-50-4_Syn.json",
-    "bytes": 9713700,
-    "sha256": "03d01f1992c3654e88280f6a224d5995b9803e20101a49abb36fdc470601a704"
+    "bytes": 10126393,
+    "sha256": "01547df277868411280517290d4bcb75b6c92510dbcefe671413cafc27b95c6f"
   },
   "cicddos_03-11_192-168-50-4_UDP": {
     "corpus": "CIC-DDoS2019",
@@ -191,6 +191,8 @@
     "inbound_ack_share": 0.0,
     "inbound_rst_share": 0.0,
     "inbound_syn_ack_share": 0.0,
+    "role_unverified": false,
+    "role_documented_attacker": false,
     "attacker_side": false,
     "role_documented": true,
     "flag_profile_suggests_source": false,
@@ -200,11 +202,9 @@
     "fpr_measurable": true,
     "verdict": "USABLE",
     "split_mode": "within",
-    "role_unverified": false,
-    "role_documented_attacker": false,
     "file": "cicddos_03-11_192-168-50-4_UDP.json",
-    "bytes": 4127609,
-    "sha256": "c25b0e373904705eea8e7acdc805edccafa88b176d51a8e78e925b16613e19c7"
+    "bytes": 4302433,
+    "sha256": "5ad58e3172e4952be92b58379b0b8929a3da73b1f4df5875b98f58bb5d35cfe4"
   },
   "cicddos_03-11_192-168-50-4_UDPLag": {
     "corpus": "CIC-DDoS2019",
@@ -232,6 +232,8 @@
     "inbound_ack_share": 0.2507,
     "inbound_rst_share": 0.026,
     "inbound_syn_ack_share": 0.0,
+    "role_unverified": false,
+    "role_documented_attacker": false,
     "attacker_side": false,
     "role_documented": true,
     "flag_profile_suggests_source": false,
@@ -241,11 +243,9 @@
     "fpr_measurable": true,
     "verdict": "USABLE",
     "split_mode": "within",
-    "role_unverified": false,
-    "role_documented_attacker": false,
     "file": "cicddos_03-11_192-168-50-4_UDPLag.json",
-    "bytes": 3678495,
-    "sha256": "a501226127e04660360d88eeaf68daf92b0430b90bacc983fa7a15d5d322e0bf"
+    "bytes": 3837881,
+    "sha256": "b69312ae23e976ae137778f2968f8c92d84bead68afc01c5250340ee95603e2f"
   },
   "cicddos_03-11_172-16-0-5_LDAP": {
     "corpus": "CIC-DDoS2019",
@@ -267,6 +267,13 @@
     "unusable_reason": "172.16.0.5 is the SOURCE of the attack traffic on this day, not a target. Ground truth measured over all 7 03-11 CSVs (20,364,525 data rows): 172.16.0.5 -> 192.168.50.4 carries 20,299,481 flows against 8,079 in reverse, a ratio of 2,513:1. The reverse flows are SYN-ACK and RST-ACK replies from the victim -- backscatter. These slices are kept as a negative control, not deleted: a detector that alarms on them is alarming on the attack source, which is a different and much easier problem than protecting the target. Excluded from every usable count.",
     "role": "ATTACKER-SIDE HOST, not a victim",
     "ground_truth_source": "CICDDoS2019/03-11/*.csv Source IP / Destination IP",
+    "role_ground_truth": {
+      "data_rows": 20364525,
+      "attacker_to_victim_flows": 20299481,
+      "victim_to_attacker_flows": 8079,
+      "ratio": 2512.6,
+      "n_csv_files": 7
+    },
     "n_attack": 146,
     "n_benign": 7730,
     "best_auc": 0.8959,
@@ -276,6 +283,8 @@
     "inbound_ack_share": 0.6337,
     "inbound_rst_share": 0.2129,
     "inbound_syn_ack_share": 0.0223,
+    "role_unverified": false,
+    "role_documented_attacker": true,
     "attacker_side": true,
     "role_documented": true,
     "flag_profile_suggests_source": true,
@@ -285,18 +294,9 @@
     "fpr_measurable": true,
     "verdict": "ATTACKER-SIDE",
     "split_mode": "within",
-    "role_ground_truth": {
-      "data_rows": 20364525,
-      "attacker_to_victim_flows": 20299481,
-      "victim_to_attacker_flows": 8079,
-      "ratio": 2512.6,
-      "n_csv_files": 7
-    },
-    "role_unverified": false,
-    "role_documented_attacker": true,
     "file": "attacker_side/cicddos_03-11_172-16-0-5_LDAP.json",
-    "bytes": 7927843,
-    "sha256": "5cedce68b0b4bd11cd4164e731f7b376cab207af814349cc5d31f9270c83fa24"
+    "bytes": 8271157,
+    "sha256": "ab207613360a0117ac66755c71c43c2f2371669732d5977add5abb4beb045a6c"
   },
   "cicddos_03-11_172-16-0-5_MSSQL": {
     "corpus": "CIC-DDoS2019",
@@ -318,6 +318,13 @@
     "unusable_reason": "172.16.0.5 is the SOURCE of the attack traffic on this day, not a target. Ground truth measured over all 7 03-11 CSVs (20,364,525 data rows): 172.16.0.5 -> 192.168.50.4 carries 20,299,481 flows against 8,079 in reverse, a ratio of 2,513:1. The reverse flows are SYN-ACK and RST-ACK replies from the victim -- backscatter. These slices are kept as a negative control, not deleted: a detector that alarms on them is alarming on the attack source, which is a different and much easier problem than protecting the target. Excluded from every usable count.",
     "role": "ATTACKER-SIDE HOST, not a victim",
     "ground_truth_source": "CICDDoS2019/03-11/*.csv Source IP / Destination IP",
+    "role_ground_truth": {
+      "data_rows": 20364525,
+      "attacker_to_victim_flows": 20299481,
+      "victim_to_attacker_flows": 8079,
+      "ratio": 2512.6,
+      "n_csv_files": 7
+    },
     "n_attack": 410,
     "n_benign": 7730,
     "best_auc": 0.9203,
@@ -327,6 +334,8 @@
     "inbound_ack_share": 0.6563,
     "inbound_rst_share": 0.0199,
     "inbound_syn_ack_share": 0.0417,
+    "role_unverified": false,
+    "role_documented_attacker": true,
     "attacker_side": true,
     "role_documented": true,
     "flag_profile_suggests_source": true,
@@ -336,18 +345,9 @@
     "fpr_measurable": true,
     "verdict": "ATTACKER-SIDE",
     "split_mode": "within",
-    "role_ground_truth": {
-      "data_rows": 20364525,
-      "attacker_to_victim_flows": 20299481,
-      "victim_to_attacker_flows": 8079,
-      "ratio": 2512.6,
-      "n_csv_files": 7
-    },
-    "role_unverified": false,
-    "role_documented_attacker": true,
     "file": "attacker_side/cicddos_03-11_172-16-0-5_MSSQL.json",
-    "bytes": 8208824,
-    "sha256": "1c8fa2e6b841b69c075f53aa6cdc55e9abb44b924a4a19d25173a50858d3a408"
+    "bytes": 8563633,
+    "sha256": "65fbfb38bfbff77586bf4b2d19affc00632212789841d3cce2d959b64bf1e960"
   },
   "cicddos_03-11_172-16-0-5_NetBIOS": {
     "corpus": "CIC-DDoS2019",
@@ -369,6 +369,13 @@
     "unusable_reason": "172.16.0.5 is the SOURCE of the attack traffic on this day, not a target. Ground truth measured over all 7 03-11 CSVs (20,364,525 data rows): 172.16.0.5 -> 192.168.50.4 carries 20,299,481 flows against 8,079 in reverse, a ratio of 2,513:1. The reverse flows are SYN-ACK and RST-ACK replies from the victim -- backscatter. These slices are kept as a negative control, not deleted: a detector that alarms on them is alarming on the attack source, which is a different and much easier problem than protecting the target. Excluded from every usable count.",
     "role": "ATTACKER-SIDE HOST, not a victim",
     "ground_truth_source": "CICDDoS2019/03-11/*.csv Source IP / Destination IP",
+    "role_ground_truth": {
+      "data_rows": 20364525,
+      "attacker_to_victim_flows": 20299481,
+      "victim_to_attacker_flows": 8079,
+      "ratio": 2512.6,
+      "n_csv_files": 7
+    },
     "n_attack": 91,
     "n_benign": 7730,
     "best_auc": 0.923,
@@ -378,6 +385,8 @@
     "inbound_ack_share": 0.8881,
     "inbound_rst_share": 0.5647,
     "inbound_syn_ack_share": 0.0216,
+    "role_unverified": false,
+    "role_documented_attacker": true,
     "attacker_side": true,
     "role_documented": true,
     "flag_profile_suggests_source": true,
@@ -387,18 +396,9 @@
     "fpr_measurable": true,
     "verdict": "ATTACKER-SIDE",
     "split_mode": "within",
-    "role_ground_truth": {
-      "data_rows": 20364525,
-      "attacker_to_victim_flows": 20299481,
-      "victim_to_attacker_flows": 8079,
-      "ratio": 2512.6,
-      "n_csv_files": 7
-    },
-    "role_unverified": false,
-    "role_documented_attacker": true,
     "file": "attacker_side/cicddos_03-11_172-16-0-5_NetBIOS.json",
-    "bytes": 7872110,
-    "sha256": "3188d4dd2d953179328229307226c43da8be9d92f61d1a65d929a971f7c5ff52"
+    "bytes": 8213008,
+    "sha256": "a13bd612bdf8c5c938f0f711a22e04fda9bcc1aedaac94ad87b9785e1361b9d7"
   },
   "cicddos_03-11_172-16-0-5_Syn": {
     "corpus": "CIC-DDoS2019",
@@ -420,6 +420,13 @@
     "unusable_reason": "172.16.0.5 is the SOURCE of the attack traffic on this day, not a target. Ground truth measured over all 7 03-11 CSVs (20,364,525 data rows): 172.16.0.5 -> 192.168.50.4 carries 20,299,481 flows against 8,079 in reverse, a ratio of 2,513:1. The reverse flows are SYN-ACK and RST-ACK replies from the victim -- backscatter. These slices are kept as a negative control, not deleted: a detector that alarms on them is alarming on the attack source, which is a different and much easier problem than protecting the target. Excluded from every usable count.",
     "role": "ATTACKER-SIDE HOST, not a victim",
     "ground_truth_source": "CICDDoS2019/03-11/*.csv Source IP / Destination IP",
+    "role_ground_truth": {
+      "data_rows": 20364525,
+      "attacker_to_victim_flows": 20299481,
+      "victim_to_attacker_flows": 8079,
+      "ratio": 2512.6,
+      "n_csv_files": 7
+    },
     "n_attack": 5744,
     "n_benign": 7730,
     "best_auc": 0.9217,
@@ -429,6 +436,8 @@
     "inbound_ack_share": 0.9981,
     "inbound_rst_share": 0.9773,
     "inbound_syn_ack_share": 0.0014,
+    "role_unverified": false,
+    "role_documented_attacker": true,
     "attacker_side": true,
     "role_documented": true,
     "flag_profile_suggests_source": true,
@@ -438,18 +447,9 @@
     "fpr_measurable": true,
     "verdict": "ATTACKER-SIDE",
     "split_mode": "within",
-    "role_ground_truth": {
-      "data_rows": 20364525,
-      "attacker_to_victim_flows": 20299481,
-      "victim_to_attacker_flows": 8079,
-      "ratio": 2512.6,
-      "n_csv_files": 7
-    },
-    "role_unverified": false,
-    "role_documented_attacker": true,
     "file": "attacker_side/cicddos_03-11_172-16-0-5_Syn.json",
-    "bytes": 13682093,
-    "sha256": "ca6ac631da5fc69b16266341ffc4d704f6a904fd79e39a77c776f095d0efbb8f"
+    "bytes": 14269589,
+    "sha256": "e969354c3944eec8792e82401483a2d7e83abe4f7b7b292184753952fd888d3b"
   },
   "cicddos_03-11_172-16-0-5_UDP": {
     "corpus": "CIC-DDoS2019",
@@ -471,6 +471,13 @@
     "unusable_reason": "172.16.0.5 is the SOURCE of the attack traffic on this day, not a target. Ground truth measured over all 7 03-11 CSVs (20,364,525 data rows): 172.16.0.5 -> 192.168.50.4 carries 20,299,481 flows against 8,079 in reverse, a ratio of 2,513:1. The reverse flows are SYN-ACK and RST-ACK replies from the victim -- backscatter. These slices are kept as a negative control, not deleted: a detector that alarms on them is alarming on the attack source, which is a different and much easier problem than protecting the target. Excluded from every usable count.",
     "role": "ATTACKER-SIDE HOST, not a victim",
     "ground_truth_source": "CICDDoS2019/03-11/*.csv Source IP / Destination IP",
+    "role_ground_truth": {
+      "data_rows": 20364525,
+      "attacker_to_victim_flows": 20299481,
+      "victim_to_attacker_flows": 8079,
+      "ratio": 2512.6,
+      "n_csv_files": 7
+    },
     "n_attack": 112,
     "n_benign": 7730,
     "best_auc": 0.9144,
@@ -480,6 +487,8 @@
     "inbound_ack_share": 0.704,
     "inbound_rst_share": 0.0086,
     "inbound_syn_ack_share": 0.0345,
+    "role_unverified": false,
+    "role_documented_attacker": true,
     "attacker_side": true,
     "role_documented": true,
     "flag_profile_suggests_source": true,
@@ -489,18 +498,9 @@
     "fpr_measurable": true,
     "verdict": "ATTACKER-SIDE",
     "split_mode": "within",
-    "role_ground_truth": {
-      "data_rows": 20364525,
-      "attacker_to_victim_flows": 20299481,
-      "victim_to_attacker_flows": 8079,
-      "ratio": 2512.6,
-      "n_csv_files": 7
-    },
-    "role_unverified": false,
-    "role_documented_attacker": true,
     "file": "attacker_side/cicddos_03-11_172-16-0-5_UDP.json",
-    "bytes": 7892267,
-    "sha256": "09dfb4d3b531ed859e4a66bf59a7d417d5ee18300bec7d4eaa1f14ee694cfc4d"
+    "bytes": 8234078,
+    "sha256": "95e6179a899ce8ad0a02fe797c654735accdeb9a5fcb348c894bffd086a81aba"
   },
   "cicddos_03-11_172-16-0-5_UDPLag": {
     "corpus": "CIC-DDoS2019",
@@ -522,6 +522,13 @@
     "unusable_reason": "172.16.0.5 is the SOURCE of the attack traffic on this day, not a target. Ground truth measured over all 7 03-11 CSVs (20,364,525 data rows): 172.16.0.5 -> 192.168.50.4 carries 20,299,481 flows against 8,079 in reverse, a ratio of 2,513:1. The reverse flows are SYN-ACK and RST-ACK replies from the victim -- backscatter. These slices are kept as a negative control, not deleted: a detector that alarms on them is alarming on the attack source, which is a different and much easier problem than protecting the target. Excluded from every usable count.",
     "role": "ATTACKER-SIDE HOST, not a victim",
     "ground_truth_source": "CICDDoS2019/03-11/*.csv Source IP / Destination IP",
+    "role_ground_truth": {
+      "data_rows": 20364525,
+      "attacker_to_victim_flows": 20299481,
+      "victim_to_attacker_flows": 8079,
+      "ratio": 2512.6,
+      "n_csv_files": 7
+    },
     "n_attack": 224,
     "n_benign": 7730,
     "best_auc": 0.9229,
@@ -531,6 +538,8 @@
     "inbound_ack_share": 0.7778,
     "inbound_rst_share": 0.0209,
     "inbound_syn_ack_share": 0.0458,
+    "role_unverified": false,
+    "role_documented_attacker": true,
     "attacker_side": true,
     "role_documented": true,
     "flag_profile_suggests_source": true,
@@ -540,17 +549,8 @@
     "fpr_measurable": true,
     "verdict": "ATTACKER-SIDE",
     "split_mode": "within",
-    "role_ground_truth": {
-      "data_rows": 20364525,
-      "attacker_to_victim_flows": 20299481,
-      "victim_to_attacker_flows": 8079,
-      "ratio": 2512.6,
-      "n_csv_files": 7
-    },
-    "role_unverified": false,
-    "role_documented_attacker": true,
     "file": "attacker_side/cicddos_03-11_172-16-0-5_UDPLag.json",
-    "bytes": 8009622,
-    "sha256": "2b08a7d0e9b607aa281106ad1ea37e08f1e54af026f256227383022ea966640c"
+    "bytes": 8356309,
+    "sha256": "bedef18549096837bd586167c3e71d2b89ff09c8517791370c58a85c5a6c0334"
   }
 }

@@ -2,268 +2,268 @@
   "leaderboard": [
     {
       "name": "SPOT (Raw)",
-      "mean_auc": 0.9667,
+      "mean_auc": 0.9663,
       "median_auc": 0.9907,
       "dr_1pct": 79.56,
       "dr_2pct": 82.75,
       "dr_5pct": 87.71,
-      "episodes_2pct": 8.47,
-      "episodes_5pct": 11.33
+      "episodes_2pct": 8.56,
+      "episodes_5pct": 11.35
     },
     {
       "name": "SPOT + EWMA",
-      "mean_auc": 0.9686,
+      "mean_auc": 0.9684,
       "median_auc": 0.9937,
       "dr_1pct": 80.02,
-      "dr_2pct": 85.42,
-      "dr_5pct": 91.09,
+      "dr_2pct": 85.4,
+      "dr_5pct": 91.08,
       "episodes_2pct": 7.96,
       "episodes_5pct": 11.7
     },
     {
       "name": "INNE (Raw)",
-      "mean_auc": 0.975,
-      "median_auc": 0.989,
-      "dr_1pct": 56.84,
-      "dr_2pct": 79.04,
-      "dr_5pct": 84.67,
-      "episodes_2pct": 8.75,
-      "episodes_5pct": 10.69
+      "mean_auc": 0.9753,
+      "median_auc": 0.9909,
+      "dr_1pct": 69.72,
+      "dr_2pct": 79.79,
+      "dr_5pct": 84.93,
+      "episodes_2pct": 8.16,
+      "episodes_5pct": 10.84
     },
     {
       "name": "INNE + EWMA",
       "mean_auc": 0.9888,
-      "median_auc": 0.9944,
-      "dr_1pct": 84.29,
-      "dr_2pct": 93.48,
+      "median_auc": 0.9935,
+      "dr_1pct": 84.18,
+      "dr_2pct": 91.88,
       "dr_5pct": 95.82,
-      "episodes_2pct": 8.95,
-      "episodes_5pct": 12.71
+      "episodes_2pct": 8.56,
+      "episodes_5pct": 11.51
     },
     {
       "name": "Subspace-ECOD (k=8) (Raw)",
-      "mean_auc": 0.986,
-      "median_auc": 0.9916,
-      "dr_1pct": 79.37,
-      "dr_2pct": 83.84,
-      "dr_5pct": 89.89,
-      "episodes_2pct": 8.42,
-      "episodes_5pct": 10.29
+      "mean_auc": 0.9857,
+      "median_auc": 0.9912,
+      "dr_1pct": 79.35,
+      "dr_2pct": 83.99,
+      "dr_5pct": 89.58,
+      "episodes_2pct": 8.48,
+      "episodes_5pct": 10.87
     },
     {
       "name": "Subspace-ECOD (k=8) + EWMA",
-      "mean_auc": 0.9896,
-      "median_auc": 0.9958,
-      "dr_1pct": 81.99,
-      "dr_2pct": 87.81,
-      "dr_5pct": 95.54,
-      "episodes_2pct": 7.55,
-      "episodes_5pct": 11.63
+      "mean_auc": 0.9895,
+      "median_auc": 0.9955,
+      "dr_1pct": 81.52,
+      "dr_2pct": 87.61,
+      "dr_5pct": 95.15,
+      "episodes_2pct": 7.52,
+      "episodes_5pct": 11.62
     },
     {
       "name": "Subspace-ECOD (k=4) (Raw)",
-      "mean_auc": 0.982,
-      "median_auc": 0.9905,
-      "dr_1pct": 79.53,
-      "dr_2pct": 82.72,
-      "dr_5pct": 87.97,
-      "episodes_2pct": 8.3,
-      "episodes_5pct": 11.32
+      "mean_auc": 0.9818,
+      "median_auc": 0.99,
+      "dr_1pct": 78.68,
+      "dr_2pct": 82.73,
+      "dr_5pct": 88.36,
+      "episodes_2pct": 8.39,
+      "episodes_5pct": 11.36
     },
     {
       "name": "Subspace-ECOD (k=4) + EWMA",
-      "mean_auc": 0.9879,
-      "median_auc": 0.9953,
-      "dr_1pct": 80.62,
-      "dr_2pct": 86.04,
-      "dr_5pct": 94.14,
-      "episodes_2pct": 7.64,
-      "episodes_5pct": 11.69
+      "mean_auc": 0.9877,
+      "median_auc": 0.9952,
+      "dr_1pct": 80.5,
+      "dr_2pct": 85.91,
+      "dr_5pct": 93.71,
+      "episodes_2pct": 7.55,
+      "episodes_5pct": 11.83
     },
     {
       "name": "Pure Subspace Q-Resid (k=8) (Raw)",
-      "mean_auc": 0.9761,
-      "median_auc": 0.9759,
-      "dr_1pct": 29.91,
-      "dr_2pct": 44.48,
-      "dr_5pct": 87.33,
-      "episodes_2pct": 5.27,
-      "episodes_5pct": 9.77
+      "mean_auc": 0.9544,
+      "median_auc": 0.9785,
+      "dr_1pct": 29.94,
+      "dr_2pct": 38.69,
+      "dr_5pct": 80.41,
+      "episodes_2pct": 4.36,
+      "episodes_5pct": 9.88
     },
     {
       "name": "Pure Subspace Q-Resid (k=8) + EWMA",
-      "mean_auc": 0.9913,
-      "median_auc": 0.9982,
-      "dr_1pct": 90.2,
-      "dr_2pct": 93.89,
-      "dr_5pct": 97.3,
-      "episodes_2pct": 8.81,
-      "episodes_5pct": 12.49
+      "mean_auc": 0.9806,
+      "median_auc": 0.998,
+      "dr_1pct": 87.83,
+      "dr_2pct": 91.49,
+      "dr_5pct": 95.57,
+      "episodes_2pct": 8.09,
+      "episodes_5pct": 12.21
     },
     {
       "name": "ECOD (Raw)",
-      "mean_auc": 0.6692,
-      "median_auc": 0.7476,
-      "dr_1pct": 3.74,
-      "dr_2pct": 10.49,
-      "dr_5pct": 36.6,
-      "episodes_2pct": 10.6,
-      "episodes_5pct": 11.81
+      "mean_auc": 0.666,
+      "median_auc": 0.7387,
+      "dr_1pct": 3.29,
+      "dr_2pct": 8.95,
+      "dr_5pct": 36.71,
+      "episodes_2pct": 10.58,
+      "episodes_5pct": 12.25
     },
     {
       "name": "ECOD + EWMA",
-      "mean_auc": 0.6802,
-      "median_auc": 0.8098,
-      "dr_1pct": 10.82,
-      "dr_2pct": 22.88,
-      "dr_5pct": 42.92,
-      "episodes_2pct": 10.2,
-      "episodes_5pct": 12.16
+      "mean_auc": 0.6727,
+      "median_auc": 0.7995,
+      "dr_1pct": 7.86,
+      "dr_2pct": 20.16,
+      "dr_5pct": 41.64,
+      "episodes_2pct": 9.51,
+      "episodes_5pct": 12.28
     },
     {
       "name": "COPOD (Raw)",
-      "mean_auc": 0.6667,
-      "median_auc": 0.7971,
-      "dr_1pct": 8.72,
-      "dr_2pct": 15.93,
-      "dr_5pct": 38.7,
-      "episodes_2pct": 10.07,
-      "episodes_5pct": 11.93
+      "mean_auc": 0.6607,
+      "median_auc": 0.7914,
+      "dr_1pct": 7.73,
+      "dr_2pct": 13.59,
+      "dr_5pct": 37.3,
+      "episodes_2pct": 10.32,
+      "episodes_5pct": 11.91
     },
     {
       "name": "COPOD + EWMA",
-      "mean_auc": 0.6731,
-      "median_auc": 0.8317,
-      "dr_1pct": 14.85,
-      "dr_2pct": 27.65,
-      "dr_5pct": 44.06,
-      "episodes_2pct": 10.74,
-      "episodes_5pct": 12.19
+      "mean_auc": 0.6662,
+      "median_auc": 0.8316,
+      "dr_1pct": 12.91,
+      "dr_2pct": 25.38,
+      "dr_5pct": 42.54,
+      "episodes_2pct": 10.08,
+      "episodes_5pct": 12.48
     },
     {
       "name": "HBOS (Raw)",
-      "mean_auc": 0.9293,
-      "median_auc": 0.9623,
-      "dr_1pct": 25.62,
-      "dr_2pct": 43.23,
-      "dr_5pct": 57.38,
-      "episodes_2pct": 9.14,
-      "episodes_5pct": 12.0
+      "mean_auc": 0.9246,
+      "median_auc": 0.9619,
+      "dr_1pct": 25.83,
+      "dr_2pct": 39.01,
+      "dr_5pct": 56.43,
+      "episodes_2pct": 9.75,
+      "episodes_5pct": 11.58
     },
     {
       "name": "HBOS + EWMA",
-      "mean_auc": 0.9613,
-      "median_auc": 0.9801,
-      "dr_1pct": 46.7,
-      "dr_2pct": 58.9,
-      "dr_5pct": 86.45,
-      "episodes_2pct": 9.0,
-      "episodes_5pct": 11.78
+      "mean_auc": 0.9542,
+      "median_auc": 0.9791,
+      "dr_1pct": 45.89,
+      "dr_2pct": 58.03,
+      "dr_5pct": 77.52,
+      "episodes_2pct": 8.94,
+      "episodes_5pct": 11.84
     },
     {
       "name": "LODA (Raw)",
-      "mean_auc": 0.6337,
-      "median_auc": 0.8003,
-      "dr_1pct": 9.3,
-      "dr_2pct": 13.7,
-      "dr_5pct": 25.37,
-      "episodes_2pct": 9.8,
-      "episodes_5pct": 11.86
+      "mean_auc": 0.661,
+      "median_auc": 0.8434,
+      "dr_1pct": 5.69,
+      "dr_2pct": 16.02,
+      "dr_5pct": 44.87,
+      "episodes_2pct": 9.35,
+      "episodes_5pct": 10.75
     },
     {
       "name": "LODA + EWMA",
-      "mean_auc": 0.6639,
-      "median_auc": 0.9024,
-      "dr_1pct": 12.91,
-      "dr_2pct": 24.08,
-      "dr_5pct": 51.82,
-      "episodes_2pct": 9.57,
-      "episodes_5pct": 12.67
+      "mean_auc": 0.6272,
+      "median_auc": 0.8649,
+      "dr_1pct": 20.26,
+      "dr_2pct": 38.9,
+      "dr_5pct": 48.74,
+      "episodes_2pct": 8.98,
+      "episodes_5pct": 11.76
     },
     {
       "name": "INNE + SPOT Hybrid (Raw)",
-      "mean_auc": 0.9839,
-      "median_auc": 0.9915,
-      "dr_1pct": 81.2,
-      "dr_2pct": 84.48,
-      "dr_5pct": 90.18,
-      "episodes_2pct": 8.93,
-      "episodes_5pct": 11.68
+      "mean_auc": 0.9841,
+      "median_auc": 0.9917,
+      "dr_1pct": 81.51,
+      "dr_2pct": 84.84,
+      "dr_5pct": 90.21,
+      "episodes_2pct": 8.68,
+      "episodes_5pct": 11.59
     },
     {
       "name": "INNE + SPOT Hybrid + EWMA",
-      "mean_auc": 0.9891,
-      "median_auc": 0.9951,
-      "dr_1pct": 82.2,
-      "dr_2pct": 88.68,
-      "dr_5pct": 96.73,
-      "episodes_2pct": 7.29,
-      "episodes_5pct": 11.54
+      "mean_auc": 0.9886,
+      "median_auc": 0.9936,
+      "dr_1pct": 81.52,
+      "dr_2pct": 87.8,
+      "dr_5pct": 96.08,
+      "episodes_2pct": 7.32,
+      "episodes_5pct": 11.1
     }
   ],
   "significance": [
     {
       "comparison": "Subspace-ECOD (k=8) + EWMA vs INNE + EWMA",
-      "delta_mean_auc": 0.0009,
-      "p_auc": 0.6685,
-      "delta_dr2_pp": -5.67,
-      "p_dr2": 0.1961,
-      "delta_ep2": -1.4,
-      "p_ep2": 0.1439
+      "delta_mean_auc": 0.0007,
+      "p_auc": 0.4637,
+      "delta_dr2_pp": -4.27,
+      "p_dr2": 0.233,
+      "delta_ep2": -1.03,
+      "p_ep2": 0.2115
     },
     {
       "comparison": "Subspace-ECOD (k=8) + EWMA vs SPOT (Raw)",
-      "delta_mean_auc": 0.0229,
-      "p_auc": 0.009,
-      "delta_dr2_pp": 5.06,
+      "delta_mean_auc": 0.0232,
+      "p_auc": 0.0076,
+      "delta_dr2_pp": 4.86,
       "p_dr2": 0.0281,
-      "delta_ep2": -0.92,
-      "p_ep2": 0.1167
+      "delta_ep2": -1.04,
+      "p_ep2": 0.0995
     },
     {
       "comparison": "Subspace-ECOD (k=8) + EWMA vs SPOT + EWMA",
-      "delta_mean_auc": 0.021,
-      "p_auc": 0.1118,
-      "delta_dr2_pp": 2.39,
-      "p_dr2": 0.0367,
-      "delta_ep2": -0.4,
-      "p_ep2": 0.2604
+      "delta_mean_auc": 0.0211,
+      "p_auc": 0.0609,
+      "delta_dr2_pp": 2.21,
+      "p_dr2": 0.0858,
+      "delta_ep2": -0.43,
+      "p_ep2": 0.2135
     },
     {
       "comparison": "INNE + EWMA vs INNE (Raw)",
-      "delta_mean_auc": 0.0137,
+      "delta_mean_auc": 0.0135,
       "p_auc": 0.0,
-      "delta_dr2_pp": 14.44,
-      "p_dr2": 0.0092,
-      "delta_ep2": 0.2,
-      "p_ep2": 0.6496
+      "delta_dr2_pp": 12.09,
+      "p_dr2": 0.0064,
+      "delta_ep2": 0.39,
+      "p_ep2": 0.9547
     },
     {
       "comparison": "INNE + EWMA vs SPOT (Raw)",
-      "delta_mean_auc": 0.0221,
+      "delta_mean_auc": 0.0225,
       "p_auc": 0.0934,
-      "delta_dr2_pp": 10.73,
-      "p_dr2": 0.0096,
-      "delta_ep2": 0.48,
-      "p_ep2": 0.7299
+      "delta_dr2_pp": 9.13,
+      "p_dr2": 0.009,
+      "delta_ep2": -0.0,
+      "p_ep2": 0.975
     },
     {
       "comparison": "Pure Subspace Q-Resid (k=8) + EWMA vs INNE + EWMA",
-      "delta_mean_auc": 0.0026,
-      "p_auc": 0.011,
-      "delta_dr2_pp": 0.41,
-      "p_dr2": 0.2115,
-      "delta_ep2": -0.14,
-      "p_ep2": 0.925
+      "delta_mean_auc": -0.0082,
+      "p_auc": 0.0076,
+      "delta_dr2_pp": -0.39,
+      "p_dr2": 0.0843,
+      "delta_ep2": -0.47,
+      "p_ep2": 0.8139
     },
     {
       "comparison": "INNE + SPOT Hybrid + EWMA vs INNE + EWMA",
-      "delta_mean_auc": 0.0003,
-      "p_auc": 0.5619,
-      "delta_dr2_pp": -4.8,
-      "p_dr2": 0.4326,
-      "delta_ep2": -1.65,
-      "p_ep2": 0.0303
+      "delta_mean_auc": -0.0002,
+      "p_auc": 0.7057,
+      "delta_dr2_pp": -4.08,
+      "p_dr2": 0.3635,
+      "delta_ep2": -1.23,
+      "p_ep2": 0.0535
     }
   ]
 }

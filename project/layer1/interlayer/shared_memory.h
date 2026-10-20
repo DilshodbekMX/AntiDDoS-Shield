@@ -608,6 +608,19 @@ void anomaly_set_level(uint32_t level);
 void anomaly_clear(void);
 
 /**
+ * Set global spoofed-source attack mode
+ * @param spoofed         Non-zero if IP spoofing detected
+ * @param randomness_pct  Estimated % of random/spoofed source IPs
+ */
+void anomaly_set_spoofed_mode(uint32_t spoofed, uint32_t randomness_pct);
+
+/**
+ * Check if global spoofed-source attack mode is active
+ * @return true if spoofed attack mode is active
+ */
+bool anomaly_is_spoofed_mode(void);
+
+/**
  * Get current rate limit percentage (100 = normal, 50 = half rate)
  * @return Rate limit percentage based on anomaly level
  */
@@ -636,6 +649,12 @@ void l2_features_export_update(void);
  * For direct access by control path
  */
 struct l2_features_export *l2_features_export_get(void);
+
+/**
+ * Reset L2 features export state (factory reset)
+ * Clears the previous-cycle snapshot so the next update re-seeds its deltas
+ */
+void l2_features_export_reset(void);
 
 // ==================== Per-IP Features Export API ====================
 

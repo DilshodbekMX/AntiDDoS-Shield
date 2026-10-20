@@ -1,6 +1,7 @@
 #include "per_ip_features.h"
 #include "hyperloglog.h"
 #include "burst_ewma.h"
+#include "../tables/ip_lists.h"
 #include <rte_hash.h>
 #include <rte_jhash.h>
 #include <rte_malloc.h>
@@ -456,6 +457,23 @@ struct per_ip_features* per_ip_features_lookup(uint32_t dst_ip) {
     return &g_perip_pool[slot];
 }
 
+struct per_ip_features* per_ip_features_lookup_track(uint32_t dst_ip) {
+    // Exact protected /32 takes precedence (its own slot). Otherwise a dst inside
+    // a protected subnet aggregates into that subnet's slot, keyed by the subnet
+    // network. The subnet LPM lookup only runs for non-exact IPs and only when
+    // subnets exist. Stage 3c (packet counters, HLL, CMS) and Stage 11 (new_flows)
+    // both resolve through here, so a subnet slot counts every packet and every
+    // new flow of the addresses it aggregates.
+    struct per_ip_features *exact_pif = per_ip_features_lookup(dst_ip);
+    uint32_t subnet_net_be = 0;
+    bool in_subnet = (!exact_pif && ip_protected_subnet_count() > 0 &&
+                      ip_protected_subnet_lookup(dst_ip, &subnet_net_be));
+    uint32_t track_key = l1_resolve_track_key(dst_ip, exact_pif != NULL,
+                                              in_subnet, subnet_net_be);
+    return exact_pif ? exact_pif
+                     : (in_subnet ? per_ip_features_lookup(track_key) : NULL);
+}
+
 // ==================== HLL and CMS Operations ====================
 
 void per_ip_hll_cms_update(struct per_ip_features *pif,
@@ -464,6 +482,9 @@ void per_ip_hll_cms_update(struct per_ip_features *pif,
                            uint16_t dst_port,
                            uint32_t flow_hash) {
     if (!pif) return;
+
+    // hll_add() mixes every value with a 64-bit finalizer, so the structured
+    // values below (CRC words, a port in the high word) only need to be distinct
 
     // Update HLL for unique source IPs using global hyperloglog module
     hll_add_ip(&pif->hll.src_ip, src_ip);

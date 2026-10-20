@@ -3,7 +3,8 @@
 # fit on the first 40% of each victim's pre-attack benign windows, calibrate on the next 40%, and return the last
 # fifth to the test stream (ANTIDDOS_SPLIT=threeway40 in runners/run_29_scenarios_corrected.py, whose load_case_tree
 # the two adjacency-free runners share). Writes the three *_threeway40.json records to ../results/; the deposited-split
-# records in ../../results/ are untouched. Needs the derived feature tree, like regenerate.sh.
+# records in ../../results/ are untouched. Needs the derived feature tree, like regenerate.sh. Run it before
+# regenerate.sh, whose last step (../four_corpus_tables.py) summarizes these three records.
 # Usage: heldout_threeway40.sh [python]
 set -eu
 CR=$(cd "$(dirname "$0")/../.." && pwd); PY=${1:-python3}

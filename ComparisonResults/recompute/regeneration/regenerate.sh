@@ -4,7 +4,8 @@
 # pass_comparison.tsv gives the reason for each. Run from anywhere.
 # The runners read the derived feature tree at $ANTIDDOS_BASE/datasets/extracted/ (default: the repository root), which
 # is not deposited. ../../extraction/ rebuilds it from the corpus releases and ../../extraction/tree_manifest/ pins its
-# checksums; compare a rebuilt tree with them by value, not by checksum (../../extraction/README.md).
+# checksums (../../extraction/README.md says how to compare a rebuilt tree). Run heldout_threeway40.sh first: the
+# derived numbers at the end read its three records in ../results/.
 # Records are written single-threaded: the DIF arm's fifth decimal depends on the BLAS thread count. LODA in the
 # archived module post2023_competitors.py is unseeded and changes on every run, and ten records store elapsed_sec,
 # so compare a re-run with the deposited records by value (e.g. as pass_comparison.tsv does), not by hash.

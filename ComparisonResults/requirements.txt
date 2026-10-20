@@ -1,6 +1,7 @@
 # Environment of the harness, runners and extraction scripts under ComparisonResults/.
-# Python 3.12: the 2026-10-13/14 regeneration and repaired-split re-scores ran under 3.12.15;
-# records that regenerate.sh does not rewrite were written earlier and may come from other versions.
+# Python 3.12: the 2026-10-13/14 regeneration, the repaired-split re-scores and the 2026-10-19/20 re-run
+# on the 39-name tree ran under 3.12.15; records with no deposited writer were written earlier and
+# may come from other versions.
 # runners/run_c_engine_ours.py also needs gcc. torch 2.13.0+cpu comes from the PyTorch CPU index:
 --extra-index-url https://download.pytorch.org/whl/cpu
 numpy==2.4.2

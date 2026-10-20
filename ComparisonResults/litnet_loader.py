@@ -56,7 +56,8 @@ class _WindowAcc:
     """Streaming accumulator for one 1-second global window."""
     __slots__ = ('n_flows', 'n_packets', 'n_bytes', 'tcp_pkts', 'udp_pkts',
                  'icmp_pkts', 'src_ips', 'dst_ips', 'dst_ports', 'dur_sum',
-                 'dur_n', 'fwd_only', 'attack_flows', 'attack_types')
+                 'dur_n', 'fwd_only', 'attack_flows', 'attack_types', 'src_proto',
+                 'flow_keys')
 
     def __init__(self):
         self.n_flows = 0
@@ -73,6 +74,18 @@ class _WindowAcc:
         self.fwd_only = 0          # flows with no return packets (opkt == 0)
         self.attack_flows = 0
         self.attack_types = Counter()
+        self.src_proto = None      # per-IP builder only: set of (sa, pr), see load_litnet_per_ip
+        self.flow_keys = None      # subnet builder only: set of (lo, hi, pr), see load_litnet_per_subnet
+
+
+# The engine's per-IP burst_factor, as in extraction/pcap_feature_extractor.py
+# (project/layer1/telemetry/burst_ewma.h: alpha 0.033, seed floor 1.0, 100 with no mean).
+def _burst_step(mean, x):
+    return x if mean < 1.0 else mean + 0.033 * (x - mean)
+
+
+def _burst_factor(mean_post, x):
+    return int(x * 100.0 / mean_post) if mean_post > 0.0 else 100
 
 
 def _finalize(acc, dt, window_sec):
@@ -257,6 +270,7 @@ def load_litnet_per_ip(parts_dir, window_sec=1, max_files=None, min_windows=100,
                 acc = ipw.get(key)
                 if acc is None:
                     acc = _WindowAcc()
+                    acc.src_proto = set()
                     ipw[key] = acc
 
                 ipkt = _f(row[C_IPKT]); opkt = _f(row[C_OPKT])
@@ -273,6 +287,10 @@ def load_litnet_per_ip(parts_dir, window_sec=1, max_files=None, min_windows=100,
                 elif pr == 'ICMP' or pr == 'ICMP6':
                     acc.icmp_pkts += pkts
                 acc.src_ips.add(row[C_SA])
+                # engine flow key {lower address, higher address, protocol} with the
+                # destination fixed: one (source, protocol) pair; pr is the record's
+                # protocol field, one value per IP protocol number
+                acc.src_proto.add((row[C_SA], pr))
                 acc.dst_ips.add(dst)
                 dp = row[C_DP]
                 if dp:
@@ -293,15 +311,37 @@ def load_litnet_per_ip(parts_dir, window_sec=1, max_files=None, min_windows=100,
                     print(f"    streamed {n_rows:,} flows, "
                           f"{len(per_ip)} dst IPs, t={dt:%Y-%m-%d %H:%M:%S}")
 
-    # Finalize: keep only dst IPs with >= min_windows distinct seconds
+    # Finalize: keep only dst IPs with >= min_windows distinct seconds.
+    # Two engine columns are added here and only here, after ttl_mean so that the
+    # other columns keep their order: unique_flows, the exact number of engine flow
+    # keys, and burst_factor on this window's packets_per_sec. The burst mean runs
+    # over the destination's whole sequence in time order from its first window, and
+    # each window absent from the sequence is a step with x = 0, as the engine
+    # commits one step per second for every slot (per_ip_features_reset_window).
     result = {}
     for dst, ipw in per_ip.items():
         if len(ipw) < min_windows:
             continue
         rows = []
+        mean, prev = 0.0, None
         for key in sorted(ipw.keys()):
             dt = datetime.fromtimestamp(key * window_sec, tz=timezone.utc)
-            rows.append(_finalize(ipw[key], dt, window_sec))
+            acc = ipw[key]
+            row = _finalize(acc, dt, window_sec)
+            if prev is not None:
+                for _ in range(key - prev - 1):
+                    if mean == 0.0:
+                        break
+                    mean = _burst_step(mean, 0.0)
+            x = row['packets_per_sec']
+            mean, prev = _burst_step(mean, x), key
+            out = {}
+            for k, v in row.items():
+                out[k] = v
+                if k == 'ttl_mean':
+                    out['unique_flows'] = float(len(acc.src_proto))
+                    out['burst_factor'] = float(_burst_factor(mean, x))
+            rows.append(out)
         result[dst] = rows
     return result
 
@@ -334,7 +374,7 @@ def load_litnet_per_subnet(parts_dir, prefix_bits=24, window_sec=1, max_files=No
     becomes a TRUE-UNION HLL over every source IP that contributed traffic to ANY
     destination within the subnet in that second -- exactly the property the
     Layer-1 keying policy `l1_resolve_track_key()` produces at the data plane
-    (`layer1/layer1.c:1925-1932`): one per-IP feature slot keyed by the subnet
+    (via `per_ip_features_lookup_track()`, `layer1/telemetry/per_ip_features.c:460-475`): one per-IP feature slot keyed by the subnet
     network, collecting packets from every IP in the CIDR. The single HLL at the
     slot sees the union of sources, not the per-destination sum.
 
@@ -394,6 +434,7 @@ def load_litnet_per_subnet(parts_dir, prefix_bits=24, window_sec=1, max_files=No
                 acc = sw.get(key)
                 if acc is None:
                     acc = _WindowAcc()
+                    acc.flow_keys = set()
                     sw[key] = acc
 
                 ipkt = _f(row[C_IPKT]); opkt = _f(row[C_OPKT])
@@ -411,7 +452,13 @@ def load_litnet_per_subnet(parts_dir, prefix_bits=24, window_sec=1, max_files=No
                     acc.icmp_pkts += pkts
                 # CRITICAL: src_ips collects the true union across all destinations
                 # in the subnet -- this is the L1 semantic, not a per-dst sum.
-                acc.src_ips.add(row[C_SA])
+                sa = row[C_SA]
+                acc.src_ips.add(sa)
+                # engine flow key {lower address, higher address, protocol}. The
+                # destination varies inside a subnet slot, so the key is the unordered
+                # (source, destination) pair with the record's protocol field: a record
+                # and its reverse between two addresses of the subnet share one key
+                acc.flow_keys.add((sa, dst, pr) if sa <= dst else (dst, sa, pr))
                 acc.dst_ips.add(dst)
                 dp = row[C_DP]
                 if dp:
@@ -432,14 +479,36 @@ def load_litnet_per_subnet(parts_dir, prefix_bits=24, window_sec=1, max_files=No
                     print(f"    streamed {n_rows:,} flows, "
                           f"{len(per_subnet)} subnets, t={dt:%Y-%m-%d %H:%M:%S}")
 
-    # Finalize: keep only subnets with >= min_windows distinct seconds
+    # Finalize: keep only subnets with >= min_windows distinct seconds.
+    # The two engine columns are added as in load_litnet_per_ip, after ttl_mean:
+    # unique_flows, the exact number of engine flow keys, and burst_factor on this
+    # window's packets_per_sec. ip_protected_subnet_add registers one engine slot per
+    # subnet, so the burst mean runs over the subnet's whole sequence in time order
+    # from its first window, and each window absent from the sequence is a step with
+    # x = 0 (per_ip_features_reset_window commits one step per second for every slot).
     result = {}
     for subnet, sw in per_subnet.items():
         if len(sw) < min_windows:
             continue
         rows = []
+        mean, prev = 0.0, None
         for key in sorted(sw.keys()):
             dt = datetime.fromtimestamp(key * window_sec, tz=timezone.utc)
-            rows.append(_finalize(sw[key], dt, window_sec))
+            acc = sw[key]
+            row = _finalize(acc, dt, window_sec)
+            if prev is not None:
+                for _ in range(key - prev - 1):
+                    if mean == 0.0:
+                        break
+                    mean = _burst_step(mean, 0.0)
+            x = row['packets_per_sec']
+            mean, prev = _burst_step(mean, x), key
+            out = {}
+            for k, v in row.items():
+                out[k] = v
+                if k == 'ttl_mean':
+                    out['unique_flows'] = float(len(acc.flow_keys))
+                    out['burst_factor'] = float(_burst_factor(mean, x))
+            rows.append(out)
         result[subnet] = rows
     return result

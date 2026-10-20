@@ -87,8 +87,8 @@ CAVEATS = {
         "ships CSVs but no scenarios.",
     ],
     'LITNET-2020': [
-        "The only corpus built from **flow records rather than packets**. Rows carry **13 feature "
-        "columns against the packet corpora's 38**: 26 of those 38 are structurally absent, among "
+        "The only corpus built from **flow records rather than packets**. Rows carry **15 feature "
+        "columns against the packet corpora's 40**: 26 of those 40 are structurally absent, among "
         "them all 13 TCP-flag-derived features and both entropy features, and one column, "
         "`unique_dst_ips`, exists only here.",
         "Built from the complete 26.9 GB `allFlows.csv`. A truncated export of that file, which "

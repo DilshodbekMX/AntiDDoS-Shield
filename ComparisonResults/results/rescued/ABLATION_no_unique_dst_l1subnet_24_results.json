@@ -4,7 +4,7 @@
     "semantic": "L1 protected-subnet aggregation (/24, true-union HLL)",
     "mechanism_under_test": "ip_protected_subnet_add + Stage-3c keying",
     "distinct_from": "experiment/run_litnet_zone.py (which uses the L2-zone post-hoc sum)",
-    "feature_count": 10,
+    "feature_count": 12,
     "features_used": [
       "packets_per_sec",
       "bytes_per_sec",
@@ -14,7 +14,9 @@
       "icmp_ratio",
       "unique_src_ips",
       "unique_dst_ports",
+      "unique_flows",
       "flow_duration_avg",
+      "burst_factor",
       "dst_port_density"
     ],
     "features": [
@@ -26,7 +28,9 @@
       "icmp_ratio",
       "unique_src_ips",
       "unique_dst_ports",
+      "unique_flows",
       "flow_duration_avg",
+      "burst_factor",
       "dst_port_density"
     ],
     "features_inert_auto_excluded": [
@@ -56,79 +60,79 @@
       "small_pkt_ratio",
       "fragment_ratio",
       "ttl_mean",
-      "tcp_completion_rate"
+      "tcp_completion_rate",
+      "unique_dst_ips"
     ],
     "production_feature_set_size": 39,
     "min_windows_per_subnet": 100,
     "min_attack_windows_for_victim": 30,
     "n_subnets_total": 203,
     "n_victim_subnets": 189,
-    "n_uninvolved_subnets": 7,
-    "_inert_list_note": "2026-10-13: two names that the offline extractor no longer writes were removed by hand from features_inert_auto_excluded (29 -> 27 names). Neither was scored; no other field changed."
+    "n_uninvolved_subnets": 7
   },
   "split_metrics": {
-    "dr_on_victims_pct": 72.7,
+    "dr_on_victims_pct": 73.3,
     "dr_on_victims_ci": [
-      72.2,
-      73.1
+      72.9,
+      73.7
     ],
-    "fpr_on_uninvolved_pct": 56.4,
+    "fpr_on_uninvolved_pct": 56.6,
     "fpr_on_uninvolved_ci": [
-      51.5,
-      61.2
+      51.7,
+      61.4
     ],
     "fpr_on_uninvolved_cluster_ci": [
-      28.8,
-      83.4
+      29.0,
+      83.9
     ],
     "fpr_unmeasurable_reason": null,
-    "dr_on_victims_fixed_theta_pct": 94.3,
-    "fpr_on_uninvolved_fixed_theta_pct": 64.7,
-    "tp_on_victims": 32204,
-    "fn_on_victims": 12118,
-    "fp_on_uninvolved": 225,
-    "tn_on_uninvolved": 174
+    "dr_on_victims_fixed_theta_pct": 97.1,
+    "fpr_on_uninvolved_fixed_theta_pct": 64.9,
+    "tp_on_victims": 32480,
+    "fn_on_victims": 11842,
+    "fp_on_uninvolved": 226,
+    "tn_on_uninvolved": 173
   },
   "per_attack_type": {
     "syn_flood": {
-      "dr": 83.0,
+      "dr": 83.2,
       "dr_ci": [
-        82.6,
-        83.4
+        82.7,
+        83.6
       ],
       "dr_fixed_theta": 100.0,
       "n_windows": 28304,
-      "tp": 23497
+      "tp": 23539
     },
     "land_attack": {
-      "dr": 50.2,
+      "dr": 52.2,
       "dr_ci": [
-        49.3,
-        51.1
+        51.3,
+        53.1
       ],
-      "dr_fixed_theta": 79.8,
+      "dr_fixed_theta": 89.7,
       "n_windows": 12136,
-      "tp": 6091
+      "tp": 6331
     },
     "win32_worm": {
-      "dr": 62.1,
+      "dr": 62.2,
       "dr_ci": [
-        60.3,
-        63.8
+        60.4,
+        64.0
       ],
-      "dr_fixed_theta": 97.4,
+      "dr_fixed_theta": 99.2,
       "n_windows": 2841,
-      "tp": 1763
+      "tp": 1767
     },
     "reaper_worm": {
-      "dr": 56.5,
+      "dr": 57.0,
       "dr_ci": [
-        52.1,
-        60.9
+        52.5,
+        61.3
       ],
-      "dr_fixed_theta": 97.7,
+      "dr_fixed_theta": 99.4,
       "n_windows": 481,
-      "tp": 272
+      "tp": 274
     },
     "code_red_worm": {
       "dr": 83.5,
@@ -136,7 +140,7 @@
         79.2,
         87.0
       ],
-      "dr_fixed_theta": 99.1,
+      "dr_fixed_theta": 100.0,
       "n_windows": 345,
       "tp": 288
     },
@@ -156,7 +160,7 @@
         0.0,
         79.3
       ],
-      "dr_fixed_theta": 0.0,
+      "dr_fixed_theta": 100.0,
       "n_windows": 1,
       "tp": 0
     }
@@ -167,7 +171,7 @@
       "n_attack": 554,
       "n_benign": 463,
       "dr": 78.5,
-      "fpr": 13.6,
+      "fpr": 16.4,
       "theta": 20.0,
       "dominant_attack": "syn_flood"
     },
@@ -175,8 +179,8 @@
       "subnet": "83.171.7.0/24",
       "n_attack": 509,
       "n_benign": 523,
-      "dr": 21.6,
-      "fpr": 11.9,
+      "dr": 22.4,
+      "fpr": 12.0,
       "theta": 20.0,
       "dominant_attack": "syn_flood"
     },
@@ -185,7 +189,7 @@
       "n_attack": 509,
       "n_benign": 459,
       "dr": 100.0,
-      "fpr": 26.1,
+      "fpr": 26.4,
       "theta": 20.0,
       "dominant_attack": "syn_flood"
     },
@@ -202,8 +206,8 @@
       "subnet": "83.171.9.0/24",
       "n_attack": 491,
       "n_benign": 464,
-      "dr": 95.1,
-      "fpr": 39.9,
+      "dr": 99.6,
+      "fpr": 40.3,
       "theta": 7.0,
       "dominant_attack": "syn_flood"
     },
@@ -239,7 +243,7 @@
       "n_attack": 485,
       "n_benign": 387,
       "dr": 94.0,
-      "fpr": 2.6,
+      "fpr": 2.8,
       "theta": 20.0,
       "dominant_attack": "syn_flood"
     },
@@ -247,8 +251,8 @@
       "subnet": "83.171.33.0/24",
       "n_attack": 484,
       "n_benign": 467,
-      "dr": 26.4,
-      "fpr": 29.1,
+      "dr": 29.3,
+      "fpr": 29.3,
       "theta": 20.0,
       "dominant_attack": "syn_flood"
     }

@@ -33,12 +33,16 @@
 #define HLL_REGISTERS   (1 << HLL_P)      // 16384
 #define HLL_P_MASK      (HLL_REGISTERS - 1)
 
+// Hash bits left for rho after the register index (64 - 14 = 50).
+// A register therefore holds 0 (empty) to HLL_Q + 1 (51).
+#define HLL_Q           (64 - HLL_P)
+
 // Maximum register value (6 bits = 0-63)
 #define HLL_REGISTER_MAX 63
 
-// Alpha constant for bias correction (depends on m)
-// For m >= 128: alpha_m ~= 0.7213 / (1 + 1.079/m)
-#define HLL_ALPHA_INF   0.7213
+// Alpha constant for bias correction: the m -> infinity limit 1 / (2 ln 2)
+// used by the cardinality estimator (see hll_count)
+#define HLL_ALPHA_INF   0.7213475204444817
 
 // ==================== Data Structures ====================
 
@@ -91,6 +95,11 @@ void hll_init(struct hyperloglog *hll);
  * Add an item to the HyperLogLog sketch
  * Thread-safe using atomic operations
  *
+ * The value is passed through a 64-bit finalizer (MurmurHash3 fmix64) before
+ * use, so it only has to be distinct per item: a CRC, a raw port or another
+ * structured value is fine. The finalizer is a bijection, so distinct values
+ * stay distinct.
+ *
  * @param hll   HyperLogLog structure
  * @param hash  Hash of the item (use pre-computed hash for performance)
  */
@@ -108,8 +117,13 @@ void hll_add_ip(struct hyperloglog *hll, uint32_t ip);
 /**
  * Estimate cardinality (unique count)
  *
+ * Uses the improved raw estimator of O. Ertl, "New cardinality estimation
+ * algorithms for HyperLogLog sketches" (2017). It covers the whole range with
+ * one formula, so there is no switch between linear counting and the raw
+ * estimate, and no bias where the classic estimator switches (about 2.5 m).
+ *
  * @param hll  HyperLogLog structure
- * @return Estimated cardinality
+ * @return Estimated cardinality, rounded to the nearest integer
  */
 uint64_t hll_count(const struct hyperloglog *hll);
 

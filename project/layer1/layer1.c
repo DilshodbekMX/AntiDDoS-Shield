@@ -358,6 +358,197 @@ static inline void record_flow_dropped(const struct packet_features *features,
     telemetry_record_flow_force(&rec);
 }
 
+// ==================== Spoofed-Mode Decisions ====================
+
+/**
+ * Effective spoofed mode for a packet of the given protocol to one destination
+ * (Stages 8b, 9b, 10 and 12). Per-IP: only this IP in spoofed mode for its
+ * attack protocol. Global fallback: when per-IP data is unavailable, or through
+ * the global circuit breaker of the active config. layer1_config_get() returns
+ * NULL until a config is active; with no config the breaker is off, as in
+ * circuit_breaker_enabled() of syn_proxy.c.
+ */
+bool layer1_effective_spoofed_mode(const struct per_ip_anomaly_snapshot *ip_anom,
+                                   uint8_t protocol,
+                                   const struct layer1_config *l1cfg) {
+    bool eff_spoofed = false;
+    if (ip_anom->valid && ip_anom->spoofed_mode) {
+        eff_spoofed = protocol_matches_anomaly(protocol, ip_anom->anomaly_protocol);
+    } else if (!ip_anom->valid) {
+        eff_spoofed = anomaly_is_spoofed_mode();  // Global fallback
+    } else if (l1cfg && l1cfg->global_circuit_breaker && anomaly_is_spoofed_mode()) {
+        eff_spoofed = true;  // Global circuit breaker override
+    }
+    return eff_spoofed;
+}
+
+/**
+ * Stage 8b admission of a TCP packet to a destination in spoofed mode. A SYN
+ * goes on to the SYN proxy (Stage 9), which challenges it. Any other segment
+ * goes on only if something already vouches for its connection:
+ * - a flow entry;
+ * - a SYN proxy entry for its 4-tuple that vouches for it
+ *   (syn_proxy_admits_segment()): a proxied (challenged) connection, or a
+ *   bypassed one whose client has acknowledged the server's ISN + 1. Stage 9
+ *   and the outbound path keep the flows of such connections current
+ *   (track_proxy_flow()), so their segments are mostly admitted by flow; the
+ *   entry vouches for a segment whose flow is gone (aged, evicted, or never
+ *   created on a full table). Stage 9 then handles the packet from the entry
+ *   (translation, or forwarding unmodified);
+ * - a valid SYN cookie in its ACK: the handshake completion, which has neither.
+ * Without a flow, a spoofed segment passes only if it matches the 4-tuple of a
+ * connection the proxy vouches for, or returns a cookie the proxy issued to
+ * its 4-tuple. An entry planted by an unchallenged spoofed SYN admits nothing:
+ * the sender never sees the server's SYN-ACK, and its blind segments do not
+ * move the flow of that SYN (track_proxy_flow()).
+ *
+ * @param syn_proxy_on  false when the destination profile disables the SYN
+ *                      proxy; Stage 9 then skips it, so its entries and
+ *                      cookies vouch for nothing
+ * @return true to continue to Stage 9, false to drop (DROP_REASON_SPOOFED_TCP)
+ */
+bool layer1_spoofed_tcp_admit(struct packet_features *features, bool syn_proxy_on) {
+    uint8_t tcp_flags = features->tcp_flags;
+    bool is_syn = (tcp_flags & TCP_FLAG_SYN) && !(tcp_flags & TCP_FLAG_ACK);
+
+    // SYN packets are handled by SYN proxy (Stage 9) - let them through
+    if (is_syn) {
+        return true;
+    }
+
+    // All non-SYN TCP during spoofed mode: require existing flow
+    // Flow exists -> legitimate return traffic (SYN-ACK, data, RST, FIN): pass through
+    if (flow_table_lookup(features)) {
+        return true;
+    }
+
+    // Per-profile: DISABLED mode skips SYN proxy entirely (Stage 9)
+    if (!syn_proxy_on) {
+        return false;
+    }
+
+    // A connection the SYN proxy vouches for (see above)
+    if (syn_proxy_is_enabled() && syn_proxy_admits_segment(features)) {
+        return true;
+    }
+
+    // No flow entry: check if this is a SYN cookie handshake completion.
+    // SYN cookie ACKs have no flow and no proxy entry yet (Stage 9 creates the entry).
+    // Only pure ACK or ACK+PSH can be handshake completions.
+    return (tcp_flags & TCP_FLAG_ACK) &&
+           syn_proxy_quick_cookie_check(features->src_ip, features->dst_ip,
+                                        features->src_port, features->dst_port,
+                                        features->tcp_ack);
+}
+
+/**
+ * Drop a packet for which syn_proxy_process_packet() returned an action the
+ * Stage 9 switches do not implement. SYN_PROXY_CHALLENGE and SYN_PROXY_CONNECT
+ * are declared in types.h but never returned: a challenge is SYN_PROXY_REPLY
+ * with SYN_SENT, a valid cookie SYN_PROXY_REPLY with CONNECTING. Such a packet
+ * must not fall through to the rest of the pipeline and be forwarded.
+ */
+static inline void drop_unhandled_proxy_action(struct lcore_stats *lstats,
+                                               struct syn_proxy_result *proxy_result,
+                                               struct layer1_result *result,
+                                               const char *direction) {
+    static uint64_t unhandled_log = 0;
+
+    if (proxy_result->reply_pkt) {
+        rte_pktmbuf_free(proxy_result->reply_pkt);
+        proxy_result->reply_pkt = NULL;
+    }
+    lstats->l1_packets_dropped++;
+    lstats->l1_drop_proxy_error++;
+
+    // Rate-limited logging
+    if (__atomic_fetch_add(&unhandled_log, 1, __ATOMIC_RELAXED) < 10) {
+        RTE_LOG(WARNING, L1, "SYN proxy action %d not handled (%s), packet dropped\n",
+                (int)proxy_result->action, direction);
+    }
+
+    result->action = L1_ACTION_DROP;
+    result->drop_reason = DROP_REASON_PROXY_ERROR;
+}
+
+/**
+ * Keep the flow of a SYN proxy connection current (Stage 9 and the outbound
+ * path). The pipeline returns before flow tracking for every packet the
+ * proxy answers or forwards, so these connections had no flow (proxied) or
+ * only the one-way flow of their SYN (bypassed), which aged out after
+ * syn_timeout_sec: with the proxy on, the table never saw their handshake,
+ * the emergency eviction's protected class (a verified handshake) and its
+ * blind-ACK rule did not apply to them, and Stage 8b could not admit them by
+ * flow. Only the flow table changes here: the proxy's verdict stands, no
+ * later stage runs, and a flow created here is not counted as a new flow
+ * (Layer 2 and telemetry count these connections as before). Cost: a flow
+ * lookup and update per packet, a create when the flow is missing (a create
+ * on a full table may run the rate-limited eviction, as at Stage 11), and
+ * for an unverified bypassed segment one SYN proxy lookup.
+ *
+ * - Outbound: the protected server's packets. Create or update the flow, as
+ *   the outbound path does for packets the proxy does not hold.
+ * - Inbound, proxied connection (any state but BYPASSED): its client
+ *   returned a valid cookie, which a blind sender cannot. Create or update
+ *   the flow and record the verified handshake
+ *   (flow_table_mark_handshake_verified()).
+ * - Inbound, BYPASSED connection: only once the handshake is verified, by the
+ *   flow (FLOW_FLAG_HANDSHAKE_ACKED from the handshake the table saw) or by
+ *   the proxy (syn_proxy_admits_segment(): the client's ACK of the server's
+ *   ISN + 1, or a segment after it). A blind ACK after a spoofed SYN must not
+ *   move the flow of that SYN: Stage 8b admits any segment with a flow, so
+ *   that flow would vouch for the entry the proxy refuses to vouch for.
+ */
+static void track_proxy_flow(struct packet_features *features,
+                             enum syn_proxy_state conn_state, int direction) {
+    bool created = false;
+    struct flow_entry *flow;
+
+    if (direction == DIRECTION_OUTBOUND) {
+        flow = flow_table_lookup_or_create(features, &created);
+        if (flow) {
+            flow_table_update(flow, features);
+        }
+        return;
+    }
+
+    // Inbound FORWARD carries SYN_PROXY_BYPASSED for a bypassed entry; any
+    // other inbound FORWARD, and the REPLY to a valid cookie (CONNECTING),
+    // belongs to a proxied connection
+    if (conn_state != SYN_PROXY_BYPASSED) {
+        flow = flow_table_lookup_or_create(features, &created);
+        if (flow) {
+            flow_table_update(flow, features);
+            if (!(__atomic_load_n(&flow->flags, __ATOMIC_RELAXED) & FLOW_FLAG_HANDSHAKE_ACKED)) {
+                flow_table_mark_handshake_verified(flow);
+            }
+        }
+        return;
+    }
+
+    flow = flow_table_lookup(features);
+    if (flow && (__atomic_load_n(&flow->flags, __ATOMIC_RELAXED) & FLOW_FLAG_HANDSHAKE_ACKED)) {
+        flow_table_update(flow, features);
+        return;
+    }
+    if (!syn_proxy_admits_segment(features)) {
+        return;  // Not verified: the flow, if any, stays as it is
+    }
+    if (!flow) {
+        flow = flow_table_lookup_or_create(features, &created);
+        if (!flow) {
+            return;
+        }
+    }
+    // The flow saw the server's SYN-ACK (outbound, above) unless it was
+    // created after it: the update sets the flag itself when it can check
+    // the ACK, and the proxy's verdict covers the other cases
+    flow_table_update(flow, features);
+    if (!(__atomic_load_n(&flow->flags, __ATOMIC_RELAXED) & FLOW_FLAG_HANDSHAKE_ACKED)) {
+        flow_table_mark_handshake_verified(flow);
+    }
+}
+
 // ==================== Inbound Processing ====================
 
 static int process_inbound_packet(struct rte_mbuf *m, uint16_t port_id,
@@ -637,62 +828,33 @@ static int process_inbound_packet(struct rte_mbuf *m, uint16_t port_id,
     // Compute effective spoofed mode for this destination IP (used at Stages 8b, 9b, 10, 12).
     // Per-IP: only this IP in spoofed mode for its attack protocol.
     // Global fallback: when per-IP data unavailable or global circuit breaker active.
-    bool eff_spoofed_tcp = false;
-    if (ip_anom.valid && ip_anom.spoofed_mode) {
-        eff_spoofed_tcp = protocol_matches_anomaly(IPPROTO_TCP, ip_anom.anomaly_protocol);
-    } else if (!ip_anom.valid) {
-        eff_spoofed_tcp = anomaly_is_spoofed_mode();  // Global fallback
-    } else if (l1cfg->global_circuit_breaker && anomaly_is_spoofed_mode()) {
-        eff_spoofed_tcp = true;  // Global circuit breaker override
-    }
+    bool eff_spoofed_tcp = layer1_effective_spoofed_mode(&ip_anom, IPPROTO_TCP, l1cfg);
 
     // ========== Stage 8b: Spoofed TCP Flood Detection ==========
     // When spoofed mode is active for this IP, require all non-SYN TCP
-    // to have an existing flow entry.
+    // to have an existing flow entry, a SYN proxy entry or a valid cookie
+    // (layer1_spoofed_tcp_admit()).
     if (features->protocol == IPPROTO_TCP && eff_spoofed_tcp) {
-        uint8_t tcp_flags = features->tcp_flags;
-        bool is_syn = (tcp_flags & TCP_FLAG_SYN) && !(tcp_flags & TCP_FLAG_ACK);
+        bool syn_proxy_on = !(dst_profile &&
+                              dst_profile->syn_proxy_mode == PROFILE_SYN_PROXY_DISABLED);
+        if (!layer1_spoofed_tcp_admit(features, syn_proxy_on)) {
+            // No flow + no proxy entry + no valid cookie = spoofed packet
+            lstats->l1_packets_dropped++;
+            lstats->l1_drop_spoofed_tcp++;
 
-        // SYN packets are handled by SYN proxy (Stage 9) - let them through
-        if (!is_syn) {
-            // All non-SYN TCP during spoofed mode: require existing flow
-            struct flow_entry *existing_flow = flow_table_lookup(features);
-
-            if (!existing_flow) {
-                // No flow entry -- check if this is a SYN cookie handshake completion.
-                // SYN cookie ACKs legitimately have no flow yet (created at Stage 9).
-                // Only pure ACK or ACK+PSH can be handshake completions.
-                bool has_valid_cookie = false;
-                if (tcp_flags & TCP_FLAG_ACK) {
-                    if (!(dst_profile && dst_profile->syn_proxy_mode == PROFILE_SYN_PROXY_DISABLED)) {
-                        has_valid_cookie = syn_proxy_quick_cookie_check(
-                            features->src_ip, features->dst_ip,
-                            features->src_port, features->dst_port,
-                            features->tcp_ack);
-                    }
-                }
-
-                if (!has_valid_cookie) {
-                    // No flow + no valid cookie = spoofed packet
-                    lstats->l1_packets_dropped++;
-                    lstats->l1_drop_spoofed_tcp++;
-
-                    // Rate-limited logging per flag type
-                    static uint64_t spoofed_drop_log = 0;
-                    if (__atomic_fetch_add(&spoofed_drop_log, 1, __ATOMIC_RELAXED) < 10) {
-                        RTE_LOG(WARNING, L1,
-                            "Spoofed TCP dropped (flags=0x%02x, no flow, no cookie)\n",
-                            tcp_flags);
-                    }
-
-                    result->action = L1_ACTION_DROP;
-                    result->drop_reason = DROP_REASON_SPOOFED_TCP;
-                    return 0;
-                }
-                // Valid cookie ACK -> let it pass through to Stage 9 for full processing
+            // Rate-limited logging per flag type
+            static uint64_t spoofed_drop_log = 0;
+            if (__atomic_fetch_add(&spoofed_drop_log, 1, __ATOMIC_RELAXED) < 10) {
+                RTE_LOG(WARNING, L1,
+                    "Spoofed TCP dropped (flags=0x%02x, no flow, no proxy entry, no cookie)\n",
+                    features->tcp_flags);
             }
-            // Flow exists -> legitimate return traffic (SYN-ACK, data, RST, FIN) -- pass through
+
+            result->action = L1_ACTION_DROP;
+            result->drop_reason = DROP_REASON_SPOOFED_TCP;
+            return 0;
         }
+        // Admitted (SYN, flow, proxy entry or valid cookie) -> on to Stage 9
     }
 
     // ========== Stage 9: SYN Proxy (TCP Only) ==========
@@ -752,6 +914,12 @@ static int process_inbound_packet(struct rte_mbuf *m, uint16_t port_id,
                     }
                 }
 
+                // A valid cookie: the client completed its handshake with the
+                // proxy, and the connection gets its flow now
+                if (proxy_result.conn_state == SYN_PROXY_CONNECTING) {
+                    track_proxy_flow(features, proxy_result.conn_state, DIRECTION_INBOUND);
+                }
+
                 result->action = L1_ACTION_REPLY;
                 return 0;
 
@@ -765,6 +933,8 @@ static int process_inbound_packet(struct rte_mbuf *m, uint16_t port_id,
                 return 0;
 
             case SYN_PROXY_FORWARD:
+                // A proxied or bypassed connection: keep its flow current
+                track_proxy_flow(features, proxy_result.conn_state, DIRECTION_INBOUND);
                 if (proxy_result.packet_modified) {
                     result->action = L1_ACTION_ACCEPT_MODIFIED;
                 } else {
@@ -786,6 +956,12 @@ static int process_inbound_packet(struct rte_mbuf *m, uint16_t port_id,
 
                 result->action = L1_ACTION_DROP;
                 result->drop_reason = DROP_REASON_PROXY_ERROR;
+                return 0;
+
+            case SYN_PROXY_CHALLENGE:
+            case SYN_PROXY_CONNECT:
+                // Never returned (see drop_unhandled_proxy_action)
+                drop_unhandled_proxy_action(lstats, &proxy_result, result, "inbound");
                 return 0;
         }
     }
@@ -911,6 +1087,32 @@ static int process_inbound_packet(struct rte_mbuf *m, uint16_t port_id,
 
     // ========== Stage 11: Flow Tracking (CANONICAL) ==========
     flow = flow_table_lookup_or_create(features, &flow_created);
+
+    // RST/FIN validation (flow_table_validate_rst_fin_flow(), which counts
+    // the segments it rejects), against the flow just looked up: no second
+    // lookup, and a flow created for this segment counts as none. A segment
+    // outside the window of the flow's tracked sequence is forwarded, but
+    // counted on the flow without changing it (flow_table_count_packet() in
+    // place of flow_table_update() below): a blind RST or FIN neither tears
+    // the flow down nor moves the window the next one is checked against. It
+    // is not dropped: the flow key has no ports, so a flow tracks the
+    // sequence of whichever connection between its two hosts sent last, and
+    // a legitimate FIN or RST of a parallel connection falls outside that
+    // window (its retransmissions too, since the window does not follow
+    // them): dropping would leave such connections unclosed. The receiving
+    // stack checks each segment against its own connection (RFC 5961); what
+    // only the table can lose to a blind RST is the flow itself, which also
+    // vouches for the hosts' other connections at Stage 8b. A segment
+    // without a flow, or a FIN in a state that does not expect one, is
+    // counted and handled as before.
+    bool rst_fin_out_of_window = false;
+    if (features->protocol == IPPROTO_TCP &&
+        (features->tcp_flags & (TCP_FLAG_RST | TCP_FLAG_FIN))) {
+        struct flow_entry *tracked = (flow && !flow_created) ? flow : NULL;
+        rst_fin_out_of_window =
+            (flow_table_validate_rst_fin_flow(tracked, features) == RST_FIN_SEQ_OUT_OF_WINDOW);
+    }
+
     if (!flow) {
         // Flow table full - apply reputation-aware emergency drop first,
         // then FALL THROUGH to Stage 12 for aggregate rate limiting.
@@ -957,8 +1159,10 @@ static int process_inbound_packet(struct rte_mbuf *m, uint16_t port_id,
         if (features->protocol == IPPROTO_UDP)
             lstats->l1_new_udp_flows++;
 
-        // Update per-protected-IP new flow counter
-        struct per_ip_features *pif = per_ip_features_lookup(features->dst_ip);
+        // Update per-protected-IP new flow counter on the slot Stage 3c counted
+        // this packet on: the exact /32, else the covering protected subnet's slot.
+        // Looking up the exact dst left a subnet slot's flows_per_sec at 0.
+        struct per_ip_features *pif = per_ip_features_lookup_track(features->dst_ip);
         per_ip_increment_new_flow(pif, rte_lcore_id());
 
         // Apply per-profile rate limits to the new flow.
@@ -997,14 +1201,7 @@ static int process_inbound_packet(struct rte_mbuf *m, uint16_t port_id,
     // Normal mode with valid flow: use per-flow rate limiting as before.
     // Per-IP scoped: use spoofed rate check only if THIS dst IP is in spoofed mode
     // for the matching protocol, or if flow is NULL (table full fallback).
-    bool eff_spoofed_stage12 = false;
-    if (ip_anom.valid && ip_anom.spoofed_mode) {
-        eff_spoofed_stage12 = protocol_matches_anomaly(features->protocol, ip_anom.anomaly_protocol);
-    } else if (!ip_anom.valid) {
-        eff_spoofed_stage12 = anomaly_is_spoofed_mode();  // Global fallback
-    } else if (l1cfg->global_circuit_breaker && anomaly_is_spoofed_mode()) {
-        eff_spoofed_stage12 = true;  // Global circuit breaker override
-    }
+    bool eff_spoofed_stage12 = layer1_effective_spoofed_mode(&ip_anom, features->protocol, l1cfg);
 
     if (eff_spoofed_stage12 || !flow) {
         // has_flow=false for: NULL flow (table full), or newly created flow from
@@ -1030,7 +1227,12 @@ static int process_inbound_packet(struct rte_mbuf *m, uint16_t port_id,
     }
 
     if (flow) {
-        flow_table_update(flow, features);
+        if (unlikely(rst_fin_out_of_window)) {
+            // Counted, not trusted (see Stage 11)
+            flow_table_count_packet(flow, features);
+        } else {
+            flow_table_update(flow, features);
+        }
     }
 
     // ========== Stage 11d: TCP Abuse Detection ==========
@@ -1176,11 +1378,16 @@ static int process_outbound_packet(struct rte_mbuf *m, uint16_t port_id,
                     result->forward_queue = queue_id;
                 }
 
+                // The server's SYN-ACK of a proxied connection: the proxy
+                // answers it, and it is the server's side of the flow
+                track_proxy_flow(features, proxy_result.conn_state, DIRECTION_OUTBOUND);
                 lstats->l1_syn_proxy_established++;
                 result->action = L1_ACTION_REPLY;
                 return 0;
 
             case SYN_PROXY_FORWARD:
+                // A proxied or bypassed connection: keep its flow current
+                track_proxy_flow(features, proxy_result.conn_state, DIRECTION_OUTBOUND);
                 if (proxy_result.packet_modified) {
                     result->action = L1_ACTION_ACCEPT_MODIFIED;
                 } else {
@@ -1203,6 +1410,12 @@ static int process_outbound_packet(struct rte_mbuf *m, uint16_t port_id,
                 // Not expected on outbound, but handle gracefully
                 result->action = L1_ACTION_ACCEPT;
                 lstats->l1_packets_accepted++;
+                return 0;
+
+            case SYN_PROXY_CHALLENGE:
+            case SYN_PROXY_CONNECT:
+                // Never returned (see drop_unhandled_proxy_action)
+                drop_unhandled_proxy_action(lstats, &proxy_result, result, "outbound");
                 return 0;
         }
     }
@@ -1745,16 +1958,28 @@ int layer1_process_packet_ex(struct rte_mbuf *m,
             // --- Stage 11: Flow Table ---
             bool created = false;
             struct flow_entry_v6 *entry = flow_table_v6_lookup_or_create(&pf6, &created);
+
+            // RST/FIN validation against that flow, as at IPv4 Stage 11: a
+            // segment outside the tracked window is counted on its flow
+            // without changing it, and forwarded (the validator counts it)
+            bool rst_fin_out_of_window_v6 = false;
+            if (proto == IPPROTO_TCP && (pf6.tcp_flags & (TCP_FLAG_RST | TCP_FLAG_FIN))) {
+                struct flow_entry_v6 *tracked6 = (entry && !created) ? entry : NULL;
+                rst_fin_out_of_window_v6 =
+                    (flow_table_v6_validate_rst_fin_flow(tracked6, &pf6) ==
+                     RST_FIN_SEQ_OUT_OF_WINDOW);
+            }
+
             if (entry) {
-                entry->last_seen_tsc = rte_rdtsc();
-                if (pf6.flow_direction == FLOW_DIR_LO_TO_HI) {
-                    entry->packets_lo_to_hi++;
-                    entry->bytes_lo_to_hi += pkt_len;
+                // Counters, last-seen time and TCP state, updated atomically
+                // (other lcores share the flow). Stage 11 used to bump the
+                // counters and the time here too, with plain stores, so every
+                // IPv6 packet was counted twice, racily.
+                if (unlikely(rst_fin_out_of_window_v6)) {
+                    flow_table_v6_count_packet(entry, &pf6);
                 } else {
-                    entry->packets_hi_to_lo++;
-                    entry->bytes_hi_to_lo += pkt_len;
+                    flow_table_v6_update(entry, &pf6);
                 }
-                flow_table_v6_update(entry, &pf6);
 
                 if (created) {
                     lstats->l1_new_flows++;
@@ -1922,15 +2147,9 @@ int layer1_process_packet_ex(struct rte_mbuf *m,
         // that subnet's single slot (keyed by the subnet network) so a carpet-bomb
         // spread across many addresses in the subnet is visible as one destination.
         // The subnet LPM lookup only runs for non-exact IPs and only when subnets
-        // exist, so the common path is unchanged.
-        struct per_ip_features *exact_pif = per_ip_features_lookup(features.dst_ip);
-        uint32_t subnet_net_be = 0;
-        bool in_subnet = (!exact_pif && ip_protected_subnet_count() > 0 &&
-                          ip_protected_subnet_lookup(features.dst_ip, &subnet_net_be));
-        uint32_t track_key = l1_resolve_track_key(features.dst_ip, exact_pif != NULL,
-                                                  in_subnet, subnet_net_be);
-        struct per_ip_features *pif = exact_pif ? exact_pif
-                                    : (in_subnet ? per_ip_features_lookup(track_key) : NULL);
+        // exist, so the common path is unchanged. Stage 11 counts new flows on the
+        // slot from the same lookup.
+        struct per_ip_features *pif = per_ip_features_lookup_track(features.dst_ip);
         if (pif) {
             // Check if this protocol will be dropped by the profile.
             // NOTE: for a SUBNET-aggregated slot the dst is not an exact protected
@@ -2842,6 +3061,10 @@ void layer1_reset_stats(void) {
 }
 
 void layer1_factory_reset(void) {
+    // Subsystems that have no reset API yet: each is named in a WARNING, and
+    // the final line reports the reset as partial
+    unsigned int not_reset = 0;
+
     RTE_LOG(WARNING, L1, "=== FACTORY RESET: clearing all Layer 1 runtime state ===\n");
 
     // 1. Clear flow tables (IPv4 + IPv6)
@@ -2849,14 +3072,15 @@ void layer1_factory_reset(void) {
     flow_table_v6_clear();
     RTE_LOG(INFO, L1, "  Flow tables cleared\n");
 
-    // 2. Clear SYN proxy state (IPv4 + IPv6)
+    // 2. Clear SYN proxy state (IPv4; syn_proxy_v6 has no clear-all function yet)
     syn_proxy_clear_all();
-    syn_proxy_v6_clear_all();
-    RTE_LOG(INFO, L1, "  SYN proxy cleared (v4 + v6)\n");
+    RTE_LOG(INFO, L1, "  SYN proxy cleared (v4)\n");
+    RTE_LOG(WARNING, L1, "  SYN proxy v6 NOT reset: no clear-all function\n");
+    not_reset++;
 
-    // 3. Clear connection limits
-    connection_limits_clear_all();
-    RTE_LOG(INFO, L1, "  Connection limits cleared\n");
+    // 3. Connection limits: not cleared, connection_limits has no clear-all function yet
+    RTE_LOG(WARNING, L1, "  Connection limits NOT reset: no clear-all function\n");
+    not_reset++;
 
     // 4. Clear IP reputation (CRITICAL -- stale attacker flags)
     reputation_clear_all();
@@ -2882,22 +3106,22 @@ void layer1_factory_reset(void) {
     anomaly_clear();
     RTE_LOG(INFO, L1, "  Global anomaly state cleared\n");
 
-    // 10. Reset HyperLogLog (cardinality baselines)
-    hll_global_reset();
-    RTE_LOG(INFO, L1, "  HLL cardinality reset\n");
+    // 10. HyperLogLog: not reset, hyperloglog has no global reset function yet
+    RTE_LOG(WARNING, L1, "  HyperLogLog cardinality NOT reset: no global reset function\n");
+    not_reset++;
 
     // 11. Reset per-IP feature windows (IPv4 + IPv6)
     per_ip_features_reset_all_windows();
     per_ip_features_v6_reset_all_windows();
     RTE_LOG(INFO, L1, "  Per-IP features reset\n");
 
-    // 12. Reset spike detector (per-IP baselines, spike counts)
-    spike_detector_clear_all();
-    RTE_LOG(INFO, L1, "  Spike detectors cleared\n");
+    // 12. Spike detector: not cleared, spike_detector has no clear-all function yet
+    RTE_LOG(WARNING, L1, "  Spike detectors NOT reset: no clear-all function\n");
+    not_reset++;
 
-    // 13. Reset window stats (shared memory counters, sample ring)
-    window_stats_reset();
-    RTE_LOG(INFO, L1, "  Window stats reset\n");
+    // 13. Window stats: not reset, window_stats has no reset function yet
+    RTE_LOG(WARNING, L1, "  Window stats NOT reset: no reset function\n");
+    not_reset++;
 
     // 14. Reset telemetry stats
     latency_histogram_reset();
@@ -2916,7 +3140,8 @@ void layer1_factory_reset(void) {
     // 16. Reset per-lcore packet counters
     layer1_reset_stats();
 
-    RTE_LOG(WARNING, L1, "=== FACTORY RESET COMPLETE ===\n");
+    RTE_LOG(WARNING, L1, "=== FACTORY RESET PARTIAL: %u subsystems NOT reset (see warnings) ===\n",
+            not_reset);
 }
 
 void layer1_print_stats(void) {

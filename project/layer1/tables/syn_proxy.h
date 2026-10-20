@@ -16,13 +16,15 @@
 // ==================== Configuration ====================
 
 /**
- * Adaptive mode states for SYN proxy
- * STATEFUL: Normal mode - creates hash entry for each SYN (better TCP options)
- * STATELESS: Attack mode - no hash entry for SYN, only on valid ACK (faster)
+ * Adaptive mode states for SYN proxy. In both modes a challenged SYN keeps
+ * no state; the ACK that returns a valid cookie creates the hash entry, and
+ * the SYN-ACK offers MSS only.
+ * STATEFUL: Normal mode - full SYN option parsing for the cookie MSS, SYN-ACK in a new mbuf
+ * STATELESS: Attack mode - fast MSS extraction, SYN turned into the SYN-ACK in place (faster)
  */
 enum syn_proxy_mode {
-    SYN_PROXY_MODE_STATEFUL = 0,   // Normal: hash lookup + insert for each SYN
-    SYN_PROXY_MODE_STATELESS = 1,  // Attack: no hash ops for SYN, only cookie
+    SYN_PROXY_MODE_STATEFUL = 0,   // Normal: full option parsing, new mbuf
+    SYN_PROXY_MODE_STATELESS = 1,  // Attack: fast MSS extraction, in-place SYN-ACK
 };
 
 struct syn_proxy_config {
@@ -40,6 +42,7 @@ struct syn_proxy_config {
 
     // Challenge threshold: SYN rate above which all new connections are challenged
     uint32_t challenge_threshold;      // PPS threshold for forced cookie challenge
+                                       // (0 = L1_DEFAULT_CHALLENGE_THRESHOLD, 1000)
 };
 
 // ==================== NOTE: enum syn_proxy_state is in types.h ====================
@@ -64,17 +67,20 @@ struct syn_proxy_conn {
     uint16_t client_port;
     uint16_t server_port;
     
-    enum syn_proxy_state state;
+    // Control word: the state (enum syn_proxy_state), the flags of a BYPASSED
+    // entry and the generation of the slot. It is read and changed only with
+    // atomics; see "Entry control word" in syn_proxy.c.
+    uint32_t ctl;
     uint64_t state_change_tsc;
     
     uint32_t client_isn;
     uint32_t cookie_isn;
-    uint32_t client_next_seq;
+    uint32_t client_next_seq;   // Proxied: end of the client's FIN, as the server numbers it
     uint32_t client_next_ack;
     
     uint32_t proxy_isn;
-    uint32_t server_isn;
-    uint32_t server_next_seq;
+    uint32_t server_isn;    // ISN of the server's SYN-ACK (proxied and BYPASSED)
+    uint32_t server_next_seq;   // Proxied: end of the server's FIN, as the client numbers it
     uint32_t server_next_ack;
     
     int32_t seq_delta_c2s;
@@ -95,6 +101,12 @@ struct syn_proxy_conn {
     uint8_t  _pad[3];
     
 } __attribute__((aligned(64)));
+
+// Process-private, never in shared memory. The control word took the place of
+// the 4-byte state field, so every field keeps its offset; size and alignment
+// stay as they were.
+_Static_assert(sizeof(struct syn_proxy_conn) == 192, "syn_proxy_conn must stay 192 bytes");
+_Static_assert(_Alignof(struct syn_proxy_conn) == 64, "syn_proxy_conn must stay cache-line aligned");
 
 // ==================== Result Structure ====================
 
@@ -161,7 +173,26 @@ int syn_proxy_process_packet(struct rte_mbuf *m,
                              uint16_t port_id,
                              const struct per_ip_anomaly_snapshot *ip_anom);
 
+/**
+ * Check whether the proxy holds an entry (any state, proxied or bypassed) for
+ * the packet's connection. While the proxy is enabled, syn_proxy_process_packet()
+ * handles such a packet from that entry.
+ */
 bool syn_proxy_is_proxied(const struct packet_features *features, uint8_t direction);
+
+/**
+ * Stage 8b in spoofed mode: whether the proxy vouches for an inbound segment
+ * (not a SYN) that has no flow entry. These connections have no flow: Stage 9
+ * returns before Stage 11 for every packet the proxy replies to or forwards.
+ * The proxy vouches for:
+ * - a proxied (challenged) connection: its client returned a valid cookie;
+ * - a BYPASSED connection whose client has acknowledged the server's ISN + 1
+ *   from the SYN-ACK, or the segment that is that acknowledgement.
+ * A SYN that is not challenged leaves a BYPASSED entry, so a spoofed SYN in
+ * calm conditions can plant one. A blind sender does not see the server's
+ * SYN-ACK, so the entry it planted never vouches for its segments.
+ */
+bool syn_proxy_admits_segment(const struct packet_features *features);
 
 int syn_proxy_close_connection(uint32_t client_ip, uint32_t server_ip,
                                uint16_t client_port, uint16_t server_port);
@@ -170,6 +201,14 @@ uint32_t syn_proxy_cleanup_connections(void);
 void syn_proxy_rotate_secret(uint32_t new_secret);
 bool syn_proxy_should_challenge(const struct packet_features *features,
                                 const struct per_ip_anomaly_snapshot *ip_anom);
+
+/**
+ * Check whether an ACK carries a valid SYN cookie, without creating connection state.
+ * Used by Stage 8b to let handshake completions through in spoofed mode.
+ */
+bool syn_proxy_quick_cookie_check(uint32_t src_ip, uint32_t dst_ip,
+                                  uint16_t src_port, uint16_t dst_port,
+                                  uint32_t tcp_ack);
 
 void syn_proxy_get_stats(struct syn_proxy_stats *stats);
 void syn_proxy_reset_stats(void);
@@ -187,6 +226,45 @@ enum syn_proxy_mode syn_proxy_get_mode(void);
  * Pass -1 to return to adaptive (automatic) mode
  */
 void syn_proxy_set_mode(int mode);
+
+// ==================== Test Seams ====================
+
+/**
+ * Points where syn_proxy.c calls syn_proxy_race_seam(). Each lies between an
+ * lcore's read of an entry and the compare-and-swap that acts on what it read.
+ */
+enum syn_proxy_seam_point {
+    SYN_PROXY_SEAM_FREE = 0,  // Packet path, before it ends an entry it holds (RST, close, error)
+    SYN_PROXY_SEAM_CLEANUP,   // syn_proxy_cleanup_connections(), before it ends an entry found due
+    SYN_PROXY_SEAM_SYNACK,    // Server SYN-ACK of a CONNECTING entry, before it ends CONNECTING
+    SYN_PROXY_SEAM_ALLOC,     // New entry, after the lookup missed and before the key is added
+    SYN_PROXY_SEAM_CLAIM,     // New entry, after the key is added and before its slot is claimed
+    SYN_PROXY_SEAM_CLAIM_SWAP,  // New entry, after the key is found on the free slot, before the swap
+    SYN_PROXY_SEAM_CLOSE,     // Close of a proxied entry, before it records a FIN or its ACK, or ends it
+};
+
+/**
+ * Test seam: the library's weak definition does nothing. A unit test may link
+ * its own to run the operations of another lcore at one of these points, which
+ * makes an interleaving of two lcores deterministic.
+ */
+void syn_proxy_race_seam(enum syn_proxy_seam_point point);
+
+/**
+ * Test seam: the TSC clock of the SYN-ACK rate window (one window per second
+ * of TSC). The library's weak definition returns rte_rdtsc(); a unit test may
+ * link its own to hold the window still.
+ */
+uint64_t syn_proxy_synack_clock(void);
+
+/**
+ * Test seam: the TSC time with which syn_proxy_cleanup_connections() compares
+ * the entries' timestamps (read once per pass). The library's weak definition
+ * returns rte_get_tsc_cycles(); a unit test may link its own to make entries
+ * look idle without waiting, also entries stamped after the pass began, as an
+ * lcore whose TSC lags the main lcore's would stamp them.
+ */
+uint64_t syn_proxy_cleanup_clock(void);
 
 /**
  * Initialize spoofed-source rate limiting module.

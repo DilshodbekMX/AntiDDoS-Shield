@@ -125,6 +125,12 @@ bool syn_proxy_v6_is_enabled(void);
 /**
  * Process an IPv6 TCP packet through the SYN proxy
  *
+ * It adds and deletes connection table entries, so it must be called from one
+ * lcore at a time, and so must syn_proxy_v6_close_connection() and the IPv6
+ * path of syn_proxy_process_unified(). The engine calls none of them: the
+ * IPv6 pipeline (layer1.c) uses syn_cookie_v6_generate(),
+ * syn_cookie_v6_validate() and transform_syn_to_synack_v6_inplace() only.
+ *
  * @param m         Packet mbuf
  * @param features  IPv6 packet features
  * @param direction Direction (0=client->server, 1=server->client)
@@ -151,7 +157,8 @@ bool syn_proxy_v6_is_proxied(const struct packet_features_v6 *features,
                              uint8_t direction);
 
 /**
- * Close an IPv6 proxied connection
+ * Close an IPv6 proxied connection (one lcore at a time, see
+ * syn_proxy_v6_process_packet())
  *
  * @param client_ip   Client IPv6 address
  * @param server_ip   Server IPv6 address
@@ -216,7 +223,8 @@ void syn_proxy_v6_set_mode(int mode);
 /* ==================== Dual-Stack API ==================== */
 
 /**
- * Unified SYN proxy packet processing for both IPv4 and IPv6
+ * Unified SYN proxy packet processing for both IPv4 and IPv6 (IPv6: one lcore
+ * at a time, see syn_proxy_v6_process_packet())
  *
  * @param m         Packet mbuf
  * @param is_ipv6   true for IPv6, false for IPv4

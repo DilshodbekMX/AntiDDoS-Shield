@@ -17,7 +17,8 @@ static struct hll_windowed *global_src_ip_hll = NULL;
 
 /**
  * Fast hash for HLL using CRC32 intrinsics
- * Returns a well-distributed 64-bit hash
+ * Distinct for distinct values, but CRC is linear in its input bits, so
+ * nearby addresses give structured outputs; hll_add() mixes it (hll_mix64)
  */
 static inline uint64_t hll_hash64(uint32_t value) {
     // Use CRC32 twice with different seeds for 64-bit distribution
@@ -27,12 +28,31 @@ static inline uint64_t hll_hash64(uint32_t value) {
 }
 
 /**
- * Count leading zeros in 64-bit value
- * Returns 1-64 (we add 1 because HLL needs position of first 1)
+ * 64-bit finalizer (MurmurHash3 fmix64). A bijection in which every output
+ * bit depends on every input bit. Callers pass CRC values, which are linear
+ * in the key bits, and ports placed in bits 32-47 with zeros above. Unmixed,
+ * sequential keys share registers far less often than random keys, so linear
+ * counting reads high (10000 sequential addresses read as 15442, no shared
+ * register at all), and the zeros above a port add 16 to every rho.
  */
-static inline uint8_t count_leading_zeros_plus_one(uint64_t value) {
-    if (value == 0) return 64;
-    return (uint8_t)(__builtin_clzll(value) + 1);
+static inline uint64_t hll_mix64(uint64_t h) {
+    h ^= h >> 33;
+    h *= 0xff51afd7ed558ccdULL;
+    h ^= h >> 33;
+    h *= 0xc4ceb9fe1a85ec53ULL;
+    h ^= h >> 33;
+    return h;
+}
+
+/**
+ * rho of the HLL_Q bits left after the register index: the 1-based position
+ * of their first 1 bit, or HLL_Q + 1 when they are all zero (1 to 51).
+ * w = hash >> HLL_P, so its top HLL_P bits are always zero and are not
+ * counted; counting them made every register at least HLL_P + 1.
+ */
+static inline uint8_t hll_rho(uint64_t w) {
+    if (w == 0) return (uint8_t)(HLL_Q + 1);
+    return (uint8_t)(__builtin_clzll(w) - HLL_P + 1);
 }
 
 // ==================== Core HLL Implementation ====================
@@ -48,12 +68,15 @@ void hll_init(struct hyperloglog *hll) {
 void hll_add(struct hyperloglog *hll, uint64_t hash) {
     if (!hll) return;
 
+    // Every HLL user goes through here, so the hash is mixed once, here
+    hash = hll_mix64(hash);
+
     // Split hash: low bits for register index, high bits for counting
     uint32_t index = hash & HLL_P_MASK;
     uint64_t remaining = hash >> HLL_P;
 
-    // Count leading zeros + 1 (position of first 1 bit)
-    uint8_t rho = count_leading_zeros_plus_one(remaining);
+    // Position of the first 1 bit in the remaining HLL_Q bits
+    uint8_t rho = hll_rho(remaining);
     if (rho > HLL_REGISTER_MAX) {
         rho = HLL_REGISTER_MAX;
     }
@@ -83,49 +106,81 @@ void hll_add_ip(struct hyperloglog *hll, uint32_t ip) {
 }
 
 /**
- * Compute the raw HLL estimate using harmonic mean
+ * sigma(x) = x + sum_{k>=1} x^(2^k) 2^(k-1), the term for the empty
+ * registers (x = their fraction). Infinite for x = 1, an empty sketch.
  */
-static double hll_raw_estimate(const struct hyperloglog *hll) {
-    double sum = 0.0;
-    uint32_t zero_count = 0;
+static double hll_sigma(double x) {
+    if (x == 1.0) return INFINITY;
+    double y = 1.0;
+    double z = x;
+    double z_prev;
+    do {
+        x *= x;
+        z_prev = z;
+        z += x * y;
+        y += y;
+    } while (z != z_prev);
+    return z;
+}
+
+/**
+ * tau(x) = (1 - x - sum_{k>=1} (1 - x^(2^-k))^2 2^-k) / 3, the term for the
+ * registers at HLL_Q + 1 (1 - x = their fraction).
+ */
+static double hll_tau(double x) {
+    if (x == 0.0 || x == 1.0) return 0.0;
+    double y = 1.0;
+    double z = 1.0 - x;
+    double z_prev;
+    do {
+        x = sqrt(x);
+        z_prev = z;
+        y *= 0.5;
+        z -= (1.0 - x) * (1.0 - x) * y;
+    } while (z != z_prev);
+    return z / 3.0;
+}
+
+/**
+ * Cardinality estimate from the register histogram: Ertl's improved raw
+ * estimator, alpha_inf m^2 / (m sigma(C_0/m) + sum_{k=1..q} C_k 2^-k
+ * + m tau(1 - C_{q+1}/m) 2^-q) with q = HLL_Q and C_k the number of
+ * registers equal to k.
+ *
+ * The classic estimator (raw harmonic mean, linear counting while the raw
+ * value is at most 2.5 m) overestimates by about 2.5% just above that switch
+ * for m = 16384, about 3 standard errors. This one has no switch, and its
+ * relative error stays near the standard error 1.04/sqrt(m) over the range.
+ */
+static double hll_estimate(const struct hyperloglog *hll) {
+    uint32_t hist[HLL_Q + 2] = {0};
 
     for (uint32_t i = 0; i < HLL_REGISTERS; i++) {
         uint8_t reg = __atomic_load_n(&hll->registers[i], __ATOMIC_RELAXED);
-        sum += 1.0 / (1ULL << reg);
-        if (reg == 0) {
-            zero_count++;
-        }
+        // hll_add() never writes more than HLL_Q + 1
+        hist[reg <= HLL_Q + 1 ? reg : HLL_Q + 1]++;
     }
 
-    // Alpha constant for bias correction
-    double alpha;
-    if (HLL_REGISTERS == 16) {
-        alpha = 0.673;
-    } else if (HLL_REGISTERS == 32) {
-        alpha = 0.697;
-    } else if (HLL_REGISTERS == 64) {
-        alpha = 0.709;
-    } else {
-        alpha = HLL_ALPHA_INF / (1.0 + 1.079 / HLL_REGISTERS);
+    const double m = (double)HLL_REGISTERS;
+    double z = m * hll_tau(1.0 - (double)hist[HLL_Q + 1] / m);
+    for (int k = HLL_Q; k >= 1; k--) {
+        z = 0.5 * (z + (double)hist[k]);
     }
+    z += m * hll_sigma((double)hist[0] / m);
 
-    double estimate = alpha * HLL_REGISTERS * HLL_REGISTERS / sum;
-
-    // Small range correction using linear counting
-    if (estimate <= 2.5 * HLL_REGISTERS && zero_count > 0) {
-        estimate = HLL_REGISTERS * log((double)HLL_REGISTERS / zero_count);
-    }
-
-    // Large range correction (not typically needed for IP counting)
-    // Skip for now as we won't hit 2^32 unique IPs
-
-    return estimate;
+    // Empty sketch: z is infinite and the estimate is 0
+    return HLL_ALPHA_INF * m * m / z;
 }
 
 uint64_t hll_count(const struct hyperloglog *hll) {
     if (!hll) return 0;
 
-    double estimate = hll_raw_estimate(hll);
+    double estimate = hll_estimate(hll);
+    // Converting a double >= 2^64 to uint64_t is undefined; only a sketch
+    // with nearly every register at HLL_Q + 1 gets there
+    if (!(estimate < 0x1p64)) {
+        return UINT64_MAX;
+    }
     return (uint64_t)(estimate + 0.5);  // Round to nearest integer
 }
 

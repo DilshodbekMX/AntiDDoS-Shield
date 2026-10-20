@@ -212,7 +212,19 @@ int syn_proxy_v6_init(const struct syn_proxy_config *config)
 
     g_config_v6 = *config;
 
-    /* Create connection hash table */
+    /* Create connection hash table. Its writers are alloc_connection_v6()
+     * (add) and syn_proxy_v6_close_connection() (delete), reached only through
+     * syn_proxy_v6_process_packet(), syn_proxy_process_unified() and
+     * syn_proxy_v6_close_connection(). The engine calls none of them: the
+     * IPv6 pipeline in layer1.c uses the stateless cookie functions only
+     * (syn_cookie_v6_generate(), syn_cookie_v6_validate() and
+     * transform_syn_to_synack_v6_inplace()), so no lcore writes this table.
+     * Its writers must stay on one lcore at a time: without MULTI_WRITER_ADD,
+     * rte_hash takes a free key slot with a single-consumer dequeue after it
+     * has released its writer lock. Before the pipeline calls them, the table
+     * needs what the IPv4 table has (MULTI_WRITER_ADD, an entry control word
+     * changed by compare-and-swap, slot reuse only after retirement, and a
+     * bounded cleanup). */
     struct rte_hash_parameters params = {
         .name = "syn_proxy_v6_conn",
         .entries = config->max_connections,
@@ -252,6 +264,13 @@ int syn_proxy_v6_init(const struct syn_proxy_config *config)
     g_initialized_v6 = true;
     memset(&g_stats_v6, 0, sizeof(g_stats_v6));
 
+    /* A re-init starts afresh, as syn_proxy_init() does for IPv4: adaptive
+     * and stateful, with no SYN rate from a previous init's traffic. A mode
+     * forced before syn_proxy_v6_cleanup() would otherwise outlive it. */
+    g_forced_mode_v6 = -1;
+    g_current_mode_v6 = SYN_PROXY_MODE_STATEFUL;
+    g_current_syn_rate_v6 = 0;
+
     RTE_LOG(INFO, SYN_PROXY_V6,
             "IPv6 SYN proxy initialized (max_conn=%u, enabled=%d)\n",
             config->max_connections, config->enabled);
@@ -284,21 +303,11 @@ bool syn_proxy_v6_is_enabled(void)
 
 /* ==================== Helper Functions ==================== */
 
-/* TSC Hz cached for performance */
-static uint64_t g_tsc_hz_v6 = 0;
-
 /* Per-lcore packet ID counter */
 static __thread uint16_t tls_pkt_id_counter_v6 = 0;
 
 static inline uint16_t fast_packet_id_v6(void) {
     return (uint16_t)((rte_rdtsc() & 0xFF00) | (++tls_pkt_id_counter_v6 & 0xFF));
-}
-
-static inline uint32_t fast_timestamp_ms_v6(void) {
-    if (unlikely(g_tsc_hz_v6 == 0)) {
-        g_tsc_hz_v6 = rte_get_tsc_hz();
-    }
-    return (uint32_t)(rte_rdtsc() / (g_tsc_hz_v6 / 1000));
 }
 
 /* Parse TCP options from SYN packet */
@@ -334,10 +343,15 @@ static void parse_tcp_options_v6(const struct rte_tcp_hdr *tcp,
         uint8_t len = opt[1];
         if (len < 2 || opt + len > end) break;
 
+        /* Option values can sit at any offset: read them with memcpy, as
+         * parse_tcp_options_safe() in syn_proxy.c does (a misaligned load
+         * through a cast pointer is undefined behaviour) */
         switch (kind) {
             case 2:  /* MSS */
                 if (len == 4 && opt + 4 <= end) {
-                    opts->mss = rte_be_to_cpu_16(*(uint16_t *)(opt + 2));
+                    uint16_t mss_val;
+                    memcpy(&mss_val, opt + 2, sizeof(mss_val));
+                    opts->mss = rte_be_to_cpu_16(mss_val);
                 }
                 break;
             case 3:  /* Window Scale */
@@ -350,9 +364,12 @@ static void parse_tcp_options_v6(const struct rte_tcp_hdr *tcp,
                 break;
             case 8:  /* Timestamp */
                 if (len == 10 && opt + 10 <= end) {
+                    uint32_t ts_val, ts_ecr;
+                    memcpy(&ts_val, opt + 2, sizeof(ts_val));
+                    memcpy(&ts_ecr, opt + 6, sizeof(ts_ecr));
                     opts->timestamp_present = true;
-                    opts->tsval = rte_be_to_cpu_32(*(uint32_t *)(opt + 2));
-                    opts->tsecr = rte_be_to_cpu_32(*(uint32_t *)(opt + 6));
+                    opts->tsval = rte_be_to_cpu_32(ts_val);
+                    opts->tsecr = rte_be_to_cpu_32(ts_ecr);
                 }
                 break;
         }
@@ -388,67 +405,23 @@ static inline uint16_t calc_tcp6_checksum(const uint8_t src_ip[16],
     return (uint16_t)~sum;
 }
 
-/* Build TCP options for SYN-ACK */
-static uint16_t build_synack_options_v6(uint8_t *opts, uint16_t mss,
-                                         bool sack_permitted,
-                                         const struct tcp_syn_options *client_opts) {
-    uint8_t *p = opts;
-
-    /* MSS option (required) */
-    *p++ = 2;
-    *p++ = 4;
-    *(uint16_t *)p = rte_cpu_to_be_16(mss);
-    p += 2;
-
-    /* SACK Permitted */
-    if (sack_permitted) {
-        *p++ = 4;
-        *p++ = 2;
-    }
-
-    /* Timestamp */
-    if (client_opts && client_opts->timestamp_present) {
-        *p++ = 8;
-        *p++ = 10;
-        *(uint32_t *)p = rte_cpu_to_be_32(fast_timestamp_ms_v6());
-        p += 4;
-        *(uint32_t *)p = rte_cpu_to_be_32(client_opts->tsval);
-        p += 4;
-    }
-
-    /* Window Scale */
-    if (client_opts && client_opts->wscale != 255) {
-        *p++ = 1;
-        *p++ = 3;
-        *p++ = 3;
-        *p++ = 7;
-    }
-
-    /* Pad to 4-byte boundary */
-    while ((p - opts) % 4 != 0) {
-        *p++ = 0;
-    }
-
-    return p - opts;
-}
-
-/* Create SYN-ACK packet for IPv6 */
+/* Create SYN-ACK packet for IPv6 in a new mbuf: the fallback for an in-place
+ * transform that fails, which transform_syn_to_synack_v6_inplace() never does.
+ * Like the in-place SYN-ACK, and like the IPv4 proxy's (see
+ * create_synack_to_client() in syn_proxy.c), it offers MSS only: the cookie
+ * keeps only an MSS index, so the proxy could not honour window scaling,
+ * timestamps or SACK that it granted the client. */
 static struct rte_mbuf *create_synack_v6(struct rte_mempool *mempool,
                                           const struct packet_features_v6 *features,
                                           const struct rte_ether_hdr *orig_eth,
-                                          uint32_t cookie,
-                                          const struct tcp_syn_options *client_opts) {
+                                          uint32_t cookie) {
     struct rte_mbuf *m = rte_pktmbuf_alloc(mempool);
     if (unlikely(!m)) {
         return NULL;
     }
 
-    /* Calculate sizes */
-    uint16_t opts_len = 4;  /* MSS always */
-    if (client_opts->sack_permitted) opts_len += 2;
-    if (client_opts->timestamp_present) opts_len += 10;
-    if (client_opts->wscale != 255) opts_len += 4;
-    opts_len = (opts_len + 3) & ~3;
+    /* TCP options: MSS only, a 4-byte multiple */
+    const uint16_t opts_len = 4;
 
     uint16_t tcp_hdr_len = 20 + opts_len;
     uint16_t payload_len = tcp_hdr_len;
@@ -485,9 +458,11 @@ static struct rte_mbuf *create_synack_v6(struct rte_mempool *mempool,
     tcp->cksum = 0;
     tcp->tcp_urp = 0;
 
-    /* Build TCP options */
+    /* Build TCP options: MSS, the value the in-place SYN-ACK offers */
     uint8_t *opt_ptr = (uint8_t *)tcp + 20;
-    build_synack_options_v6(opt_ptr, 1220, client_opts->sack_permitted, client_opts);
+    *opt_ptr++ = 2;   /* MSS Kind */
+    *opt_ptr++ = 4;   /* MSS Length */
+    *(uint16_t *)opt_ptr = rte_cpu_to_be_16(1220);  /* IPv6 MSS */
 
     /* Compute TCP checksum */
     tcp->cksum = calc_tcp6_checksum(ip6->src_addr.a, ip6->dst_addr.a, tcp, tcp_hdr_len);
@@ -562,11 +537,12 @@ static inline struct syn_proxy_conn_v6 *find_connection_v6(const struct conn_key
     return NULL;
 }
 
-/* Allocate new connection */
+/* Allocate new connection. NULL if the table is full: a caller that drops
+ * the packet for it counts table_full_drops (as in syn_proxy.c), one that
+ * still forwards it does not. */
 static inline struct syn_proxy_conn_v6 *alloc_connection_v6(const struct conn_key_v6 *key) {
     int32_t idx = rte_hash_add_key(g_conn_table_v6, key);
     if (idx < 0) {
-        __atomic_add_fetch(&g_stats_v6.table_full_drops, 1, __ATOMIC_RELAXED);
         return NULL;
     }
 
@@ -670,8 +646,7 @@ int syn_proxy_v6_process_packet(struct rte_mbuf *m,
             result->packet_modified = true;
         } else if (mempool) {
             /* Fallback to allocating new packet */
-            result->reply_pkt = create_synack_v6(mempool, features, eth,
-                                                  cookie, &client_opts);
+            result->reply_pkt = create_synack_v6(mempool, features, eth, cookie);
             if (result->reply_pkt) {
                 result->action = SYN_PROXY_REPLY;
             } else {
@@ -703,7 +678,9 @@ int syn_proxy_v6_process_packet(struct rte_mbuf *m,
             return 0;
         }
 
-        /* Valid cookie - create connection entry (for stateful mode) */
+        /* Valid cookie - create connection entry (for stateful mode). With
+         * the table full the ACK is still forwarded, without an entry, so
+         * that is not a table_full_drops drop. */
         if (g_current_mode_v6 == SYN_PROXY_MODE_STATEFUL) {
             conn = alloc_connection_v6(&key);
             if (conn) {

@@ -14,6 +14,10 @@
     "n_benign_before_guard": 4221,
     "n_benign_quarantined": 135,
     "note": "single-attack slice of a per-day cache; _is_attack preserved from the source and never rewritten, _attack_type added from the published schedule; benign windows within 180s of any labelled attack span that day are quarantined -- dropped from the slice, counted as neither attack nor benign -- because the schedule bounds do not coincide with the true attack edges and the leakage lands in the calibration set",
+    "p95_packets_per_sec": 1509.0,
+    "benign_p95_packets_per_sec": 82.75,
+    "attack_to_benign_p95_ratio": 18.24,
+    "intensity_class": "VOLUMETRIC",
     "n_attack": 1136,
     "n_benign": 4086,
     "best_auc": 0.9931,
@@ -23,6 +27,8 @@
     "inbound_ack_share": 0.8747,
     "inbound_rst_share": 0.1242,
     "inbound_syn_ack_share": 0.0,
+    "role_unverified": false,
+    "role_documented_attacker": false,
     "attacker_side": false,
     "role_documented": true,
     "flag_profile_suggests_source": false,
@@ -34,15 +40,9 @@
     "verdict": "USABLE",
     "split_mode": "within",
     "usable_as_ddos_scenario": true,
-    "p95_packets_per_sec": 1509.0,
-    "benign_p95_packets_per_sec": 82.75,
-    "attack_to_benign_p95_ratio": 18.24,
-    "intensity_class": "VOLUMETRIC",
-    "role_unverified": false,
-    "role_documented_attacker": false,
     "file": "Fri-07-07_DDoS-LOIT.json",
-    "bytes": 5582227,
-    "sha256": "c33c4079d78e0717af7d6fd61d3921e253e23ba8bc844cbb05bbc936d084903a"
+    "bytes": 5810503,
+    "sha256": "14dc9e0dcec1db8a44d68b6b7458ee7a4ad4ae3498ccd98f6fbf4d020472b368"
   },
   "Fri-07-07_PortScan": {
     "corpus": "CIC-IDS-2017",
@@ -59,6 +59,10 @@
     "n_benign_before_guard": 4221,
     "n_benign_quarantined": 135,
     "note": "single-attack slice of a per-day cache; _is_attack preserved from the source and never rewritten, _attack_type added from the published schedule; benign windows within 180s of any labelled attack span that day are quarantined -- dropped from the slice, counted as neither attack nor benign -- because the schedule bounds do not coincide with the true attack edges and the leakage lands in the calibration set",
+    "p95_packets_per_sec": 1010.75,
+    "benign_p95_packets_per_sec": 82.75,
+    "attack_to_benign_p95_ratio": 12.21,
+    "intensity_class": "VOLUMETRIC",
     "n_attack": 426,
     "n_benign": 4086,
     "best_auc": 0.9518,
@@ -68,6 +72,8 @@
     "inbound_ack_share": 0.0197,
     "inbound_rst_share": 0.0065,
     "inbound_syn_ack_share": 0.0001,
+    "role_unverified": false,
+    "role_documented_attacker": false,
     "attacker_side": false,
     "role_documented": true,
     "flag_profile_suggests_source": false,
@@ -79,15 +85,9 @@
     "verdict": "NOT-DDOS",
     "split_mode": "within",
     "usable_as_ddos_scenario": false,
-    "p95_packets_per_sec": 1010.75,
-    "benign_p95_packets_per_sec": 82.75,
-    "attack_to_benign_p95_ratio": 12.21,
-    "intensity_class": "VOLUMETRIC",
-    "role_unverified": false,
-    "role_documented_attacker": false,
     "file": "Fri-07-07_PortScan.json",
-    "bytes": 4750098,
-    "sha256": "5fbf9e47ed82f5eb89e953e01f9f6a471065e403dc0b76920242d45982a7bc69"
+    "bytes": 4947608,
+    "sha256": "4548509335161562e2f65e85ad6430086ec1617f2354765add1bb08912d001b2"
   },
   "Wed-05-07_DoS-GoldenEye": {
     "corpus": "CIC-IDS-2017",
@@ -131,8 +131,8 @@
     "split_mode": "within",
     "usable_as_ddos_scenario": true,
     "file": "Wed-05-07_DoS-GoldenEye.json",
-    "bytes": 3741881,
-    "sha256": "1d978deff70bd1cb177eca496a5b630dc51a63a2e8a9e7d53391e03b2ffd0bca"
+    "bytes": 3894319,
+    "sha256": "65fa66c7ec87958aa0906d5b375818fce0936ef7f808c6eab345ec4e40c4c5b4"
   },
   "Wed-05-07_DoS-Hulk": {
     "corpus": "CIC-IDS-2017",
@@ -176,8 +176,8 @@
     "split_mode": "within",
     "usable_as_ddos_scenario": true,
     "file": "Wed-05-07_DoS-Hulk.json",
-    "bytes": 3798877,
-    "sha256": "0344fe6c6d793bae66d4223fc229edf499e1f493a59b40bb7a0e0bbdad5236f5"
+    "bytes": 3952946,
+    "sha256": "ac7a175481c996fd34ebaa8d83bb560482e6f8e3dbf00ef159f698cda968e919"
   },
   "Wed-05-07_DoS-Slowhttptest": {
     "corpus": "CIC-IDS-2017",
@@ -221,8 +221,8 @@
     "split_mode": "within",
     "usable_as_ddos_scenario": true,
     "file": "Wed-05-07_DoS-Slowhttptest.json",
-    "bytes": 4115004,
-    "sha256": "e19af3dae30beddfe17c400ee870f244a16859a875af061510e9f226ce4cb822"
+    "bytes": 4283062,
+    "sha256": "ba2171064d99182941672d92d0627ac4feea482fcef8cff4274d2e5b6cf08dc5"
   },
   "Wed-05-07_DoS-Slowloris": {
     "corpus": "CIC-IDS-2017",
@@ -266,8 +266,8 @@
     "split_mode": "within",
     "usable_as_ddos_scenario": true,
     "file": "Wed-05-07_DoS-Slowloris.json",
-    "bytes": 4688521,
-    "sha256": "19a17d4cc378b30c0d961b0e61d89d950ca6d784e1d859409e8be63e33bf9c6a"
+    "bytes": 4877481,
+    "sha256": "46eb669fc09c021403336820c9a2a1fd07e1ded76b20658e9bdb688ad7aa5c7b"
   },
   "Wed-05-07_Heartbleed": {
     "corpus": "CIC-IDS-2017",
@@ -312,7 +312,7 @@
     "split_mode": "within",
     "usable_as_ddos_scenario": false,
     "file": "Wed-05-07_Heartbleed.json",
-    "bytes": 12709977,
-    "sha256": "9578779b1bf2e1cc1848c1e22ebe119c7cd8ff1b9550ee42fbb99e908c692adf"
+    "bytes": 13239038,
+    "sha256": "af356e115046d658c8f77e56196b6252a15dc6f3de67cc8d8620632aee1333c1"
   }
 }

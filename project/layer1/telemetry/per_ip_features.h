@@ -364,6 +364,18 @@ int per_ip_features_unregister(uint32_t dst_ip);
  */
 struct per_ip_features* per_ip_features_lookup(uint32_t dst_ip);
 
+/**
+ * Lookup the slot that tracks a destination (fast path, Stage 3c keying)
+ * The exact protected /32 if registered; otherwise, when dst_ip falls inside
+ * a protected subnet, that subnet's single slot (keyed by its network, see
+ * l1_resolve_track_key in ip_lists.h). Every per-IP counter for a packet,
+ * including new_flows, must go to the slot this returns.
+ *
+ * @param dst_ip  Destination IP (network byte order)
+ * @return Pointer to per_ip_features or NULL if the destination is not tracked
+ */
+struct per_ip_features* per_ip_features_lookup_track(uint32_t dst_ip);
+
 // ==================== Fast Path API ====================
 
 /**
@@ -449,7 +461,8 @@ static inline void per_ip_features_update_counters(
  * Increment new_flows counter for a per-IP feature entry
  * Called AFTER flow_table_lookup_or_create() confirms flow_created == true
  *
- * @param pif       Per-IP features structure (may be NULL)
+ * @param pif       Per-IP features structure (may be NULL); the slot from
+ *                  per_ip_features_lookup_track(), as for the packet counters
  * @param lcore_id  Current lcore ID
  */
 static inline void per_ip_increment_new_flow(struct per_ip_features *pif,

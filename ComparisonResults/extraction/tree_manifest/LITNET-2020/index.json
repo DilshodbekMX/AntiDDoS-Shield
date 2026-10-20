@@ -24,6 +24,8 @@
     "inbound_ack_share": 0.0,
     "inbound_rst_share": 0.0,
     "inbound_syn_ack_share": 0.0,
+    "role_unverified": false,
+    "role_documented_attacker": false,
     "attacker_side": false,
     "role_documented": false,
     "flag_profile_suggests_source": false,
@@ -32,11 +34,9 @@
     "floor_limited": false,
     "verdict": "USABLE",
     "split_mode": "within",
-    "role_unverified": false,
-    "role_documented_attacker": false,
     "file": "code_red_worm.json",
-    "bytes": 1458844,
-    "sha256": "f43cf655f1dae092a924e3df915871b22f78e2bee3eed69494a07f4f203ccc0c"
+    "bytes": 1609522,
+    "sha256": "48b8f7e85464db1838024cde5cfb03b8ddcffd2e8c727a0b70bf4cc25b265ce3"
   },
   "http_flood": {
     "corpus": "LITNET-2020",
@@ -63,6 +63,8 @@
     "inbound_ack_share": 0.0,
     "inbound_rst_share": 0.0,
     "inbound_syn_ack_share": 0.0,
+    "role_unverified": false,
+    "role_documented_attacker": false,
     "attacker_side": false,
     "role_documented": false,
     "flag_profile_suggests_source": false,
@@ -71,11 +73,9 @@
     "floor_limited": false,
     "verdict": "INSEPARABLE",
     "split_mode": "within",
-    "role_unverified": false,
-    "role_documented_attacker": false,
     "file": "http_flood.json",
-    "bytes": 887523,
-    "sha256": "71d5607d74833080ed1ebf2bc58b8f1cda0a602fc784c5423269efe347578d74"
+    "bytes": 976326,
+    "sha256": "c5033039be76f35756d3cbfca17a558d212b24fbc8e3fa335f14b6f7b1634bf1"
   },
   "smurf": {
     "corpus": "LITNET-2020",
@@ -103,6 +103,8 @@
     "inbound_ack_share": 0.0,
     "inbound_rst_share": 0.0,
     "inbound_syn_ack_share": 0.0,
+    "role_unverified": false,
+    "role_documented_attacker": false,
     "attacker_side": false,
     "role_documented": false,
     "flag_profile_suggests_source": false,
@@ -111,11 +113,9 @@
     "floor_limited": false,
     "verdict": "NO-FPR",
     "split_mode": "within",
-    "role_unverified": false,
-    "role_documented_attacker": false,
     "file": "smurf.json",
-    "bytes": 1316488,
-    "sha256": "d3f1221045a24eb43b26a3b920d9f6c026f01ac48aa10863515e2cd65b5197f8"
+    "bytes": 1453374,
+    "sha256": "9b20d9ab0d09666e1ffa23a1127e1de225a4be8dbdefe470afc391c2d028b79c"
   },
   "udp_f": {
     "corpus": "LITNET-2020",
@@ -143,6 +143,8 @@
     "inbound_ack_share": 0.0,
     "inbound_rst_share": 0.0,
     "inbound_syn_ack_share": 0.0,
+    "role_unverified": false,
+    "role_documented_attacker": false,
     "attacker_side": false,
     "role_documented": false,
     "flag_profile_suggests_source": false,
@@ -151,10 +153,8 @@
     "floor_limited": true,
     "verdict": "FLOOR-LIMITED",
     "split_mode": "within",
-    "role_unverified": false,
-    "role_documented_attacker": false,
     "file": "udp_f.json",
-    "bytes": 1129167,
-    "sha256": "f3f2600502321b9cae37b1d24c628315b8f849c12a3f35db390d4cb835edc423"
+    "bytes": 1247140,
+    "sha256": "21f16d5b40d45d7bef8136b1bbbeffdf716958a09f5cb59662fe55fc1f508afb"
   }
 }

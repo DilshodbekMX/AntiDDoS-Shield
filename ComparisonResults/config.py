@@ -15,16 +15,18 @@ T_MIN_TIERS = 2
 SINGLE_TIER_HIGH_Z_MULT = 1.25
 
 # CUSUM
-# Production C routes 5 features to EWMA_CUSUM (advanced_detection.c:53-130):
+# Production C routes 5 features to EWMA_CUSUM (advanced_detection.c:244-250):
 #   packets_per_sec, bytes_per_sec, flows_per_sec, new_srcip_rate, burst_factor.
-# The harness uses the 3 volume features on every corpus: LITNET lacks new_srcip_rate,
-# and the offline extractor does not compute the engine's burst_factor. No
-# substitution. (Earlier versions of the harness added dst_port_density here to keep
-# CUSUM exercised, but that misrepresented production: dst_port_density is
-# L2_METHOD_LOG_ZSCORE in C [advanced_detection.c:116], not CUSUM. Removed 2026-06-02
-# per the harness-vs-C fidelity check.)
+# The harness uses 4 of them: the 3 volume features and burst_factor. new_srcip_rate
+# stays out because LITNET-2020 lacks it. No substitution. CUSUMDetector keeps the
+# listed features its caller passes; the inert filter drops burst_factor where the rows
+# lack it, and those run on the other 3.
+# (Earlier versions of the harness added dst_port_density here to keep CUSUM exercised,
+# but that misrepresented production: dst_port_density is a z-score feature in C
+# [advanced_detection.c:122], not CUSUM. Removed 2026-06-02 per the harness-vs-C
+# fidelity check.)
 CUSUM_K_MULT = 0.25; CUSUM_H_MULT = 5.0; CUSUM_MIN_SAMPLES = 30
-CUSUM_FEATURES = ['packets_per_sec', 'bytes_per_sec', 'flows_per_sec']
+CUSUM_FEATURES = ['packets_per_sec', 'bytes_per_sec', 'flows_per_sec', 'burst_factor']
 
 # JSD (4-component: tcp/udp/icmp/other -- matches C production)
 JSD_THRESHOLD = 0.15
@@ -35,7 +37,7 @@ JSD_FEATURES = ['tcp_ratio', 'udp_ratio', 'icmp_ratio', 'other_ratio']
 # Log-Z features.
 # VESTIGIAL -- the standalone log-Z detector contributes nothing to detection. The
 # production C engine has no separate log-Z member; it log-transforms the cardinality
-# features INSIDE the three-tier baseline (LOG_TRANSFORM_FEATURES, baselines.c:259-263),
+# features INSIDE the three-tier baseline (LOG_TRANSFORM_FEATURES, baselines.c:260-264),
 # which ThreeTierBaseline mirrors. LogZDetector is retained only so the run scripts can
 # advance its state for warm-up parity (see pipeline.py). Empty so it is provably inert
 # and carries no bogus feature names (the previous 'unique_dst_ips' exists in neither the

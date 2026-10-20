@@ -9,10 +9,10 @@ VAR_FLOOR_FRACTION = 0.02        # baselines.c:356 (2% of mean)
 PER_FEATURE_READY = 10           # baselines.c:334 (z not computed below 10 samples)
 
 # Cardinality features log-transformed INSIDE the main baseline, matching
-# feature_uses_log_transform() in baselines.c:259-263 for the features the offline
-# extractor writes. The log is applied on both update and z-score so the baseline
-# lives in log space.
-LOG_TRANSFORM_FEATURES = {'unique_src_ips', 'unique_dst_ports'}
+# feature_uses_log_transform() in baselines.c:260-264. The log is applied on both
+# update and z-score so the baseline lives in log space. Both registries build their
+# matrices through _log_xform, so every arm sees the same transform.
+LOG_TRANSFORM_FEATURES = {'unique_src_ips', 'unique_dst_ports', 'unique_flows'}
 
 
 def _log_xform(feature, x):

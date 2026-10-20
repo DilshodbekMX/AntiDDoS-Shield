@@ -35,7 +35,7 @@
  "clock_clean_stratum": {
   "deposited_split": {
    "n": 1,
-   "mean_delta_auc": 0.046053,
+   "mean_delta_auc": 0.046215,
    "n_victim_clusters_raw_keys_diagnostic": 1,
    "wins": 1,
    "n_victim_clusters": 1,
@@ -50,7 +50,7 @@
   },
   "threeway_split": {
    "n": 13,
-   "mean_delta_auc": 0.014138,
+   "mean_delta_auc": 0.007462,
    "n_victim_clusters_raw_keys_diagnostic": 5,
    "wins": 10,
    "n_victim_clusters": 5,
@@ -61,7 +61,7 @@
     "CSE-CIC-IDS2018/172.31.69.28",
     "LITNET-2020/193.219.81.138"
    ],
-   "cluster_wilcoxon_p": 0.4375,
+   "cluster_wilcoxon_p": 0.8125,
    "cluster_informative_pairs": 5,
    "cluster_exact_floor": 0.0625,
    "carried_rows": [],
@@ -78,12 +78,12 @@
  },
  "full_panel": {
   "n": 16,
-  "mean_delta_auc": 0.024612,
-  "wins": 12,
-  "losses": 4,
+  "mean_delta_auc": 0.014271,
+  "wins": 13,
+  "losses": 3,
   "ties": 0,
   "n_victim_clusters": 5,
-  "victim_cluster_mean": 0.012318
+  "victim_cluster_mean": -0.021193
  },
  "cuts": {
   "0.94": {
@@ -96,7 +96,7 @@
     {
      "label": "CIC-DDoS2019 cicddos_03-11_192-168-50-4_Syn",
      "victim": "192.168.50.4",
-     "delta_auc": 0.046053,
+     "delta_auc": 0.046215,
      "clock_separability": 0.5247,
      "label_runs": 2112
     }
@@ -106,8 +106,8 @@
     "rows": [
      "CIC-DDoS2019 cicddos_03-11_192-168-50-4_Syn"
     ],
-    "mean_delta_auc": 0.046053,
-    "share_of_full_panel_pct": 187.1,
+    "mean_delta_auc": 0.046215,
+    "share_of_full_panel_pct": 323.8,
     "wins": 1,
     "losses": 0,
     "ties": 0,
@@ -116,9 +116,9 @@
     "scenario_exact_floor": 1.0,
     "n_victim_clusters": 1,
     "cluster_mean_delta_auc": {
-     "CIC-DDoS2019/192.168.50.4": 0.046053
+     "CIC-DDoS2019/192.168.50.4": 0.046215
     },
-    "victim_cluster_mean": 0.046053,
+    "victim_cluster_mean": 0.046215,
     "cluster_informative_pairs": 1,
     "cluster_wilcoxon_p": 1.0,
     "cluster_exact_floor": 1.0
@@ -142,9 +142,9 @@
      "CIC-DDoS2019 cicddos_03-11_192-168-50-4_UDPLag",
      "LITNET-2020 code_red_worm"
     ],
-    "mean_delta_auc": 0.023183,
-    "wins": 11,
-    "losses": 4,
+    "mean_delta_auc": 0.012142,
+    "wins": 12,
+    "losses": 3,
     "ties": 0,
     "n_victim_clusters": 5
    }
@@ -159,7 +159,7 @@
     {
      "label": "CIC-DDoS2019 cicddos_03-11_192-168-50-4_Syn",
      "victim": "192.168.50.4",
-     "delta_auc": 0.046053,
+     "delta_auc": 0.046215,
      "clock_separability": 0.5247,
      "label_runs": 2112
     }
@@ -169,8 +169,8 @@
     "rows": [
      "CIC-DDoS2019 cicddos_03-11_192-168-50-4_Syn"
     ],
-    "mean_delta_auc": 0.046053,
-    "share_of_full_panel_pct": 187.1,
+    "mean_delta_auc": 0.046215,
+    "share_of_full_panel_pct": 323.8,
     "wins": 1,
     "losses": 0,
     "ties": 0,
@@ -179,9 +179,9 @@
     "scenario_exact_floor": 1.0,
     "n_victim_clusters": 1,
     "cluster_mean_delta_auc": {
-     "CIC-DDoS2019/192.168.50.4": 0.046053
+     "CIC-DDoS2019/192.168.50.4": 0.046215
     },
-    "victim_cluster_mean": 0.046053,
+    "victim_cluster_mean": 0.046215,
     "cluster_informative_pairs": 1,
     "cluster_wilcoxon_p": 1.0,
     "cluster_exact_floor": 1.0
@@ -205,9 +205,9 @@
      "CIC-DDoS2019 cicddos_03-11_192-168-50-4_UDPLag",
      "LITNET-2020 code_red_worm"
     ],
-    "mean_delta_auc": 0.023183,
-    "wins": 11,
-    "losses": 4,
+    "mean_delta_auc": 0.012142,
+    "wins": 12,
+    "losses": 3,
     "ties": 0,
     "n_victim_clusters": 5
    }
@@ -219,7 +219,7 @@
    "corpus": "CIC-IDS-2017",
    "victim": "192.168.10.50",
    "mode": "within",
-   "delta_auc": 0.007759,
+   "delta_auc": 0.00752,
    "clock_separability": 0.9915,
    "label_runs": 12
   },
@@ -228,7 +228,7 @@
    "corpus": "CIC-IDS-2017",
    "victim": "192.168.10.50",
    "mode": "within",
-   "delta_auc": 0.033324,
+   "delta_auc": 0.033422,
    "clock_separability": 0.9976,
    "label_runs": 10
   },
@@ -237,7 +237,7 @@
    "corpus": "CIC-IDS-2017",
    "victim": "192.168.10.50",
    "mode": "within",
-   "delta_auc": 0.063987,
+   "delta_auc": 0.064851,
    "clock_separability": 0.9811,
    "label_runs": 108
   },
@@ -246,7 +246,7 @@
    "corpus": "CIC-IDS-2017",
    "victim": "192.168.10.50",
    "mode": "within",
-   "delta_auc": 0.212039,
+   "delta_auc": 0.212559,
    "clock_separability": 0.9927,
    "label_runs": 22
   },
@@ -255,7 +255,7 @@
    "corpus": "CIC-IDS-2017",
    "victim": "192.168.10.50",
    "mode": "within",
-   "delta_auc": 0.000717,
+   "delta_auc": 0.000742,
    "clock_separability": 0.9985,
    "label_runs": 4
   },
@@ -264,7 +264,7 @@
    "corpus": "CIC-IDS-2018",
    "victim": "172.31.69.25",
    "mode": "within",
-   "delta_auc": 0.006395,
+   "delta_auc": 0.008539,
    "clock_separability": 1.0,
    "label_runs": 2
   },
@@ -273,7 +273,7 @@
    "corpus": "CIC-IDS-2018",
    "victim": "172.31.69.25",
    "mode": "within",
-   "delta_auc": 0.001851,
+   "delta_auc": 0.001896,
    "clock_separability": 1.0,
    "label_runs": 2
   },
@@ -282,7 +282,7 @@
    "corpus": "CIC-IDS-2018",
    "victim": "172.31.69.25",
    "mode": "within",
-   "delta_auc": -2e-05,
+   "delta_auc": 6.7e-05,
    "clock_separability": 1.0,
    "label_runs": 2
   },
@@ -291,7 +291,7 @@
    "corpus": "CIC-IDS-2018",
    "victim": "172.31.69.25",
    "mode": "within",
-   "delta_auc": 0.000437,
+   "delta_auc": 0.000449,
    "clock_separability": 1.0,
    "label_runs": 2
   },
@@ -300,7 +300,7 @@
    "corpus": "CIC-IDS-2018",
    "victim": "172.31.69.28",
    "mode": "within",
-   "delta_auc": -0.001661,
+   "delta_auc": -0.001822,
    "clock_separability": 1.0,
    "label_runs": 2
   },
@@ -309,7 +309,7 @@
    "corpus": "CIC-IDS-2018",
    "victim": "172.31.69.28",
    "mode": "within",
-   "delta_auc": -8.9e-05,
+   "delta_auc": -8.3e-05,
    "clock_separability": 1.0,
    "label_runs": 2
   },
@@ -318,7 +318,7 @@
    "corpus": "CIC-DDoS2019",
    "victim": "192.168.50.4",
    "mode": "within",
-   "delta_auc": 0.005092,
+   "delta_auc": 0.004871,
    "clock_separability": 0.9617,
    "label_runs": 24
   },
@@ -327,7 +327,7 @@
    "corpus": "CIC-DDoS2019",
    "victim": "192.168.50.4",
    "mode": "within",
-   "delta_auc": 0.046053,
+   "delta_auc": 0.046215,
    "clock_separability": 0.5247,
    "label_runs": 2112
   },
@@ -336,7 +336,7 @@
    "corpus": "CIC-DDoS2019",
    "victim": "192.168.50.4",
    "mode": "within",
-   "delta_auc": 0.007667,
+   "delta_auc": 0.007387,
    "clock_separability": 0.9963,
    "label_runs": 62
   },
@@ -345,7 +345,7 @@
    "corpus": "CIC-DDoS2019",
    "victim": "192.168.50.4",
    "mode": "within",
-   "delta_auc": 0.037619,
+   "delta_auc": 0.037217,
    "clock_separability": 0.9878,
    "label_runs": 84
   },
@@ -354,7 +354,7 @@
    "corpus": "LITNET-2020",
    "victim": "193.219.81.138",
    "mode": "within",
-   "delta_auc": -0.027374,
+   "delta_auc": -0.19549,
    "clock_separability": 0.9682,
    "label_runs": 24
   }

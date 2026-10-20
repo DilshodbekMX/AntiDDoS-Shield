@@ -62,6 +62,24 @@ def shannon_entropy(counter):
     return h
 
 
+# The engine's per-IP burst_factor (project/layer1/telemetry/burst_ewma.h; one EWMA per
+# protected IP, per_ip_features.c). The constants and the two steps are copied from that header.
+BURST_EWMA_ALPHA = 0.033
+BURST_EWMA_SEED_FLOOR = 1.0
+BURST_FACTOR_NORMAL = 100
+
+
+def burst_ewma_step(mean, x):
+    """burst_ewma.h burst_ewma_step(): a mean below the seed floor re-seeds with x."""
+    return x if mean < BURST_EWMA_SEED_FLOOR else mean + BURST_EWMA_ALPHA * (x - mean)
+
+
+def burst_factor_from(mean_post, x):
+    """burst_ewma.h burst_factor_from(): (uint16_t)(x * 100 / mean_post), 100 when mean_post is 0.
+    No clamp is needed: a seeded mean_post holds alpha * x, so the ratio stays below 100 / alpha."""
+    return int(x * 100.0 / mean_post) if mean_post > 0.0 else BURST_FACTOR_NORMAL
+
+
 class WindowAggregator:
     """Aggregates per-packet data into per-(dst_ip, 1-second) feature windows."""
 
@@ -91,6 +109,10 @@ class WindowAggregator:
             'src_ports': Counter(),
             'dst_ports': Counter(),
             'flows': set(),  # 5-tuples observed
+            # Engine flow keys: {lower address, higher address, protocol}, no ports
+            # (extract_flow_key, packet_parser.h). With the destination fixed to this
+            # window's, a key is one (src_ip, protocol) pair.
+            'flows_eng': set(),
             'attack_flows': set(),  # 5-tuples labeled attack
             # Which attack each flow belongs to. CIC-DDoS2019 runs a dozen
             # distinct attacks in one capture and its per-attack CSVs are not
@@ -174,6 +196,7 @@ class WindowAggregator:
             proto,
         )
         w['flows'].add(flow_tuple)
+        w['flows_eng'].add((pkt_info['src_ip'], proto))
         if pkt_info.get('is_attack'):
             w['attack_flows'].add(flow_tuple)
             lbl = pkt_info.get('attack_label')
@@ -189,12 +212,30 @@ class WindowAggregator:
     def finalize(self):
         """Compute features for each window and return list of feature dicts grouped by dst_ip."""
         result = defaultdict(list)
+        # burst_factor needs each destination's packet rate in time order, so it is
+        # computed here and not in add_packet(), which sees the files in the order
+        # they are read (CIC-DDoS2019's sorted file names are not in time order).
+        # One mean per destination, starting at 0 at its first window. The engine
+        # commits the mean once per second for every registered slot, traffic or
+        # not (per_ip_features_reset_window), so each second with no window is a
+        # step with x = 0; a mean that has reached 0 stays there.
+        b_dst, b_sec, b_mean = None, None, 0.0
 
         for (dst_ip, sec_idx), w in sorted(self.windows.items()):
             n = w['n_packets']
             if n == 0:
                 continue
             total_pkts = max(n, 1)
+            if dst_ip != b_dst:
+                b_dst, b_mean = dst_ip, 0.0
+            else:
+                for _ in range(sec_idx - b_sec - 1):
+                    if b_mean == 0.0:
+                        break
+                    b_mean = burst_ewma_step(b_mean, 0.0)
+            b_mean = burst_ewma_step(b_mean, float(n))
+            b_sec = sec_idx
+            burst_factor = float(burst_factor_from(b_mean, float(n)))
 
             # Volume
             packets_per_sec = float(n)
@@ -222,12 +263,15 @@ class WindowAggregator:
             # Cardinality
             unique_src_ips = float(len(w['src_ips']))
             unique_dst_ports = float(len(w['dst_ports']))
+            # Exact count of the engine's flow keys, counted like unique_src_ips; the
+            # engine estimates it with a HyperLogLog fed 1 packet in 8 (layer1.c).
+            unique_flows = float(len(w['flows_eng']))
             # C-canonical formula: unique_dst_ports * 1000 / packets_per_sec
             # (production source: layer1/interlayer/shared_memory.c:577;
             # documented in layer2/layer2.c:1536 and l2_features_export.h field comment).
             # Prior Python lacked the x1000 scale (F-CIC-6); kept consistent within the
             # harness because z-scores are scale-invariant, but the variance-floor at
-            # baselines.py:49 (VAR_FLOOR_MEAN_THRESHOLD=50) gates whether the floor
+            # baselines.py:50 (VAR_FLOOR_MEAN_THRESHOLD=50) gates whether the floor
             # is absolute (1.0) or relative (2% of mean), so the scale matters in
             # practice for whether this feature can ever produce z > theta.
             dst_port_density = unique_dst_ports * 1000.0 / max(packets_per_sec, 1e-10)
@@ -312,9 +356,10 @@ class WindowAggregator:
                 'syn_ack_ratio': syn_ack_ratio,
                 'rst_syn_ratio': rst_syn_ratio,
                 'bytes_per_packet': bytes_per_packet,
-                # Cardinality (2)
+                # Cardinality (3)
                 'unique_src_ips': unique_src_ips,
                 'unique_dst_ports': unique_dst_ports,
+                'unique_flows': unique_flows,
                 # Churn (1)
                 'new_srcip_rate': new_srcip_rate,
                 # Concentration (3)
@@ -330,7 +375,8 @@ class WindowAggregator:
                 'ack_tcp_ratio': ack_tcp_ratio,
                 'rst_tcp_ratio': rst_tcp_ratio,
                 'fin_tcp_ratio': fin_tcp_ratio,
-                # Extended (5)
+                # Burst/Extended (6)
+                'burst_factor': burst_factor,
                 'udp_flow_ratio': udp_flow_ratio,
                 'icmp_echo_ratio': icmp_echo_ratio,
                 'dst_port_density': dst_port_density,

@@ -54,10 +54,13 @@ int pcap_test_init_eal(void) {
         "-l", "0",
         "--log-level=warning",
         "-m", "256",
-        "--in-memory",
+        "--no-shconf",
+        "--no-telemetry",
         NULL
     };
-    int argc = 8;
+    /* Count from the array: the literal 8 dropped the last option. --in-memory
+     * is refused with --no-huge; --no-shconf creates no shared files. */
+    int argc = (int)RTE_DIM(argv) - 1;
 
     int ret = rte_eal_init(argc, argv);
     if (ret < 0) {

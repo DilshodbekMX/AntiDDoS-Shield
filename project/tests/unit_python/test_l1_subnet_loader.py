@@ -18,7 +18,9 @@ so this test runs without the 23 GB dataset on disk. Asserts:
 Failure of any of these assertions means the L1 vs L2-zone comparison in the
 paper section 6.1.5 is meaningless. Each invariant is exactly what
 ip_protected_subnet_add + l1_resolve_track_key produce at the data plane
-(layer1/tables/ip_lists.c:626-682, layer1/layer1.c:1925-1932).
+(layer1/tables/ip_lists.c:626-682; per_ip_features_lookup_track() in
+layer1/telemetry/per_ip_features.c:460-475, which Stage 3c and Stage 11 of
+layer1/layer1.c call).
 """
 import os, sys, tempfile, csv
 

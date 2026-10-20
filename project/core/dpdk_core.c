@@ -13,6 +13,7 @@
 #include "../layer1/layer1.h"
 #include "../layer1/config/layer1_config.h"
 #include "../layer1/tables/ip_lists.h"
+#include "../layer1/tables/flow_table.h"
 #include "../layer1/telemetry/window_stats.h"
 #include "../layer2/layer2.h"
 #include "../layer2/config/layer2_config.h"
@@ -517,8 +518,17 @@ static void main_loop_sw_distributor(void)
     memset(diag_count, 0, sizeof(diag_count));
     #define SW_RSS_DIAG_PACKETS 5  /* Log first 5 packets per port */
 
+    /* Flow table reader: flow aging in the maintenance below reads flow
+     * entries, so entries other lcores delete wait for this lcore's
+     * quiescent report before they are reused */
+    if (flow_table_reader_register(lcore_id) != 0)
+        RTE_LOG(ERR, L2FWD, "lcore %u: flow table reader registration failed\n", lcore_id);
+
     while (likely(!force_quit)) {
         const uint64_t cur_tsc = rte_rdtsc();
+
+        /* Holds no flow pointer between iterations */
+        flow_table_reader_quiescent(lcore_id);
 
         /* Per-second stats */
         if (unlikely(cur_tsc - prev_pps_tsc > pps_interval_tsc)) {
@@ -649,6 +659,8 @@ static void main_loop_sw_distributor(void)
         }
     }
 
+    flow_table_reader_unregister(lcore_id);
+
     RTE_LOG(INFO, L2FWD, "SW RSS distributor exiting: %lu distributed, %lu dropped\n",
             sw_rss.dist_packets, sw_rss.dist_drops);
 }
@@ -704,8 +716,16 @@ static void main_loop_sw_worker(void)
     uint32_t worker_diag_count = 0;
     #define SW_RSS_WORKER_DIAG 5
 
+    /* Flow table reader: entries other lcores delete wait for this lcore's
+     * quiescent report (once per RX burst) before they are reused */
+    if (flow_table_reader_register(lcore_id) != 0)
+        RTE_LOG(ERR, L2FWD, "lcore %u: flow table reader registration failed\n", lcore_id);
+
     while (likely(!force_quit)) {
         const uint64_t cur_tsc = rte_rdtsc();
+
+        /* Holds no flow pointer between bursts */
+        flow_table_reader_quiescent(lcore_id);
 
         /* Per-second pps */
         if (unlikely(cur_tsc - prev_pps_tsc > pps_interval_tsc)) {
@@ -871,6 +891,8 @@ static void main_loop_sw_worker(void)
         }
     }
 
+    flow_table_reader_unregister(lcore_id);
+
     /* Flush remaining TX batches on exit */
     for (unsigned p = 0; p < sw_rss.nb_rx_ports; p++) {
         uint16_t pid = sw_rss.rx_ports[p];
@@ -961,6 +983,12 @@ static void main_loop(void)
     uint32_t hwrss_diag_count = 0;
     #define HWRSS_DIAG_PACKETS 5
 
+    // Flow table reader: entries other lcores delete wait for this lcore's
+    // quiescent report (once per RX burst) before they are reused
+    if (flow_table_reader_register(lcore_id) != 0) {
+        RTE_LOG(ERR, L2FWD, "lcore %u: flow table reader registration failed\n", lcore_id);
+    }
+
     while (likely(!force_quit)) {
         const uint64_t cur_tsc = rte_rdtsc();
 
@@ -1037,6 +1065,10 @@ static void main_loop(void)
         // Process packets from each assigned port/queue
         for (unsigned i = 0; i < n_rx_port; i++) {
             const uint64_t poll_start_tsc = rte_rdtsc();
+
+            // Holds no flow pointer between bursts (reported on every poll,
+            // so an lcore that receives nothing keeps reporting too)
+            flow_table_reader_quiescent(lcore_id);
 
             const uint16_t nb_rx = rte_eth_rx_burst(
                 port_cache[i].rx_port,
@@ -1214,6 +1246,8 @@ static void main_loop(void)
             lcore_cycles_add_busy(rte_rdtsc() - poll_start_tsc);
         }
     }
+
+    flow_table_reader_unregister(lcore_id);
 
     // Flush remaining packets on exit (both forward and reply buffers)
     for (unsigned i = 0; i < n_rx_port; i++) {

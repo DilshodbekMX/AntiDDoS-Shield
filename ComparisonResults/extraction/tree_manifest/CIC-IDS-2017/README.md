@@ -13,16 +13,19 @@ of its label files (below). The Wednesday writer is new: the cache these
 slices were first split from (2026-05-22) was written by code that was never
 committed, before `dst_port_density` gained its factor of 1000, so the five
 Wednesday slices and the Wednesday pool stored that column 1000 times smaller
-than the Friday files. For this revision of the deposit they were regenerated
+than the Friday files. In the revision before this one they were regenerated
 from the rebuilt cache. Their window counts, labels and every other column are unchanged.
+In this revision the whole tree was rebuilt with the two engine columns
+`burst_factor` and `unique_flows` added (see the tree's README); every earlier
+column of every file here is unchanged.
 
 `index.json` and `SHA256SUMS` are written by `write_extracted_index.py`. To
 verify a rebuilt tree, run `sha256sum -c` against this directory's `SHA256SUMS`
 (seven entries, one per slice) from inside `datasets/extracted/CIC-IDS-2017/`,
 and against `benign_pools/SHA256SUMS` (three pools and their `.meta.json`
-files, six entries) from inside its `benign_pools/`. On a rebuilt tree the
-five Wednesday slices and the Wednesday pool's two files match; the Friday
-slices and the Monday and Friday pools match by value only (see
+files, six entries) from inside its `benign_pools/`. Every file listed there
+was written by the deposited extraction scripts for this revision, so a rebuilt
+tree should match all thirteen entries (see
 `ComparisonResults/extraction/README.md`).
 Schedule source: https://www.unb.ca/cic/datasets/ids-2017.html
 

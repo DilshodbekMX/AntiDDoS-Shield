@@ -13,139 +13,139 @@
  "per_scenario": [
   {
    "label": "CIC-IDS-2017 Fri-07-07_DDoS-LOIT",
-   "archived_42": 0.2234254584108424,
-   "archived_7": 0.20498521791124105,
-   "corrected_42": 0.9967363141110815,
-   "corrected_7": 0.997433895827797
+   "archived_42": 0.09654447913898484,
+   "archived_7": 0.16855733457347863,
+   "corrected_42": 0.9974671140047835,
+   "corrected_7": 0.996279564177518
   },
   {
    "label": "CIC-IDS-2017 Wed-05-07_DoS-GoldenEye",
-   "archived_42": 0.9835186160357303,
-   "archived_7": 0.9805989507148012,
-   "corrected_42": 0.9856688705556531,
-   "corrected_7": 0.984131999297876
+   "archived_42": 0.9812776705088448,
+   "archived_7": 0.9851851851851852,
+   "corrected_42": 0.9842382930587248,
+   "corrected_7": 0.9861710841963607
   },
   {
    "label": "CIC-IDS-2017 Wed-05-07_DoS-Hulk",
-   "archived_42": 0.9781524843116922,
-   "archived_7": 0.9742377443203518,
-   "corrected_42": 0.9772252642789757,
-   "corrected_7": 0.977527248785044
+   "archived_42": 0.9781669455415603,
+   "archived_7": 0.9781550362934337,
+   "corrected_42": 0.9778624090537507,
+   "corrected_7": 0.9803123115255152
   },
   {
    "label": "CIC-IDS-2017 Wed-05-07_DoS-Slowhttptest",
-   "archived_42": 0.9125949354826212,
-   "archived_7": 0.8984834541016005,
-   "corrected_42": 0.9304500716859767,
-   "corrected_7": 0.9304050257682024
+   "archived_42": 0.89974813035223,
+   "archived_7": 0.8979913395590344,
+   "corrected_42": 0.923192350912543,
+   "corrected_7": 0.9362174022552021
   },
   {
    "label": "CIC-IDS-2017 Wed-05-07_DoS-Slowloris",
-   "archived_42": 0.9405216330630696,
-   "archived_7": 0.9339390351821291,
-   "corrected_42": 0.9973484848484848,
-   "corrected_7": 0.9957104589701274
+   "archived_42": 0.9068567482241515,
+   "archived_7": 0.9178538542488819,
+   "corrected_42": 0.9954467723804741,
+   "corrected_7": 0.9955194207266032
   },
   {
    "label": "CIC-IDS-2018 Fri-16-02_DoS-Hulk",
-   "archived_42": 0.04882149554154238,
-   "archived_7": 0.04258084168717215,
-   "corrected_42": 0.9587543219742225,
-   "corrected_7": 0.9685435441375436
+   "archived_42": 0.04608292652050416,
+   "archived_7": 0.04632028894919653,
+   "corrected_42": 0.9685702474107715,
+   "corrected_7": 0.9704988171438971
   },
   {
    "label": "CIC-IDS-2018 Fri-16-02_DoS-SlowHTTPTest",
-   "archived_42": 0.0012115775886586886,
-   "archived_7": 0.0007915290205430002,
-   "corrected_42": 0.9914477819831251,
-   "corrected_7": 0.9951587944022694
+   "archived_42": 0.0009432132256958877,
+   "archived_7": 0.0012812939829501117,
+   "corrected_42": 0.9962459617726633,
+   "corrected_7": 0.9940086197466582
   },
   {
    "label": "CIC-IDS-2018 Thu-15-02_DoS-Slowloris",
-   "archived_42": 0.002685642830128514,
-   "archived_7": 0.002483101469050567,
-   "corrected_42": 0.997376000192808,
-   "corrected_7": 0.9988424552647777
+   "archived_42": 0.0018328370992740026,
+   "archived_7": 0.0021693245778611633,
+   "corrected_42": 0.9988202081587553,
+   "corrected_7": 0.9991196171273053
   },
   {
    "label": "CIC-IDS-2018 Tue-20-02_DDoS-LOIC-HTTP",
-   "archived_42": 0.00019672427960613356,
-   "archived_7": 0.0006554574448823832,
-   "corrected_42": 0.9985524226682079,
-   "corrected_7": 0.9969150847481233
+   "archived_42": 0.001102004150360021,
+   "archived_7": 0.0009992897034860233,
+   "corrected_42": 0.9942227475940446,
+   "corrected_7": 0.992113619587471
   },
   {
    "label": "CIC-IDS-2018 Wed-21-02_DDoS-HOIC",
-   "archived_42": 0.010497028675264008,
-   "archived_7": 0.01146705398422421,
-   "corrected_42": 0.9893326433644167,
-   "corrected_7": 0.9894369611241041
+   "archived_42": 0.01277567915839375,
+   "archived_7": 0.010817015828163978,
+   "corrected_42": 0.9892132839360606,
+   "corrected_7": 0.9892602485706086
   },
   {
    "label": "CIC-IDS-2018 Wed-21-02_DDoS-LOIC-UDP",
-   "archived_42": 0.06328360966147879,
-   "archived_7": 0.08559183484967442,
-   "corrected_42": 1.0,
-   "corrected_7": 0.993712957403901
+   "archived_42": 0.1312181529888083,
+   "archived_7": 0.11171354238827567,
+   "corrected_42": 0.9999883003125049,
+   "corrected_7": 0.9999987684539479
   },
   {
    "label": "CIC-DDoS2019 cicddos_03-11_192-168-50-4_LDAP",
-   "archived_42": 0.9960888835828023,
-   "archived_7": 0.9964816666417944,
-   "corrected_42": 0.9972057484815472,
-   "corrected_7": 0.9968917608082496
+   "archived_42": 0.9961682759032369,
+   "archived_7": 0.99683923055112,
+   "corrected_42": 0.9930379501261024,
+   "corrected_7": 0.9959092062260293
   },
   {
    "label": "CIC-DDoS2019 cicddos_03-11_192-168-50-4_Syn",
-   "archived_42": 0.9534444307310435,
-   "archived_7": 0.8661469683767881,
-   "corrected_42": 0.9691510555166554,
-   "corrected_7": 0.9704746923827356
+   "archived_42": 0.8836644586998255,
+   "archived_7": 0.8537660004248423,
+   "corrected_42": 0.9708297110285903,
+   "corrected_7": 0.9697058950796972
   },
   {
    "label": "CIC-DDoS2019 cicddos_03-11_192-168-50-4_UDP",
-   "archived_42": 0.9900748842673305,
-   "archived_7": 0.9858809719219759,
-   "corrected_42": 0.9946612774311907,
-   "corrected_7": 0.9935499934735534
+   "archived_42": 0.9950546522834516,
+   "archived_7": 0.9888241310438917,
+   "corrected_42": 0.9953233094268706,
+   "corrected_7": 0.9933631404187295
   },
   {
    "label": "CIC-DDoS2019 cicddos_03-11_192-168-50-4_UDPLag",
-   "archived_42": 0.987353718384296,
-   "archived_7": 0.9863139912087069,
-   "corrected_42": 0.9871329763070171,
-   "corrected_7": 0.9861108445143995
+   "archived_42": 0.9853198520708166,
+   "archived_7": 0.983830642839319,
+   "corrected_42": 0.9876472413638662,
+   "corrected_7": 0.9840969729542968
   },
   {
    "label": "LITNET-2020 code_red_worm",
-   "archived_42": 0.41068666944483034,
-   "archived_7": 0.45545214613140717,
-   "corrected_42": 0.9554475158586841,
-   "corrected_7": 0.9585590591285827
+   "archived_42": 0.5975089132749919,
+   "archived_7": 0.611899800898273,
+   "corrected_42": 0.9575959624021856,
+   "corrected_7": 0.9699217483909802
   }
  ],
  "summary": {
   "archived": {
-   "mean_auc_seed42": 0.53141,
-   "mean_auc_seed7": 0.526631,
-   "abs_delta_of_means": 0.004779,
-   "per_scenario_abs_delta_mean": 0.013391,
-   "per_scenario_abs_delta_median": 0.004054,
-   "per_scenario_abs_delta_max": 0.087297,
-   "max_scenario": "CIC-DDoS2019 cicddos_03-11_192-168-50-4_Syn"
+   "mean_auc_seed42": 0.532142,
+   "mean_auc_seed7": 0.534763,
+   "abs_delta_of_means": 0.002621,
+   "per_scenario_abs_delta_mean": 0.01024,
+   "per_scenario_abs_delta_median": 0.001858,
+   "per_scenario_abs_delta_max": 0.072013,
+   "max_scenario": "CIC-IDS-2017 Fri-07-07_DDoS-LOIT"
   },
   "corrected": {
-   "mean_auc_seed42": 0.982906,
-   "mean_auc_seed7": 0.983338,
-   "abs_delta_of_means": 0.000432,
-   "per_scenario_abs_delta_mean": 0.002131,
-   "per_scenario_abs_delta_median": 0.001395,
-   "per_scenario_abs_delta_max": 0.009789,
-   "max_scenario": "CIC-IDS-2018 Fri-16-02_DoS-Hulk"
+   "mean_auc_seed42": 0.983106,
+   "mean_auc_seed7": 0.984531,
+   "abs_delta_of_means": 0.001425,
+   "per_scenario_abs_delta_mean": 0.002946,
+   "per_scenario_abs_delta_median": 0.001946,
+   "per_scenario_abs_delta_max": 0.013025,
+   "max_scenario": "CIC-IDS-2017 Wed-05-07_DoS-Slowhttptest"
   },
   "panel_delta_corrected_minus_archived": {
-   "at_seed_42": 0.451496,
-   "at_seed_7": 0.456707
+   "at_seed_42": 0.450965,
+   "at_seed_7": 0.449768
   }
  }
 }

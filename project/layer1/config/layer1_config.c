@@ -50,7 +50,7 @@ void layer1_config_defaults(struct layer1_config *config) {
 
     // SYN Cookie defaults
     config->syn_cookie.enabled = true;
-    config->syn_cookie.challenge_threshold = 1000;
+    config->syn_cookie.challenge_threshold = L1_DEFAULT_CHALLENGE_THRESHOLD;
 
     // Connection Limits defaults
     config->connection_limits.max_ips = 100000;
@@ -789,8 +789,11 @@ int layer1_config_validate(const struct layer1_config *config) {
 
     // ===== SYN Cookie Validation =====
     if (config->syn_cookie.enabled) {
+        // layer1_init() passes the threshold to syn_proxy_init(), where 0
+        // selects the default; it never means "challenge every SYN"
         if (config->syn_cookie.challenge_threshold == 0) {
-            RTE_LOG(WARNING, CFG, "syn_cookie.challenge_threshold is 0 - ALL SYNs will be challenged\n");
+            RTE_LOG(WARNING, CFG, "syn_cookie.challenge_threshold is 0 - the default (%u SYN/s) applies\n",
+                    L1_DEFAULT_CHALLENGE_THRESHOLD);
             warnings++;
         }
         // Warn if both SYN proxy and SYN cookie disabled

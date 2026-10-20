@@ -418,7 +418,10 @@ uint32_t per_ip_features_v6_snapshot_all(struct per_ip_feature_snapshot_v6 *out,
                                          uint32_t max_count);
 
 /**
- * Reset window counters for IPv6
+ * Roll the window for an IPv6 slot, as per_ip_features_reset_window() does for
+ * IPv4: saves the HLL counts for the churn features, commits the burst EWMA,
+ * saves the counters as "previous", decays the CMS and resets the four HLLs,
+ * so unique_* counts the new window's keys only
  */
 void per_ip_features_v6_reset_window(struct per_ip_features_v6 *pif);
 

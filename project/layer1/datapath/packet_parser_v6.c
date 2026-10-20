@@ -41,9 +41,24 @@ struct ipv6_frag_hdr {
 
 // ==================== Flow Hash (IPv6) ====================
 
+_Static_assert(sizeof(struct flow_key_v6) == 36,
+               "compute_flow_hash_v6() reads the key as four 8-byte words and one 4-byte word");
+
 uint32_t compute_flow_hash_v6(const struct flow_key_v6 *key) {
-    // Hash entire 36-byte structure
-    return rte_hash_crc(key, sizeof(struct flow_key_v6), 0);
+    // CRC32-C of the 36-byte key, the value rte_hash_crc(key, 36, 0) is meant
+    // to return, read as compute_flow_hash() reads its key and for the same
+    // reasons: the four address words with memcpy, the protocol and padding
+    // word from its bytes
+    const uint8_t *p = (const uint8_t *)key;
+    uint32_t crc = 0;
+    for (size_t off = 0; off + 8 <= sizeof(*key); off += 8) {
+        uint64_t w;
+        memcpy(&w, p + off, sizeof(w));
+        crc = rte_hash_crc_8byte(w, crc);
+    }
+    uint32_t tail = rte_le_to_cpu_32((uint32_t)p[32] | (uint32_t)p[33] << 8 |
+                                     (uint32_t)p[34] << 16 | (uint32_t)p[35] << 24);
+    return rte_hash_crc_4byte(tail, crc);
 }
 
 // ==================== Extension Header Processing ====================

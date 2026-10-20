@@ -1,12 +1,12 @@
 record	numeric_leaves	values_changed_pass1_to_pass2	cause
 adjacency_free_episodes.json	3566	0	identical values; population keys and notes renamed
 adjacency_free_fpr.json	1136	8	8 summary means: exact ties 6.865 and 3.025 now averaged with statistics.mean, as in scenarios29_corrected_results.json
-admissibility_inputs.json	280	0	not rewritten: input to runners/run_admissibility_ledger.py, no deposited writer
+admissibility_inputs.json	280	0	not rewritten: input to runners/run_admissibility_ledger.py, written by extraction/write_admissibility_inputs.py from the tree's index.json files, a step of the extraction recipe that regenerate.sh does not run
 admissibility_ledger.json	255	0	identical values; population keys and notes renamed
 all_extracted_datasets_evaluation_results.json	426	0	not rewritten: no deposited writer; rows restricted by hand to the four corpora (note in the record)
 batch_invariance_gate.json	185	21	rewritten by runners/verify_inductive.py in a follow-up run: archived-module LODA (unseeded) and DIF thread-count digits moved; every verdict unchanged
 c_engine_ours.json	387	0	identical values; population keys and notes renamed
-c_engine_verification_report.json	133	0	not rewritten: runners/verify_c_engine_subspace_q.py needs the engine source subspace_q.c, which is not deposited; rows restricted by hand to the 16 panel scenarios (note in the record)
+c_engine_verification_report.json	133	0	not rewritten: runners/verify_c_engine_subspace_q.py needs the engine source subspace_q.c, which is not deposited; the record in this revision is that runner's output with the recovered source (the earlier record was restricted by hand to the 16 panel scenarios)
 clock_null.json	152	0	byte-identical
 clock_split_sensitivity.json	88	0	identical values; population keys and notes renamed
 corrected_benchmark_results.json	402	0	identical values; population keys and notes renamed
@@ -16,8 +16,8 @@ final_evaluation.json	303	44	archived-module LODA + EWMA, unseeded
 fpr_dr_optimization_results.json	48	0	byte-identical
 full_tree_all_scenarios_metrics.json	713	0	not rewritten: no deposited writer; rows restricted by hand to the 31 four-corpus candidates
 joint_filter.json	133	43	pass 1 failed on a stale victim-count assertion and kept the earlier record
-litnet_l1subnet_16_results.json	61	0	not rewritten: runners/run_litnet_l1subnet.py reads LITNET-2020 caches that are not deposited; scored on an incomplete LITNET-2020 export
-litnet_l1subnet_24_results.json	113	0	not rewritten: runners/run_litnet_l1subnet.py reads LITNET-2020 caches that are not deposited; scored on an incomplete LITNET-2020 export
+litnet_l1subnet_16_results.json	61	0	not rewritten: runners/run_litnet_l1subnet.py reads the LITNET-2020 export or caches built from it, neither of which is deposited; scored on an incomplete LITNET-2020 export
+litnet_l1subnet_24_results.json	113	0	not rewritten: runners/run_litnet_l1subnet.py reads the LITNET-2020 export or caches built from it, neither of which is deposited; scored on an incomplete LITNET-2020 export
 matched_smoothing_benchmark.json	402	0	identical values; population keys and notes renamed
 matched_smoothing_matrix.json	1640	0	identical values; population keys and notes renamed
 order_sensitivity.json	2330	0	identical values; population keys and notes renamed
@@ -28,15 +28,15 @@ panel_inventory/cicids2017.json	48	0	not rewritten: per-corpus panel inventory, 
 panel_inventory/cicids2018.json	24	0	not rewritten: per-corpus panel inventory, an input with no deposited writer
 panel_inventory/litnet.json	160	0	not rewritten: per-corpus panel inventory, an input with no deposited writer
 post2023_benchmark_results.json	724	9	archived-module LODA, which passes no random_state
-rescued/ABLATION_no_unique_dst_l1subnet_16_results.json	61	0	not rewritten: rescued LITNET-2020 record whose writer reads caches that are not deposited
-rescued/ABLATION_no_unique_dst_l1subnet_24_results.json	113	0	not rewritten: rescued LITNET-2020 record whose writer reads caches that are not deposited
+rescued/ABLATION_no_unique_dst_l1subnet_16_results.json	61	0	not rewritten: runners/ablate_no_unique_dst_runner.py reads the LITNET-2020 export or caches built from it, neither of which is deposited; scored on an incomplete LITNET-2020 export
+rescued/ABLATION_no_unique_dst_l1subnet_24_results.json	113	0	not rewritten: runners/ablate_no_unique_dst_runner.py reads the LITNET-2020 export or caches built from it, neither of which is deposited; scored on an incomplete LITNET-2020 export
 rescued/dual_scale_union_results.json	105	0	not rewritten: rescued dual-scale audit (CIC-IDS-2017 and LITNET-2020 blocks) with no deposited writer
-rescued/litnet_l1subnet_16_results_CANONICAL.json	61	0	not rewritten: rescued LITNET-2020 record whose writer reads caches that are not deposited
-rescued/litnet_l1subnet_24_results_CANONICAL.json	113	0	not rewritten: rescued LITNET-2020 record whose writer reads caches that are not deposited
-rescued/litnet_results_COMPLETE_EXPORT.json	127	0	not rewritten: rescued LITNET-2020 record whose writer reads caches that are not deposited
-rescued/litnet_results_TRUNCATED_EXPORT_per_destination.json	121	0	not rewritten: rescued LITNET-2020 record whose writer reads caches that are not deposited
-rescued/litnet_zone_results_COMPLETE_EXPORT.json	47	0	not rewritten: rescued LITNET-2020 record whose writer reads caches that are not deposited
-rescued/litnet_zone_results_POSTHOC_SUM.json	43	0	not rewritten: rescued LITNET-2020 record whose writer reads caches that are not deposited
+rescued/litnet_l1subnet_16_results_CANONICAL.json	61	0	not rewritten: byte copy of litnet_l1subnet_16_results.json, with no writer of its own
+rescued/litnet_l1subnet_24_results_CANONICAL.json	113	0	not rewritten: byte copy of litnet_l1subnet_24_results.json, with no writer of its own
+rescued/litnet_results_COMPLETE_EXPORT.json	127	0	not rewritten: rescued LITNET-2020 record with no deposited writer
+rescued/litnet_results_TRUNCATED_EXPORT_per_destination.json	121	0	not rewritten: rescued LITNET-2020 record with no deposited writer
+rescued/litnet_zone_results_COMPLETE_EXPORT.json	47	0	not rewritten: rescued LITNET-2020 record with no deposited writer
+rescued/litnet_zone_results_POSTHOC_SUM.json	43	0	not rewritten: rescued LITNET-2020 record with no deposited writer
 scenarios29_corrected_results.json	2604	0	identical values; population keys and notes renamed
 split_control_deposited_benchmark.json	409	0	identical values; population keys and notes renamed
 split_control_deposited_matrix.json	1640	0	identical values; population keys and notes renamed

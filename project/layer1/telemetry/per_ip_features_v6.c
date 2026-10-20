@@ -394,19 +394,43 @@ struct per_ip_features_v6* per_ip_features_v6_lookup(const uint8_t dst_ip6[16]) 
 /* ==================== HLL and CMS Operations ==================== */
 
 /**
- * Hash 128-bit IPv6 address for HLL
+ * HLL key of a 128-bit IPv6 source: the prefix XOR the fully mixed interface
+ * ID (MurmurHash3 fmix64). hll_add() mixes the key again, so every address bit
+ * reaches every register-index and rho bit.
+ *
+ * The interface ID must be mixed before the XOR. The old key, prefix ^
+ * (iid * C) with half a finalizer after it, let prefix bits cancel IID bits:
+ * a product bit depends only on the IID bits at or below it, so a difference
+ * in the last IID bytes stayed in the top bits and met the last prefix bytes.
+ * 1,048,576 sources over 256 /64s with hosts ::0 to ::fff gave 4096 keys, and
+ * unique_src_ips read 0.4% of the truth.
+ *
+ * Both halves are loaded with memcpy: Stage 3c passes the source inside the
+ * frame, where it is only 2-byte aligned.
+ *
+ * Like every HLL key here the mix has no secret, so a sender that chooses its
+ * spoofed sources can choose sources that share a key.
  */
 static inline uint64_t hash_ipv6_for_hll(const uint8_t ip6[16]) {
-    const uint64_t *words = (const uint64_t *)ip6;
-    /* Combine both 64-bit halves with XOR and mix */
-    uint64_t h = words[0] ^ (words[1] * 0x9e3779b97f4a7c15ULL);
-    /* Apply a mixing step */
-    h ^= h >> 33;
-    h *= 0xff51afd7ed558ccdULL;
-    h ^= h >> 33;
-    return h;
+    uint64_t prefix, iid;
+    memcpy(&prefix, ip6, sizeof(prefix));
+    memcpy(&iid, ip6 + 8, sizeof(iid));
+    iid ^= iid >> 33;
+    iid *= 0xff51afd7ed558ccdULL;
+    iid ^= iid >> 33;
+    iid *= 0xc4ceb9fe1a85ec53ULL;
+    iid ^= iid >> 33;
+    return prefix ^ iid;
 }
 
+/*
+ * Two IPv6 differences from the IPv4 feed, kept as they are (no IPv6 per-IP
+ * feature is exported yet, so nothing compares the two families):
+ * - Stage 3c calls this for every packet to a protected IPv6 destination;
+ *   IPv4 Stage 3c feeds one packet in 8.
+ * - Stage 3c passes its 32-bit source hash as flow_hash, so unique_flows
+ *   counts distinct sources here, not (src, dst, protocol) flows.
+ */
 void per_ip_hll_cms_v6_update(struct per_ip_features_v6 *pif,
                               const uint8_t src_ip6[16],
                               uint16_t src_port,
@@ -692,6 +716,15 @@ void per_ip_features_v6_reset_window(struct per_ip_features_v6 *pif) {
 
     /* Reset CMS window counters */
     cms_v6_reset_window(&pif->cms);
+
+    /* Windowed HLLs, as per_ip_features_reset_window() does for IPv4: after the
+     * roll unique_* counts this window's keys only. prev_unique_* was captured
+     * above, so the churn features still compare consecutive windows. Without
+     * the reset the sketches kept every key since registration. */
+    hll_reset(&pif->hll.src_ip);
+    hll_reset(&pif->hll.src_port);
+    hll_reset(&pif->hll.dst_port);
+    hll_reset(&pif->hll.flows);
 }
 
 void per_ip_features_v6_reset_all_windows(void) {

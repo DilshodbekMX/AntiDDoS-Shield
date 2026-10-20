@@ -8,6 +8,9 @@
  *      protected subnet is aggregated into the subnet's single slot -- so many
  *      distinct destinations in the /24 fold into one tracked entry, which is
  *      exactly what lets Layer 2 see a distributed flood that no single IP trips.
+ *   3. New flows (Stage 11) are counted on the slot Stage 3c tracks, through the
+ *      production per_ip_features_lookup_track(), so a subnet slot's
+ *      flows_per_sec counts the new flows of every address it aggregates.
  *
  * Needs EAL (rte_lpm / per_ip_features hash), mirroring test_flow_table.c.
  */
@@ -49,8 +52,9 @@ int main(int argc, char **argv) {
     assert(l1_resolve_track_key(BE_IP(10, 0, 6, 5), false, false, 0) == BE_IP(10, 0, 6, 5));
     printf("pure policy: exact wins, subnet maps to network, no-match -> self\n");
 
-    char *eal_args[] = { argv[0], "-l", "0", "-n", "1", "--no-huge", "--no-pci", "-m", "256", "--in-memory", NULL };
-    if (rte_eal_init(9, eal_args) < 0) {
+    /* No shared files (--in-memory is refused with --no-huge); argc is counted from the array. */
+    char *eal_args[] = { argv[0], "-l", "0", "-n", "1", "--no-huge", "--no-pci", "-m", "256", "--no-shconf", "--no-telemetry", NULL };
+    if (rte_eal_init((int)RTE_DIM(eal_args) - 1, eal_args) < 0) {
         fprintf(stderr, "EAL init failed (missing DPDK permissions / runtime directory) -- skipping test\n");
         return 77;
     }
@@ -125,6 +129,52 @@ int main(int argc, char **argv) {
     }
     assert(s4 && s5 && s6 && !low && "export must pick the 3 busiest, not arbitrary");
     printf("top-talker export: 3 busiest of 7 registered selected (10.1.0.{4,5,6})\n");
+
+    /* 7. New flows count on the slot Stage 3c tracks. layer1.c resolves both the
+     *    Stage 3c slot and the Stage 11 new_flows slot with
+     *    per_ip_features_lookup_track(), which must match the Stage-3c flow above;
+     *    new flows to addresses covered only by a protected subnet must then reach
+     *    the subnet slot's flows_per_sec. */
+    assert(ip_protected_subnet_add(HOST_IP(10, 0, 7, 0), 24) == 0);
+    assert(ip_protected_add(BE_IP(10, 0, 7, 50)) == 0);   /* exact /32 inside the /24 */
+    const uint32_t probes[] = {
+        BE_IP(10, 0, 7, 1), BE_IP(10, 0, 7, 50), BE_IP(10, 0, 7, 255),  /* subnet, exact, subnet */
+        BE_IP(10, 0, 8, 1), BE_IP(10, 0, 5, 99),                        /* untracked */
+        BE_IP(10, 0, 5, 10), BE_IP(10, 1, 0, 6),                        /* exact elsewhere */
+    };
+    for (size_t i = 0; i < sizeof(probes) / sizeof(probes[0]); i++) {
+        assert(per_ip_features_lookup_track(probes[i]) == resolve_track_slot(probes[i]) &&
+               "the production lookup must resolve like Stage 3c");
+    }
+    struct per_ip_features *s_net = per_ip_features_lookup(BE_IP(10, 0, 7, 0));
+    struct per_ip_features *s_x50 = per_ip_features_lookup(BE_IP(10, 0, 7, 50));
+    assert(s_net != NULL && s_x50 != NULL && s_net != s_x50);
+    assert(per_ip_features_lookup_track(BE_IP(10, 0, 7, 99)) == s_net);
+    assert(per_ip_features_lookup_track(BE_IP(10, 0, 7, 50)) == s_x50);
+
+    /* Stage 11, once per created flow: 40 to distinct addresses in the /24, one to
+     * the exact /32, one to an untracked address (a NULL slot, ignored). */
+    const uint32_t new_flows_subnet = 40;
+    for (uint32_t i = 0; i < new_flows_subnet; i++) {
+        uint32_t dst = rte_cpu_to_be_32(HOST_IP(10, 0, 7, 100 + i));
+        per_ip_increment_new_flow(per_ip_features_lookup_track(dst), lcore);
+    }
+    per_ip_increment_new_flow(per_ip_features_lookup_track(BE_IP(10, 0, 7, 50)), lcore);
+    per_ip_increment_new_flow(per_ip_features_lookup_track(BE_IP(10, 0, 8, 1)), lcore);
+
+    /* Fresh slots have no previous window, so the snapshot uses 1 s and
+     * flows_per_sec equals the new flows counted. */
+    struct per_ip_feature_snapshot snap_net, snap_x50;
+    assert(per_ip_features_snapshot(BE_IP(10, 0, 7, 0), &snap_net) == 0);
+    assert(per_ip_features_snapshot(BE_IP(10, 0, 7, 50), &snap_x50) == 0);
+    printf("new flows: subnet 10.0.7.0/24 flows_per_sec=%u (expected %u), "
+           "exact 10.0.7.50 flows_per_sec=%u (expected 1)\n",
+           snap_net.flows_per_sec, new_flows_subnet, snap_x50.flows_per_sec);
+    fflush(stdout);  /* keep the values if an assert aborts */
+    assert(snap_net.flows_per_sec == new_flows_subnet &&
+           "new flows to subnet-covered addresses must count on the subnet slot");
+    assert(snap_x50.flows_per_sec == 1 && "the exact /32 keeps its own new flow");
+    printf("new-flow counting: Stage 11 uses the Stage 3c slot (subnet and exact /32)\n");
 
     printf("\nPASS: protected-subnet aggregation, exact-/32 precedence, masking, "
            "and top-talker export selection all hold.\n");

@@ -32,7 +32,7 @@ That is 31 candidates; 16 are admitted as usable scenarios
 > for that corpus shows it, with the reading `file:line` cited; where the path is a command-line
 > argument, the block says so. Paths are relative to the `datasets/` root, resolved as
 > `$ANTIDDOS_BASE/datasets`, where `ANTIDDOS_BASE` defaults to the repository root
-> (`ComparisonResults/config.py:98`; the scripts in `ComparisonResults/extraction/` resolve it the
+> (`ComparisonResults/config.py:100`; the scripts in `ComparisonResults/extraction/` resolve it the
 > same way). Set that environment variable to relocate the whole tree.
 
 ## CIC-IDS-2017 (`datasets/CIC-IDS-2017/`)
@@ -71,7 +71,7 @@ That is 31 candidates; 16 are admitted as usable scenarios
 - **Expected layout:** no fixed path. Run
   `ComparisonResults/extraction/pcap_feature_extractor_cicids2018.py <pcap_dir> <day_tag> <output_json>`
   once per day, with `<day_tag>` one of `tue`, `wed`, `thu`, `fri`; `<pcap_dir>` holds that day's per-host
-  captures, matched by the globs `cap*` and `UCAP*` (`pcap_feature_extractor_cicids2018.py:346-347`).
+  captures, matched by the globs `cap*` and `UCAP*` (`pcap_feature_extractor_cicids2018.py:349-350`).
   Tuesday (20-02) ships as a RAR 5.0 archive, `pcap.rar`, where the other days ship as `pcap.zip`.
   Unpack its `pcap/UCAP172.31.69.25` and `pcap/capEC2AMAZ-O4EL3NG-172.31.69.28` with a RAR5 reader
   such as `bsdtar` and pass that `pcap/` directory; `ComparisonResults/extraction/README.md` (Inputs)
@@ -83,7 +83,7 @@ That is 31 candidates; 16 are admitted as usable scenarios
 - **Source:** https://www.unb.ca/cic/datasets/ddos-2019.html
 - **Reference:** Sharafaldin, Habibi Lashkari, Hakak and Ghorbani, "Developing Realistic Distributed Denial of Service (DDoS) Attack Dataset and Taxonomy," ICCST 2019, doi:10.1109/CCST.2019.8888419
 - **Used as:** raw pcaps of the 03-11 day with 5-tuple labels from the seven per-attack CSVs. One of the two labelled hosts is the attack source; its six slices are kept apart as a negative control.
-- **Expected layout**: the label CSVs are read from a fixed path by `stamp_cicddos_roles.py:29` and `export_benign_pools.py:98`, and passed as `<csv_dir>` to `pcap_feature_extractor.py <pcap_dir> <csv_dir> <output_json>` (filenames at `pcap_feature_extractor.py:36-44`); the pcaps can live anywhere and are passed as `<pcap_dir>` (glob at `pcap_feature_extractor.py:492`):
+- **Expected layout**: the label CSVs are read from a fixed path by `stamp_cicddos_roles.py:29` and `export_benign_pools.py:98`, and passed as `<csv_dir>` to `pcap_feature_extractor.py <pcap_dir> <csv_dir> <output_json>` (filenames at `pcap_feature_extractor.py:36-44`); the pcaps can live anywhere and are passed as `<pcap_dir>` (glob at `pcap_feature_extractor.py:538`):
 
   ```
   datasets/CICDDoS2019/03-11/        # CSV label dir; these exact filenames are read
@@ -108,7 +108,7 @@ That is 31 candidates; 16 are admitted as usable scenarios
 
 - **Source:** https://dataset.litnet.lt (freely downloadable)
 - **Reference:** Damaševičius et al., "LITNET-2020: An Annotated Real-World Network Flow Dataset for Network Intrusion Detection," *Electronics* 9(5):800, 2020, doi:10.3390/electronics9050800
-- **Used as:** NetFlow records with labelled attack families. The per-window caches carry 13 features; the TCP-flag features of the packet-capture corpora do not exist in a flow export. Four single-host scenarios, a role-screened benign pool, and `/24` and `/16` subnet records (`ComparisonResults/results/litnet_l1subnet_*_results.json`, produced from the truncated `parts/` export; see `ComparisonResults/README.md`).
+- **Used as:** NetFlow records with labelled attack families. The per-window caches carry 15 features, `burst_factor` and `unique_flows` among them; the TCP-flag features of the packet-capture corpora do not exist in a flow export. Four single-host scenarios, a role-screened benign pool, and `/24` and `/16` subnet records (`ComparisonResults/results/litnet_l1subnet_*_results.json`, produced from the truncated `parts/` export; see `ComparisonResults/README.md`).
 - **Expected layout** (`ComparisonResults/extraction/rebuild_litnet_caches.py:45,54`; `export_benign_pools.py:102`):
 
   ```
@@ -121,7 +121,7 @@ That is 31 candidates; 16 are admitted as usable scenarios
   instead. The two subnet runners (`ComparisonResults/runners/run_litnet_l1subnet.py` and
   `ablate_no_unique_dst_runner.py`, lines 44-47) read `LITNET_DIR`, which defaults to
   `datasets/LITNET-2020/parts/`; the loader globs `allFlows_part_*.csv` there and falls back to an
-  `allFlows.csv` in the same directory (`ComparisonResults/litnet_loader.py:356-360`). Set
+  `allFlows.csv` in the same directory (`ComparisonResults/litnet_loader.py:396-400`). Set
   `LITNET_DIR=$ANTIDDOS_BASE/datasets/LITNET-2020` to read the complete file. A `parts/` split
   must be cut from the complete file: an earlier extraction was 11.5% short and lost two attack
   types entirely (`rebuild_litnet_caches.py` docstring). The scenario and pool exporters read the

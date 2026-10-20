@@ -4,7 +4,9 @@
  *
  * Tests cover:
  * 1. IPv6 whitelist/blacklist lookup (ip_lists_v6)
- * 2. IPv6 SYN cookie generate + validate round-trip (syn_proxy_v6)
+ * 2. IPv6 SYN cookie generate + validate round-trip (syn_proxy_v6), a valid
+ *    cookie ACK on a full connection table, the cookie counters, the options
+ *    of the cookie SYN-ACK and the mode after a re-init
  * 3. IPv6 geo-block lookup (geo_blocking_v6)
  * 4. IPv6 flow table create + lookup (flow_table_v6)
  *
@@ -19,6 +21,11 @@
 
 #include <rte_eal.h>
 #include <rte_cycles.h>
+#include <rte_mbuf.h>
+#include <rte_mempool.h>
+#include <rte_ether.h>
+#include <rte_ip.h>
+#include <rte_tcp.h>
 
 #include "../../layer1/tables/ip_lists_v6.h"
 #include "../../layer1/tables/syn_proxy_v6.h"
@@ -327,6 +334,237 @@ void test_syn_proxy_v6_enabled(void)
     syn_proxy_v6_cleanup();
 }
 
+/* A valid cookie ACK that finds the connection table full is still forwarded
+ * (the entry is not needed to forward it), so it is no table_full_drops drop.
+ * It used to count one for each such forwarded ACK, the pattern syn_proxy.c
+ * had for bypassed SYNs. */
+void test_syn_proxy_v6_full_table_forwards_uncounted(void)
+{
+    struct syn_proxy_config cfg = syn_cfg;
+    cfg.max_connections = 8;   /* The smallest table rte_hash creates */
+    TEST_ASSERT_EQ(0, syn_proxy_v6_init(&cfg), "syn_proxy_v6_init should succeed");
+
+    struct rte_mempool *pool = rte_pktmbuf_pool_create("v6_full_pool", 63, 0, 0,
+                                                       RTE_MBUF_DEFAULT_BUF_SIZE,
+                                                       rte_socket_id());
+    struct rte_mbuf *m = pool ? rte_pktmbuf_alloc(pool) : NULL;
+    if (!m) {
+        rte_mempool_free(pool);
+        syn_proxy_v6_cleanup();
+    }
+    TEST_ASSERT_NOT_NULL(m, "Failed to create a mempool and an mbuf");
+
+    uint8_t server_ip[16];
+    make_ip6(server_ip, 0x2001, 0x0db8, 0, 0, 0, 0, 0, 0x50);
+    uint32_t forwarded = 0;
+    const uint32_t acks = 32;
+    for (uint32_t i = 0; i < acks; i++) {
+        uint8_t client_ip[16];
+        make_ip6(client_ip, 0x2001, 0x0db8, 0, 0, 0, 0, 1, (uint16_t)i);
+        const uint16_t port = (uint16_t)(40000 + i);
+        const uint32_t isn = 1000 + i;
+        uint32_t cookie = syn_cookie_v6_generate(client_ip, server_ip, port, 80, isn, 1460);
+
+        struct packet_features_v6 f;
+        make_features_v6(&f, client_ip, server_ip, port, 80, IPPROTO_TCP);
+        f.tcp_flags = TCP_FLAG_ACK;
+        f.tcp_seq = isn + 1;
+        f.tcp_ack = cookie + 1;
+        struct syn_proxy_result_v6 res;
+        syn_proxy_v6_process_packet(m, &f, DIRECTION_INBOUND, pool, &res, 0);
+        if (res.action == SYN_PROXY_FORWARD) {
+            forwarded++;
+        }
+    }
+
+    struct syn_proxy_stats_v6 stats;
+    syn_proxy_v6_get_stats(&stats);
+    rte_pktmbuf_free(m);
+    rte_mempool_free(pool);
+    syn_proxy_v6_cleanup();
+
+    printf("  %u ACKs: %lu entries, %u forwarded, table_full_drops %lu\n", acks,
+           (unsigned long)stats.connections_created, forwarded, (unsigned long)stats.table_full_drops);
+    TEST_ASSERT_EQ(acks, stats.cookies_valid, "Every cookie should validate");
+    TEST_ASSERT(stats.connections_created > 0 && stats.connections_created < acks,
+                "The table should fill before the last ACK");
+    TEST_ASSERT_EQ(acks, forwarded, "Every valid cookie ACK should be forwarded");
+    TEST_ASSERT_EQ(0, stats.table_full_drops, "A forwarded ACK is not a table-full drop");
+}
+
+/* A failed cookie check counts once, in cookies_invalid or (an expired
+ * timestamp) cookies_expired; IPv4 once counted ACK 0 twice (D4). ACK 0
+ * returns the cookie 0xFFFFFFFF, whose timestamp bits are 31. */
+void test_syn_cookie_v6_failure_counted_once(void)
+{
+    TEST_ASSERT_EQ(0, syn_proxy_v6_init(&syn_cfg), "syn_proxy_v6_init should succeed");
+
+    uint8_t client_ip[16], server_ip[16];
+    make_ip6(client_ip, 0x2001, 0x0db8, 0, 0, 0, 0, 0, 8);
+    make_ip6(server_ip, 0x2001, 0x0db8, 0, 0, 0, 0, 0, 9);
+    const uint32_t isn = 0x01020304;
+    uint32_t cookie = syn_cookie_v6_generate(client_ip, server_ip, 4242, 80, isn, 1460);
+    uint16_t mss = 0;
+
+    bool ack0 = syn_cookie_v6_validate(client_ip, server_ip, 4242, 80, isn, 0, &mss);
+    struct syn_proxy_stats_v6 s1;
+    syn_proxy_v6_get_stats(&s1);
+    bool wrong = syn_cookie_v6_validate(client_ip, server_ip, 4242, 80, isn, cookie + 2, &mss);
+    struct syn_proxy_stats_v6 s2;
+    syn_proxy_v6_get_stats(&s2);
+    bool right = syn_cookie_v6_validate(client_ip, server_ip, 4242, 80, isn, cookie + 1, &mss);
+    struct syn_proxy_stats_v6 s3;
+    syn_proxy_v6_get_stats(&s3);
+    syn_proxy_v6_cleanup();
+
+    TEST_ASSERT(!ack0, "ACK 0 should not validate");
+    TEST_ASSERT_EQ(1, s1.cookies_invalid + s1.cookies_expired, "ACK 0 should count once");
+    TEST_ASSERT(!wrong, "A wrong ACK should not validate");
+    TEST_ASSERT_EQ(2, s2.cookies_invalid + s2.cookies_expired, "A wrong ACK should count once");
+    TEST_ASSERT(right, "The cookie + 1 should validate");
+    TEST_ASSERT_EQ(1, s3.cookies_valid, "A valid cookie should count once");
+    TEST_ASSERT_EQ(2, s3.cookies_invalid + s3.cookies_expired, "A valid cookie is no failure");
+}
+
+/* TCP option of the given kind in a header, or NULL */
+static const uint8_t *tcp_option_v6(const struct rte_tcp_hdr *tcp, uint8_t kind)
+{
+    const uint8_t *opt = (const uint8_t *)(tcp + 1);
+    const uint8_t *end = (const uint8_t *)tcp + (tcp->data_off >> 4) * 4;
+    while (opt < end && *opt != 0) {
+        if (*opt == 1) {
+            opt++;
+            continue;
+        }
+        if (opt + 1 >= end || opt[1] < 2 || opt + opt[1] > end) break;
+        if (*opt == kind) return opt;
+        opt += opt[1];
+    }
+    return NULL;
+}
+
+/* The SYN-ACK that answers a challenged SYN offers MSS only, as the IPv4
+ * proxy's does (D6), although the SYN offers window scaling, SACK and
+ * timestamps: the cookie keeps only an MSS index. It is the SYN-ACK the IPv6
+ * pipeline sends too (transform_syn_to_synack_v6_inplace()). */
+void test_syn_proxy_v6_synack_offers_mss_only(void)
+{
+    TEST_ASSERT_EQ(0, syn_proxy_v6_init(&syn_cfg), "syn_proxy_v6_init should succeed");
+    syn_proxy_v6_set_mode(SYN_PROXY_MODE_STATELESS);  /* Every SYN is challenged */
+
+    struct rte_mempool *pool = rte_pktmbuf_pool_create("v6_synack_pool", 63, 0, 0,
+                                                       RTE_MBUF_DEFAULT_BUF_SIZE,
+                                                       rte_socket_id());
+    struct rte_mbuf *m = pool ? rte_pktmbuf_alloc(pool) : NULL;
+    const uint16_t opts_len = 20;
+    const uint16_t len = sizeof(struct rte_ether_hdr) + sizeof(struct rte_ipv6_hdr) +
+                         sizeof(struct rte_tcp_hdr) + opts_len;
+    uint8_t *p = m ? (uint8_t *)rte_pktmbuf_append(m, len) : NULL;
+    if (!p) {
+        rte_pktmbuf_free(m);
+        rte_mempool_free(pool);
+        syn_proxy_v6_set_mode(SYN_PROXY_MODE_STATEFUL);
+        syn_proxy_v6_set_mode(-1);
+        syn_proxy_v6_cleanup();
+    }
+    TEST_ASSERT_NOT_NULL(p, "Failed to create the SYN");
+    memset(p, 0, len);
+
+    uint8_t client_ip[16], server_ip[16];
+    make_ip6(client_ip, 0x2001, 0x0db8, 0, 0, 0, 0, 2, 1);
+    make_ip6(server_ip, 0x2001, 0x0db8, 0, 0, 0, 0, 0, 0x50);
+    const uint32_t isn = 0x55667788;
+    struct rte_ether_hdr *eth = (struct rte_ether_hdr *)p;
+    eth->ether_type = rte_cpu_to_be_16(RTE_ETHER_TYPE_IPV6);
+    struct rte_ipv6_hdr *ip6 = (struct rte_ipv6_hdr *)(eth + 1);
+    ip6->vtc_flow = rte_cpu_to_be_32(0x60000000);
+    ip6->payload_len = rte_cpu_to_be_16(sizeof(struct rte_tcp_hdr) + opts_len);
+    ip6->proto = IPPROTO_TCP;
+    ip6->hop_limits = 64;
+    memcpy(ip6->src_addr.a, client_ip, 16);
+    memcpy(ip6->dst_addr.a, server_ip, 16);
+    struct rte_tcp_hdr *tcp = (struct rte_tcp_hdr *)(ip6 + 1);
+    tcp->src_port = rte_cpu_to_be_16(41000);
+    tcp->dst_port = rte_cpu_to_be_16(80);
+    tcp->sent_seq = rte_cpu_to_be_32(isn);
+    tcp->data_off = (uint8_t)(((sizeof(struct rte_tcp_hdr) + opts_len) / 4) << 4);
+    tcp->tcp_flags = TCP_FLAG_SYN;
+    tcp->rx_win = rte_cpu_to_be_16(65535);
+    /* MSS 1460, SACK permitted, timestamps, NOP, window scale 7 */
+    static const uint8_t syn_opts[20] = { 2, 4, 0x05, 0xB4, 4, 2, 8, 10, 0, 0, 0, 1,
+                                          0, 0, 0, 0, 1, 3, 3, 7 };
+    memcpy(tcp + 1, syn_opts, sizeof(syn_opts));
+
+    struct packet_features_v6 f;
+    make_features_v6(&f, client_ip, server_ip, 41000, 80, IPPROTO_TCP);
+    f.tcp_flags = TCP_FLAG_SYN;
+    f.tcp_seq = isn;
+    struct syn_proxy_result_v6 res;
+    syn_proxy_v6_process_packet(m, &f, DIRECTION_INBOUND, pool, &res, 0);
+
+    /* The SYN was turned into the SYN-ACK in place */
+    const struct rte_tcp_hdr *sa = (const struct rte_tcp_hdr *)
+        (rte_pktmbuf_mtod(m, const uint8_t *) + sizeof(struct rte_ether_hdr) +
+         sizeof(struct rte_ipv6_hdr));
+    const uint8_t flags = sa->tcp_flags;
+    const uint32_t ack = rte_be_to_cpu_32(sa->recv_ack);
+    const uint8_t *mss_opt = tcp_option_v6(sa, 2);
+    const uint16_t mss = mss_opt ? (uint16_t)((mss_opt[2] << 8) | mss_opt[3]) : 0;
+    const bool wscale = tcp_option_v6(sa, 3) != NULL;
+    const bool sack = tcp_option_v6(sa, 4) != NULL;
+    const bool ts = tcp_option_v6(sa, 8) != NULL;
+    const unsigned hdr_len = (sa->data_off >> 4) * 4u;
+    rte_pktmbuf_free(m);
+    rte_mempool_free(pool);
+    syn_proxy_v6_set_mode(SYN_PROXY_MODE_STATEFUL);
+    syn_proxy_v6_set_mode(-1);
+    syn_proxy_v6_cleanup();
+
+    TEST_ASSERT_EQ(SYN_PROXY_REPLY_INPLACE, res.action, "The SYN should be answered in place");
+    TEST_ASSERT_EQ(TCP_FLAG_SYN | TCP_FLAG_ACK, flags, "The reply should be a SYN-ACK");
+    TEST_ASSERT_EQ(isn + 1, ack, "The SYN-ACK should acknowledge the ISN + 1");
+    TEST_ASSERT_EQ(24, hdr_len, "The SYN-ACK should carry 4 bytes of options");
+    TEST_ASSERT_EQ(1220, mss, "The SYN-ACK should offer the IPv6 MSS");
+    TEST_ASSERT(!wscale, "The SYN-ACK should not offer window scaling");
+    TEST_ASSERT(!sack, "The SYN-ACK should not offer SACK");
+    TEST_ASSERT(!ts, "The SYN-ACK should not offer timestamps");
+}
+
+/* A re-init starts adaptive and stateful, as syn_proxy_init() does for IPv4:
+ * a mode forced before syn_proxy_v6_cleanup() (here stateless, which
+ * challenges every SYN) must not outlive it. */
+void test_syn_proxy_v6_reinit_resets_mode(void)
+{
+    uint8_t client_ip[16], server_ip[16];
+    make_ip6(client_ip, 0x2001, 0x0db8, 0, 0, 0, 0, 3, 1);
+    make_ip6(server_ip, 0x2001, 0x0db8, 0, 0, 0, 0, 0, 0x50);
+    struct packet_features_v6 f;
+    make_features_v6(&f, client_ip, server_ip, 42000, 80, IPPROTO_TCP);
+    f.tcp_flags = TCP_FLAG_SYN;
+
+    TEST_ASSERT_EQ(0, syn_proxy_v6_init(&syn_cfg), "syn_proxy_v6_init should succeed");
+    const enum syn_proxy_mode fresh = syn_proxy_v6_get_mode();
+    const bool fresh_challenges = syn_proxy_v6_should_challenge(&f);
+    syn_proxy_v6_set_mode(SYN_PROXY_MODE_STATELESS);
+    const bool forced_challenges = syn_proxy_v6_should_challenge(&f);
+    syn_proxy_v6_cleanup();
+
+    int ret = syn_proxy_v6_init(&syn_cfg);
+    const enum syn_proxy_mode after = syn_proxy_v6_get_mode();
+    const bool after_challenges = syn_proxy_v6_should_challenge(&f);
+    /* Leave the module stateful and adaptive for the next subtests */
+    syn_proxy_v6_set_mode(SYN_PROXY_MODE_STATEFUL);
+    syn_proxy_v6_set_mode(-1);
+    syn_proxy_v6_cleanup();
+
+    TEST_ASSERT_EQ(SYN_PROXY_MODE_STATEFUL, fresh, "A first init should start stateful");
+    TEST_ASSERT(!fresh_challenges, "A stateful proxy at no SYN rate should not challenge");
+    TEST_ASSERT(forced_challenges, "The forced stateless mode should challenge every SYN");
+    TEST_ASSERT_EQ(0, ret, "The re-init should succeed");
+    TEST_ASSERT_EQ(SYN_PROXY_MODE_STATEFUL, after, "A re-init should start stateful");
+    TEST_ASSERT(!after_challenges, "After a re-init the forced mode should not challenge");
+}
+
 // ==================== 3. geo_blocking_v6 tests ====================
 
 /* country_code_t is uint16_t, e.g. "CN" = ('C'<<8)|'N' = 0x434E */
@@ -544,10 +782,15 @@ int main(int argc __attribute__((unused)), char **argv)
         "--no-huge",
         "--no-pci",
         "-m", "256",
-        "--in-memory",
+        "--no-shconf",
+        "--no-telemetry",
         NULL
     };
-    int eal_argc = 9;
+    // The literal count 9 dropped the last option, so EAL took the shared
+    // /tmp/dpdk/rte config and parallel tests skipped on its lock. --in-memory
+    // is refused with --no-huge; --no-shconf creates no shared files, and
+    // --no-telemetry no telemetry socket in the runtime directory.
+    int eal_argc = (int)RTE_DIM(eal_args) - 1;
 
     int ret = rte_eal_init(eal_argc, eal_args);
     if (ret < 0) {
@@ -574,6 +817,10 @@ int main(int argc __attribute__((unused)), char **argv)
     RUN_TEST(test_syn_cookie_v6_generate_validate);
     RUN_TEST(test_syn_cookie_v6_wrong_ack_fails);
     RUN_TEST(test_syn_cookie_v6_wrong_ip_fails);
+    RUN_TEST(test_syn_proxy_v6_full_table_forwards_uncounted);
+    RUN_TEST(test_syn_cookie_v6_failure_counted_once);
+    RUN_TEST(test_syn_proxy_v6_synack_offers_mss_only);
+    RUN_TEST(test_syn_proxy_v6_reinit_resets_mode);
 
     /* --- geo_blocking_v6 --- */
     printf("\n--- geo_blocking_v6 ---\n");

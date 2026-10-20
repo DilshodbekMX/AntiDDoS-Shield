@@ -116,9 +116,10 @@ truncated export, not the complete file the scenarios above come from (see
 `ComparisonResults/README.md`, 'LITNET-2020 records and their input'); do not
 compare their figures with the complete-export census.
 
-That was checked across **all 13 features this corpus has**, not just volume,
-in case composition carried the signal where packet rate did not. It does not —
-the most discriminative feature is `icmp_ratio` at 1.6×, still under the 2× bar:
+That was checked across **all 13 features this corpus had** when the check was
+run, before `burst_factor` and `unique_flows` were added, not just volume, in
+case composition carried the signal where packet rate did not. It does not: the
+most discriminative feature is `icmp_ratio` at 1.6×, still under the 2× bar:
 
 | feature | attack p95 | benign p95 | ratio |
 |---|---:|---:|---:|
@@ -136,41 +137,49 @@ background* at subnet scale too.
 
 This does not contradict the subnet-aggregation record, also from the truncated
 export, `ComparisonResults/results/litnet_l1subnet_24_results.json`, in which the
-engine's rule set detects 88.2% of `syn_flood`'s `/24` windows
-(`per_attack_type.syn_flood.dr`) — at **56.4% false alarms** on uninvolved
-`/24` subnets (`split_metrics.fpr_on_uninvolved_pct`); at `/16`
+engine's rule set detects 88.3% of `syn_flood`'s `/24` windows
+(`per_attack_type.syn_flood.dr`), at **56.6% false alarms** on uninvolved
+`/24` subnets (`split_metrics.fpr_on_uninvolved_pct`; 88.2% and 56.4% before the
+record was re-run with the two engine columns); at `/16`
 (`litnet_l1subnet_16_results.json`) no uninvolved subnet remains to measure a
 false-alarm rate on. Both say the same thing: recovery at this dilution is
 bought at a false-alarm rate that is not deployable.
 
-## LITNET has 13 features, not 38
+## LITNET has 15 features, not 40
 
 This is the only corpus built from **flow records** rather than packets, so its
-windows carry 13 feature keys where the packet-capture slices in this tree
-carry 38:
+windows carry 15 feature keys where the packet-capture slices in this tree
+carry 40:
 
 ```
 packets_per_sec  bytes_per_sec  flows_per_sec  tcp_ratio  udp_ratio  icmp_ratio
 unique_dst_ports  unique_dst_ips  unique_src_ips  dst_port_density
-flow_duration_avg  dir_ratio  ttl_mean
+flow_duration_avg  dir_ratio  ttl_mean  unique_flows  burst_factor
 ```
 
-**All eight TCP-flag features are structurally absent** — `syn_per_sec`,
+The last two are the engine columns computed from the flow records (the tree's
+README defines them); `unique_flows` counts a window's distinct (source
+address, protocol) pairs, and `packets_per_sec`, the input of `burst_factor`,
+counts both directions of the records that start in the window. Thirteen of the
+15 are names the shipped engine scores; `unique_dst_ips` and `dir_ratio` are not.
+
+**All eight TCP-flag features are structurally absent**: `syn_per_sec`,
 `syn_ack_per_sec`, `ack_per_sec`, `rst_per_sec`, `fin_per_sec`,
 `syn_ack_ratio`, `rst_syn_ratio`, `tcp_completion_rate` appear nowhere in any
 LITNET artifact in this tree. An earlier revision of this file described the
 syn_flood sweep as covering "all 39 features … in case flag composition carried
-the signal", which was not possible: 26 of the 38 packet-capture feature names
-do not exist here, and the flag composition it invoked is exactly what a
-flow-record export does not record. The sweep itself is real and reproduces — it
-is a 13-feature sweep that was labelled 39.
+the signal", which was not possible: 26 of the 40 packet-capture feature names
+(26 of 38 at the time) do not exist here, and the flag composition it invoked is
+exactly what a flow-record export does not record. The sweep itself is real and
+reproduces: it is a 13-feature sweep that was labelled 39.
 
-One consequence worth knowing before using `http_flood`: 8 of its 13 features
-are constant across all 2,040 windows, and because `unique_dst_ports` is 1.0
+One consequence worth knowing before using `http_flood`: 9 of its 15 features
+are constant across all 2,040 windows, `unique_flows` among them (it equals
+`unique_src_ips`, 1, on every row), and because `unique_dst_ports` is 1.0
 everywhere, `dst_port_density` is the exact reciprocal `1000/packets_per_sec` in
-every row. Four non-redundant signals remain; their attack-to-benign p95
-ratios are 1.07–1.10× for the three rate features and 0.90× for
-`flow_duration_avg`.
+every row. Five non-redundant signals remain; their attack-to-benign p95
+ratios are 1.07 to 1.10× for the three rate features, 0.90× for
+`flow_duration_avg` and 0.51× for `burst_factor`.
 
 ## Caveat shared with the other corpora
 

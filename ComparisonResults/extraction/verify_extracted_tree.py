@@ -14,6 +14,11 @@ this project, rather than the things that are easy to check:
                 fresh recomputation
   usability     usable_as_ddos_scenario is present and consistent with the
                 intensity class and FPR measurability
+  columns       in the four corpora (corpus_names.in_scope), every row,
+                scenarios and pools alike, carries burst_factor (a whole
+                number, 0 to 3030) and unique_flows (between unique_src_ips
+                and flows_per_sec), and no file holds the old extractor's
+                copies of packets_per_sec and flows_per_sec
 
 An index that merely agrees with itself proves nothing -- the numbers are
 recomputed from the files here, not read back.
@@ -31,6 +36,7 @@ import os, sys, json, hashlib, gc
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
 from tree_io import within_split
+from corpus_names import in_scope
 
 ROOT = sys.argv[1] if len(sys.argv) > 1 else \
     _os.path.join(_BASE, 'datasets', 'extracted')
@@ -42,6 +48,33 @@ def sha(p):
         for b in iter(lambda: f.read(1 << 20), b''):
             h.update(b)
     return h.hexdigest()
+
+
+# The two engine columns the extractors compute (pcap_feature_extractor.py,
+# litnet_loader.py). The extractor before them wrote copies of packets_per_sec
+# and flows_per_sec under these names, and copied caches still carry them.
+BURST_MAX = 3030    # burst_ewma.h BURST_FACTOR_SATURATION, floor(100 / 0.033)
+
+
+def column_problems(rows):
+    n = len(rows)
+    lack = sum(1 for r in rows if 'burst_factor' not in r or 'unique_flows' not in r)
+    if lack:
+        return [f"{lack} of {n} rows lack burst_factor or unique_flows"]
+    out = []
+    if n and all(r['burst_factor'] == r.get('packets_per_sec') and
+                 r['unique_flows'] == r.get('flows_per_sec') for r in rows):
+        out.append("burst_factor and unique_flows copy packets_per_sec and flows_per_sec "
+                   "in every row: the old extractor's placeholders")
+    bad = sum(1 for r in rows if r['burst_factor'] != int(r['burst_factor'])
+              or not 0 <= r['burst_factor'] <= BURST_MAX)
+    if bad:
+        out.append(f"{bad} of {n} rows have burst_factor outside the whole numbers 0..{BURST_MAX}")
+    bad = sum(1 for r in rows if not (float(r.get('unique_src_ips', 0) or 0) <= r['unique_flows']
+                                      <= float(r.get('flows_per_sec', 0) or 0)))
+    if bad:
+        out.append(f"{bad} of {n} rows have unique_flows outside unique_src_ips..flows_per_sec")
+    return out
 
 
 def classify(atk_p95, ben_p95):
@@ -106,6 +139,11 @@ def main():
                 problems.append(f"{corpus}/{name}: schema — missing top-level keys"); continue
             m = js['metadata']
             pw = js['per_ip_windows']
+            # Only the four corpora come from these extractors. A tree may hold other
+            # corpus directories, whose rows lack both columns or carry the old copies.
+            if in_scope(corpus):
+                for msg in column_problems([r for v in pw.values() for r in v]):
+                    problems.append(f"{corpus}/{name}: {msg}")
             # A multi-host benign reference, not a single-victim scenario
             if m.get('kind', '').startswith('benign reference'):
                 nrows = sum(len(v) for v in pw.values())
@@ -262,6 +300,9 @@ def main():
             if natk:
                 problems.append(f"{corpus}/benign_pools/{f}: {natk} ATTACK-LABELLED "
                                 f"windows in a pool that claims to have none")
+            if in_scope(corpus):
+                for msg in column_problems([r for v in pw.values() for r in v]):
+                    problems.append(f"{corpus}/benign_pools/{f}: {msg}")
             print(f"  {corpus + '/' + f:52s} hosts={nh:5d} windows={nw:9,d} attack={natk}")
             del js, pw
             gc.collect()

@@ -4,8 +4,37 @@ Single-attack evaluation scenarios derived from four public corpora, one
 directory per corpus, one file per attack. Each file is self-contained: the
 victim's benign windows plus that attack's windows, one row per destination
 host per second, in the schema the Layer-2 harness consumes. Rows from the
-three packet-derived corpora carry 38 feature columns; LITNET-2020 rows, built
-from flow records, carry 13.
+three packet-derived corpora carry 40 feature columns, the 39 feature names
+the shipped engine scores (`l2_feature_names` in `project/layer2/baselines.c`)
+and `dir_ratio`; LITNET-2020 rows, built from flow records, carry 15, 13 of the
+engine's names plus `dir_ratio` and `unique_dst_ips`.
+
+Two of the engine's names, `burst_factor` and `unique_flows`, entered this tree
+in the 39-name revision. Earlier trees either lacked them or carried copies of
+`packets_per_sec` and `flows_per_sec` under those names. They are now computed
+as the engine computes them (`project/layer1/telemetry/burst_ewma.h` and
+`per_ip_features.c`), as `ComparisonResults/recompute/PREREGISTRATION_39_FEATURES.md`
+defines them:
+
+- `burst_factor`: one EWMA of `packets_per_sec` per destination, over the whole
+  capture in time order, starting at 0 at the destination's first window. Each
+  window updates the mean to x if the mean is below 1, and otherwise to
+  `mean + 0.033 * (x - mean)`, where x is the window's `packets_per_sec`; the
+  value is `floor(100 * x / mean)` after the update, or 100 when the mean is 0.
+  A second with no window for that destination is a step with x = 0. It is
+  computed on the per-day caches before the scenario files are cut, never on a
+  slice, and it is a whole number from 0 to 3030.
+- `unique_flows`: the number of distinct engine flow keys {lower address,
+  higher address, protocol} among the window's packets addressed to the
+  destination (LITNET-2020: its flow records), which with the destination fixed
+  is the number of distinct (source address, protocol) pairs. The count is
+  exact, like `unique_src_ips`; the engine estimates it with a HyperLogLog fed
+  one packet in eight. It lies between `unique_src_ips` and `flows_per_sec`, and
+  equals `unique_src_ips` wherever every source uses one protocol, which is most
+  rows.
+
+On LITNET-2020 `packets_per_sec` counts the packets, in both directions, of the
+flow records that start in the window.
 
 This is the README of the derived tree `datasets/extracted/`, which is not
 deposited. The deposit carries this file, `SCENARIO_INVENTORY.md`, and each
@@ -15,12 +44,14 @@ the official corpus releases are in `ComparisonResults/extraction/` (see below).
 
 ```
 extracted/
-  CIC-IDS-2017/    7 scenarios    39.4 MB    3 benign pools    681.3 MB
-  CIC-IDS2018/     8 scenarios    29.2 MB    3 benign pools    860.5 MB
-  CICDDoS2019/    12 scenarios    84.0 MB    1 benign pool      40.4 MB
-  LITNET-2020/     4 scenarios     4.8 MB    1 benign pool     172.8 MB
-                  31 scenarios   157.4 MB    8 benign pools  1,755.1 MB
+  CIC-IDS-2017/    7 scenarios    41.0 MB    3 benign pools    722.5 MB
+  CIC-IDS2018/     8 scenarios    30.9 MB    3 benign pools    936.0 MB
+  CICDDoS2019/    12 scenarios    87.6 MB    1 benign pool      42.1 MB
+  LITNET-2020/     4 scenarios     5.3 MB    1 benign pool     190.9 MB
+                  31 scenarios   164.8 MB    8 benign pools  1,891.4 MB
 ```
+
+With the index, checksum, inventory and README files, the tree holds 65 files.
 
 Each corpus directory holds `SHA256SUMS`, an `index.json` with per-scenario
 provenance and measurements, a `README.md` covering that corpus's specific
@@ -98,11 +129,12 @@ ways that matter.
 
 Rebuild with the scripts in `ComparisonResults/extraction/`; its `README.md`
 gives the recipe, including the per-day caches these steps read and how they
-are built from the raw captures and flow files. A rebuilt tree equals this one
-by value; only 9 of the 47 files listed in the `SHA256SUMS` files also match
-byte for byte, so compare the others with their `index.json` entries (that
-README says how). The six CIC-IDS-2017 Wednesday files were regenerated with
-these scripts for this revision. The order matters:
+are built from the raw captures and flow files. Every file listed in the
+`SHA256SUMS` files was written by those scripts for this revision, so a rebuilt
+tree should match all 47 checksums; that README says what was checked and how
+to compare a file that does not match. The six CIC-IDS-2017 Wednesday files
+were first regenerated with these scripts in the revision before. The order
+matters:
 `classify_scenarios.py --write` rewrites the payloads, so the index and
 checksums must be written **after** it, never only before:
 
@@ -182,7 +214,9 @@ that agrees with itself proves nothing. It covers the scenario files (hashes,
 index coverage, schema, window counts, intensity class, cross-slice
 calibration purity) **and the benign pools** (hashes against their own
 `SHA256SUMS`, host and window counts against each `.meta.json`, and a check
-that no pool contains an attack-labelled window). It does **not** re-derive
+that no pool contains an attack-labelled window), and on both the two engine
+columns above (present on every row, `burst_factor` in range, `unique_flows`
+between `unique_src_ips` and `flows_per_sec`, no copies of their twins). It does **not** re-derive
 `n_calib`, `p_floor`, `verdict`, `best_auc` or the `inbound_*_share` values,
 which come from `classify_scenarios.py`, and it does not compare the index's
 `bytes` field with the file size.

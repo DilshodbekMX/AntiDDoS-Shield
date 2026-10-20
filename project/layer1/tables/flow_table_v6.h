@@ -192,6 +192,18 @@ void flow_table_v6_update(struct flow_entry_v6 *flow,
                           const struct packet_features_v6 *features);
 
 /**
+ * Count a packet on its IPv6 flow without letting it change the flow's TCP
+ * view, as flow_table_count_packet() for IPv4: the packet and byte counters
+ * and the last-seen time move; the TCP flags seen, the sequence and ACK
+ * tracking and the state stay as they were.
+ *
+ * @param flow      Flow entry to update
+ * @param features  Packet features (flow_direction set by the lookup)
+ */
+void flow_table_v6_count_packet(struct flow_entry_v6 *flow,
+                                const struct packet_features_v6 *features);
+
+/**
  * Check and apply rate limits for IPv6 flow.
  *
  * @param flow      Flow entry
@@ -209,6 +221,40 @@ enum rate_limit_action flow_table_v6_check_rate_limit(
  * @return Number of flows aged out
  */
 uint32_t flow_table_v6_age_flows(void);
+
+/**
+ * Emergency eviction for the IPv6 table, as flow_table_emergency_evict() for
+ * IPv4: the same score (flow_eviction_score()), the same protected class
+ * (TCP flows that are ESTABLISHED, with traffic both ways, whose handshake
+ * ACK acknowledged the responder's ISN + 1, which a blind ACK cannot know),
+ * and the same recheck under the writer lock with a claim of the checked
+ * state just before each delete. A create that finds the table full runs it,
+ * at most once per 100 ms across lcores. Fewer than count_needed flows,
+ * possibly none, may be evicted. Evicted entries wait for the readers'
+ * grace period (see "Deferred Reclamation" in flow_table.h).
+ *
+ * @param count_needed  Number of flow slots needed
+ * @return Number of flows evicted
+ */
+uint32_t flow_table_v6_emergency_evict(uint32_t count_needed);
+
+/**
+ * Seed of the IPv6 table's hash function (diagnostics and tests; see
+ * flow_table_hash_seed_seam()).
+ */
+uint32_t flow_table_v6_get_hash_seed(void);
+
+/**
+ * Whether the IPv6 table's writer lock is held, by anyone (diagnostics and
+ * tests, as flow_table_writer_lock_held()).
+ */
+bool flow_table_v6_writer_lock_held(void);
+
+/**
+ * Number of deleted IPv6 flow entries waiting for their grace period (see
+ * "Deferred Reclamation" in flow_table.h).
+ */
+uint32_t flow_table_v6_limbo_count(void);
 
 /**
  * Get IPv6 flow table statistics.
@@ -230,13 +276,23 @@ uint32_t flow_table_v6_get_occupancy_percent(void);
 void flow_table_v6_clear(void);
 
 /**
- * Validate RST or FIN packet against IPv6 flow state.
+ * Validate RST or FIN packet against IPv6 flow state. Layer 1 validates
+ * every RST or FIN segment at IPv6 Stage 11 (with
+ * flow_table_v6_validate_rst_fin_flow(), below), as at IPv4 Stage 11 (see
+ * flow_table_validate_rst_fin()).
  *
  * @param features  Packet features (must be RST or FIN packet)
  * @return RST_FIN_VALID if packet is valid, error code otherwise
  */
 enum rst_fin_validation_result flow_table_v6_validate_rst_fin(
     struct packet_features_v6 *features);
+
+/**
+ * The same against a flow the caller has looked up already (NULL, or just
+ * created: no flow), as flow_table_validate_rst_fin_flow() for IPv4.
+ */
+enum rst_fin_validation_result flow_table_v6_validate_rst_fin_flow(
+    struct flow_entry_v6 *flow, const struct packet_features_v6 *features);
 
 // ==================== Utility Functions ====================
 

@@ -64,9 +64,14 @@ struct syn_proxy_cfg {
 
 // ==================== SYN Cookie Configuration ====================
 
+// SYN rate (per second) above which the SYN proxy challenges every new
+// connection: the default, and what challenge_threshold 0 selects
+#define L1_DEFAULT_CHALLENGE_THRESHOLD  1000
+
 struct syn_cookie_cfg {
     bool     enabled;                  // Enable SYN cookies (default: true)
-    uint32_t challenge_threshold;      // PPS threshold to start challenging (default: 1000)
+    uint32_t challenge_threshold;      // PPS threshold to start challenging
+                                       // (default and 0: L1_DEFAULT_CHALLENGE_THRESHOLD)
 };
 
 // ==================== Connection Limits Configuration ====================

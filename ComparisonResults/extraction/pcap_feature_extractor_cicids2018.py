@@ -110,6 +110,9 @@ class CappedWindowAggregator(WindowAggregator):
             'src_ports': CappedCounter(),
             'dst_ports': CappedCounter(),
             'flows': CappedSet(),
+            # engine flow keys (src_ip, protocol) for unique_flows, filled and counted by the
+            # inherited add_packet() and finalize(); capped at SET_CAP like 'flows'
+            'flows_eng': CappedSet(),
             'attack_flows': CappedSet(),
             'small_pkts': 0, 'fragments': 0, 'ttl_sum': 0, 'pkt_size_sum': 0,
             'icmp_echo': 0, 'syn_no_ack': 0, 'syn_with_ack': 0,

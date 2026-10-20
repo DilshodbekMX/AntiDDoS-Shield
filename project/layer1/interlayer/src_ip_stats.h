@@ -268,6 +268,11 @@ void src_ip_stats_mark_trusted(uint32_t src_ip);
 void src_ip_stats_clear_flags(uint32_t src_ip, uint32_t flags);
 
 /**
+ * Remove all entries and reset table statistics (factory reset)
+ */
+void src_ip_stats_clear_all(void);
+
+/**
  * Expire old entries (called periodically)
  * @return Number of entries expired
  */

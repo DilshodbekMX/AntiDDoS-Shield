@@ -14,10 +14,13 @@ written by `write_extracted_index.py`. To verify a rebuilt tree, run `sha256sum 
 this directory's `SHA256SUMS` (eight entries, one per slice) from inside
 `datasets/extracted/CIC-IDS2018/`, and against `benign_pools/SHA256SUMS` (three
 pools and their `.meta.json` files, six entries) from inside its
-`benign_pools/`. On a rebuilt tree none of these lines matches although every
-file equals the authors' by value: rebuilt Wednesday, Thursday and Friday rows
-carry an `_attack_types` key, metadata keys come in a different order, and the
-pool metadata gains four role-check fields (`ComparisonResults/extraction/README.md`).
+`benign_pools/`. Every file listed there was written by the deposited
+extraction scripts for this revision, so a rebuilt tree should match all
+fourteen entries. Against the authors' earlier 37-name copy, whose checksums no
+rebuild matched, every file is equal by value on every earlier column: the
+rebuilt Wednesday, Thursday and Friday rows carry an `_attack_types` key, metadata
+keys come in a different order, and the pool metadata gains four role-check
+fields (`ComparisonResults/extraction/README.md`).
 
 ## Why these exist
 
@@ -53,9 +56,9 @@ scoring pass whose script is not deposited; they were not re-measured on the
 files `SHA256SUMS` now lists.
 
 Schema: `{metadata, per_ip_windows: {victim: [window, ...]}}`. Each window keeps
-the source 38-feature row plus `_dt`, `_id_time`, `_is_attack`, `_n_flows`, and
-an added `_attack_type`; the two Tuesday slices also carry `_attack_types`, an
-empty mapping on every window.
+the source 40-feature row (the 39 names the engine scores and `dir_ratio`) plus
+`_dt`, `_id_time`, `_is_attack`, `_n_flows`, an added `_attack_type`, and
+`_attack_types`, an empty mapping on every window.
 
 ## The label-boundary guard: read this first
 

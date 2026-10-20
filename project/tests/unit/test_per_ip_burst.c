@@ -4,8 +4,8 @@
  *        per_ip_features_v6.c: the snapshot previews 100 * window_pps / post-update EWMA
  *        and the window roll (reset_window) commits the same rate, once per window.
  *
- * Requires DPDK EAL (rte_hash / rte_malloc) -- runs with --no-huge --in-memory like the
- * other per-module tests and exits 77 (skip) if EAL cannot initialise.
+ * Requires DPDK EAL (rte_hash / rte_malloc) and runs with --no-huge --no-shconf like the
+ * other per-module tests; exits 77 (skip) if EAL cannot initialise.
  *
  * Each synthetic window forces previous.timestamp_ns = 0 so the snapshot uses its 1-second
  * default window and packets_per_sec equals the injected packet count exactly.
@@ -214,10 +214,14 @@ int main(int argc __attribute__((unused)), char **argv) {
         "--no-huge",
         "--no-pci",
         "-m", "256",
-        "--in-memory",
+        "--no-shconf",
+        "--no-telemetry",
         NULL
     };
-    int eal_argc = 9;
+    // The literal count 9 dropped the last option, so EAL took the shared
+    // /tmp/dpdk/rte config and parallel tests skipped on its lock. --in-memory
+    // is refused with --no-huge; --no-shconf creates no shared files.
+    int eal_argc = (int)RTE_DIM(eal_args) - 1;
 
     int ret = rte_eal_init(eal_argc, eal_args);
     if (ret < 0) {

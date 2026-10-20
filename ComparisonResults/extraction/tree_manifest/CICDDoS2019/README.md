@@ -28,9 +28,11 @@ write_extracted_index.py <dir>               # index.json + SHA256SUMS, again, L
 The day cache carries `_attack_type` and `_attack_types` on every window, and
 `split_cicddos_by_type.py` selects attack windows by `_attack_type`. Rebuilt
 from the 146 pcaps and the seven CSVs, the cache equals the one these slices
-were split from on all 93,238 windows; the steps above rebuild all twelve
-slices with the same values, and `export_benign_pools.py` the pool. Their
-checksums still differ:
+were split from on all 93,238 windows, on every column it carried; the steps
+above rebuild all twelve slices with the same values, and `export_benign_pools.py`
+the pool. For this revision they were rebuilt that way, with the two engine
+columns `burst_factor` and `unique_flows` added, and `SHA256SUMS` lists the
+rebuilt files. Against the authors' earlier 37-name copy their checksums differ:
 metadata keys come in a different order, and the pool metadata gains four
 role-check fields (`ComparisonResults/extraction/README.md`).
 

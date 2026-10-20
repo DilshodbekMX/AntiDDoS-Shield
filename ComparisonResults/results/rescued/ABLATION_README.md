@@ -1,20 +1,25 @@
 # `unique_dst_ips` ablation
 
-**Question.** The /24 subnet arm scores 11 features; the per-destination arm scores
-10. The extra one is `unique_dst_ips`. Is the carpet-bomb recovery an artifact of
-that extra feature rather than of the change of monitoring key?
+**Question.** The /24 subnet arm scores one feature the per-destination arm cannot use,
+`unique_dst_ips`: on the 37 feature names the subnet arm scored 11 and the per-destination arm 10.
+Is the carpet-bomb recovery an artifact of that extra feature rather than of the change of
+monitoring key?
 
-**Answer: no.** Re-running the subnet arm with `unique_dst_ips` removed from the
-scored features — so both arms score the identical 10 features — leaves the
-headline unchanged at the shipped threshold.
+**Answer: no.** Re-running the subnet arm with `unique_dst_ips` removed from the scored features
+leaves the headline unchanged at the shipped threshold. On the 37 names that removal left both arms
+scoring the identical 10 features. The subnet and ablation records were re-run for the 39-name
+revision, which adds the engine columns `burst_factor` and `unique_flows`: the subnet arms now score
+13 and 12 features, while the per-destination record, which has no deposited writer, keeps its 10,
+so on the 39 names the two keys no longer score identical feature sets. Values below are the 39-name
+records; the 37-name values follow in parentheses where they differ.
 
-| arm | event population (SYN, truncated export) | SYN DR @ theta=4.0 | SYN DR calibrated | aggregate @ theta | FPR uninvolved (cal/theta) |
-|---|---:|---:|---:|---:|---:|
-| per-destination (10 feats) | **678,911 attack windows** | 15.3% | 12.9% | 14.8% | 22.9 / 45.5 |
-| /24 canonical (11 feats) | **28,304 zone-seconds** | **100.0%** | 88.2% | 94.4% | 56.4 / 64.7 |
-| /24 ablated (10 feats) | **28,304 zone-seconds** | **100.0%** | 83.0% | 94.3% | 56.4 / 64.7 |
-| /16 canonical (11 feats) | **479 zone-seconds** | 100.0% | 99.0% | 99.5% | no uninvolved /16 |
-| /16 ablated (10 feats) | **479 zone-seconds** | 100.0% | 80.4% | 99.5% | no uninvolved /16 |
+| arm | features (39 names; 37 names) | event population (SYN, truncated export) | SYN DR @ theta=4.0 | SYN DR calibrated | aggregate @ theta | FPR uninvolved (cal/theta) |
+|---|---:|---:|---:|---:|---:|---:|
+| per-destination (not re-run) | 10; 10 | **678,911 attack windows** | 15.3% | 12.9% | 14.8% | 22.9 / 45.5 |
+| /24 canonical | 13; 11 | **28,304 zone-seconds** | **100.0%** | 88.3% (88.2%) | 97.2% (94.4%) | 56.6 / 64.9 (56.4 / 64.7) |
+| /24 ablated | 12; 10 | **28,304 zone-seconds** | **100.0%** | 83.2% (83.0%) | 97.1% (94.3%) | 56.6 / 64.9 (56.4 / 64.7) |
+| /16 canonical | 13; 11 | **479 zone-seconds** | 100.0% | 99.0% | 99.5% | no uninvolved /16 |
+| /16 ablated | 12; 10 | **479 zone-seconds** | 100.0% | 81.4% (80.4%) | 99.2% (99.5%) | no uninvolved /16 |
 
 **Quote the denominator with the rate.** The two keys do not score the same events.
 15.3% is 15.3% of the truncated export's 678,911 per-destination attack windows;
@@ -24,16 +29,19 @@ well as of coverage, and is not the recovery of the same window set. Any downstr
 prints the pair without both denominators is incomplete.
 
 At theta = 4.0 the ablated and canonical subnet arms are identical on SYN detection
-(100.0%), 0.1 pp apart on aggregate detection (94.4 vs 94.3) and identical to the
-decimal on false alarms. On SYN only the calibrated variant moves (88.2 -> 83.0,
--5.2 pp, at /24; 99.0 -> 80.4, -18.6 pp, at /16), and both still exceed the per-destination 12.9%.
+(100.0%), 0.1 pp apart on aggregate detection (97.2 vs 97.1; 37: 94.4 vs 94.3) and identical to
+the decimal on false alarms. On SYN only the calibrated variant moves (88.3 -> 83.2, -5.1 pp, at
+/24; 99.0 -> 81.4, -17.6 pp, at /16; 37: 88.2 -> 83.0, -5.2 pp, and 99.0 -> 80.4, -18.6 pp), and
+both still exceed the per-destination 12.9%. The authors traced every change between the 37-name
+and the 39-name values of these four records to `burst_factor`, outside the deposit: scored with
+`unique_flows` but without `burst_factor`, the four records give their 37-name values back.
 
 **The calibrated column is clamped.** Per-key calibration sets theta to the 97th
 percentile of the per-window maximum |z| on the calibration windows (a 3% target,
 `CALIB_TARGET_FPR`), rounds it up to a multiple of 0.5 and clips it to [4.0, 20.0],
 so it returns the upper limit whenever that percentile lies above 20.0
-(`config.py:87-89`; the clip is at `pipeline.py:245`). Eight of the ten largest /24
-victim subnets return exactly 20.0, and both /16 subnets do:
+(`config.py:89-91`; the clip is at `pipeline.py:245`). Eight of the ten largest /24
+victim subnets return exactly 20.0, and both /16 subnets do, on both feature sets:
 
 ```
 /24  20, 20, 20, 20, 7, 20, 6, 20, 20, 20      8 of 10 at the ceiling
@@ -41,8 +49,8 @@ victim subnets return exactly 20.0, and both /16 subnets do:
 ```
 
 So the calibrated cells above are mostly the clip's ceiling, not a threshold that
-met its target: the realized uninvolved rate of 56.4% is 19x the 3% aimed at. The
-calibrated-vs-fixed distance is bounded by that clamp and must not be described as
+met its target: the realized uninvolved rate of 56.6% (56.4% on the 37 names) is 19x the 3% aimed
+at. The calibrated-vs-fixed distance is bounded by that clamp and must not be described as
 a pure calibration cost, nor its size read as "not a detection ceiling".
 
 **Why the feature exists at one scope and not the other.** The same auto-filter
@@ -63,5 +71,8 @@ redirected so the canonical artifact is never written. The canonical rows are
 deposited. All of these runs read `LITNET_DIR=datasets/LITNET-2020/parts`, the same
 truncated export, so the comparison is like-for-like in vintage. That export lacks
 the `udp_f` attack. Do not compare these cells against complete-export numbers.
-None of these records was re-run for this deposit: their runners read the
+The four subnet and ablation records were re-run for the 39-name revision on that same export,
+with `litnet_loader.load_litnet_per_subnet` writing the two engine columns for each subnet slot
+(`../../README.md`, "Records after the 39-name re-run"), and the CANONICAL copies replaced with
+copies of the re-run records; the per-destination record was not re-run. The runners read the
 LITNET-2020 export or caches built from it, and neither is deposited.

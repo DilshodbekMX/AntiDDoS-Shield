@@ -40,11 +40,29 @@ const char* validation_error_str(int error_code) {
 
 // ==================== Flow Hash (Canonical Key) ====================
 
+_Static_assert(sizeof(struct flow_key) == 12,
+               "compute_flow_hash() reads the key as one 8-byte and one 4-byte word");
+
 uint32_t compute_flow_hash(const struct flow_key *key) {
-    // OPTIMIZED: Single CRC call on entire key structure (12 bytes)
-    // The padding bytes are always zero due to extract_flow_key initialization
-    // This is faster than three separate calls
-    return rte_hash_crc(key, sizeof(struct flow_key), 0);
+    // CRC32-C of the 12-byte key: the value rte_hash_crc(key, 12, 0) is meant to
+    // return. The padding bytes are zero (extract_flow_key, make_canonical_key).
+    // rte_hash_crc() loads the key through uint64_t and uint32_t pointers, and
+    // once it is inlined after extract_flow_key(), gcc -O2 and -O3 drop the
+    // protocol and padding stores as dead under strict aliasing and hash 4
+    // stale stack bytes in their place. Here the first word is read with memcpy
+    // and the second is assembled from its bytes, both valid whatever type
+    // stored them; rte_le_to_cpu_32() gives the value a native 4-byte load
+    // reads. Inlined after the key stores (parse_packet), each byte read takes
+    // the value its store wrote and the word needs no load; a 4-byte load of
+    // the protocol and padding stores is not forwarded from them (it spans
+    // several stores) and waits for them to reach the cache, about 10 cycles
+    // per parse. Out of line, the byte reads compile to one 4-byte load.
+    const uint8_t *p = (const uint8_t *)key;
+    uint64_t w0;
+    memcpy(&w0, p, sizeof(w0));
+    uint32_t w1 = rte_le_to_cpu_32((uint32_t)p[8] | (uint32_t)p[9] << 8 |
+                                   (uint32_t)p[10] << 16 | (uint32_t)p[11] << 24);
+    return rte_hash_crc_4byte(w1, rte_hash_crc_8byte(w0, 0));
 }
 
 // ==================== IP Address Validation ====================

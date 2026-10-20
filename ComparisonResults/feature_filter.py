@@ -12,11 +12,12 @@ robust.
 
 Background -- the canonical 39-feature production set (see `layer2/baselines.h`
 L2_MAX_FEATURES enum) is the engine's export contract; `PRODUCTION_39_FEATURES`
-below is the harness's candidate list drawn from it: the 37 of those names that the
-offline extractor writes (the name is kept for continuity). `flow_duration_avg`
-is a known extractor placeholder (always 0.0 in pcap caches because the
-offline extractor does not track flow lifetimes); `heavy_hitter_count` is a
-CMS-stub that returns non-zero counts on real attacks but degenerates to 0
+below lists all 39 names, in the engine's order (`l2_feature_names` in
+`layer2/baselines.c`). A name a cache does not carry has no values and is
+filtered out as inert; the LITNET-2020 flow records lack most of them.
+`flow_duration_avg` is a known extractor placeholder (always 0.0 in pcap caches
+because the offline extractor does not track flow lifetimes); `heavy_hitter_count`
+is a CMS-stub that returns non-zero counts on real attacks but degenerates to 0
 on benign windows in some caches. Both are filtered out automatically when
 inert; the production C path computes both correctly.
 """
@@ -26,11 +27,12 @@ PRODUCTION_39_FEATURES = [
     'syn_per_sec', 'syn_ack_per_sec', 'ack_per_sec', 'rst_per_sec', 'fin_per_sec',
     'tcp_ratio', 'udp_ratio', 'icmp_ratio', 'other_ratio',
     'syn_ack_ratio', 'rst_syn_ratio', 'bytes_per_packet',
-    'unique_src_ips', 'unique_dst_ports',
+    'unique_src_ips', 'unique_dst_ports', 'unique_flows',
     'new_srcip_rate',
     'max_flow_fraction', 'topk_flow_share', 'heavy_hitter_count',
     'avg_packets_per_flow', 'flow_duration_avg',
     'syn_tcp_ratio', 'synack_tcp_ratio', 'ack_tcp_ratio', 'rst_tcp_ratio', 'fin_tcp_ratio',
+    'burst_factor',
     'udp_flow_ratio', 'icmp_echo_ratio',
     'dst_port_density',
     'src_ip_entropy', 'src_port_entropy',

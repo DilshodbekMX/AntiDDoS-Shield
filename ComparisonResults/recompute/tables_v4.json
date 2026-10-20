@@ -1,351 +1,351 @@
 {
- "discrimination_rows": "Subspace-Q + EWMA (ours)& 0.9913 & $+$0.0246 & 0.00919 & 0.06430 & 0.08267 & 0.62500 & 1.00000 & [0.0040, 0.0541] & [$-$0.0050, 0.0499] & 12/16 \\\\\nPOT (reference)& 0.9667 & --- & --- & --- & --- & --- & --- & --- & --- & --- \\\\\nDIF& 0.9829 & $+$0.0162 & 0.23298 & 0.93192 & 1.00000 & 1.00000 & 1.00000 & [$-$0.0005, 0.0386] & [$-$0.0082, 0.0358] & 8/16 \\\\\nINNE& 0.9750 & $+$0.0084 & 0.78195 & 1.00000 & 1.00000 & 1.00000 & 1.00000 & [$-$0.0156, 0.0358] & [$-$0.0293, 0.0316] & 7/16 \\\\\nIForest& 0.9650 & $-$0.0017 & 0.56189 & 1.00000 & 1.00000 & 1.00000 & 1.00000 & [$-$0.0155, 0.0134] & [$-$0.0117, 0.0053] & 6/16 \\\\\nECOD& 0.9621 & $-$0.0046 & 0.46375 & 1.00000 & 1.00000 & 0.81250 & 1.00000 & [$-$0.0156, 0.0062] & [$-$0.0126, 0.0065] & 6/16 \\\\\nCOPOD& 0.9540 & $-$0.0127 & 0.06540 & 0.32700 & 0.58859 & 0.81250 & 1.00000 & [$-$0.0247, $-$0.0007] & [$-$0.0311, 0.0060] & 4/16 \\\\\nHBOS& 0.9293 & $-$0.0374 & 0.01309 & 0.07855 & 0.11783 & 0.31250 & 1.00000 & [$-$0.0633, $-$0.0137] & [$-$0.0721, $-$0.0014] & 4/16 \\\\\nDSPOT& 0.6971 & $-$0.2696 & 0.00065 & 0.00524 & 0.00589 & 0.06250 & 0.56250 & [$-$0.4223, $-$0.1326] & [$-$0.4465, $-$0.0425] & 0/16 \\\\\nLODA& 0.5255 & $-$0.4412 & 0.00003 & 0.00027 & 0.00027 & 0.06250 & 0.56250 & [$-$0.6174, $-$0.2678] & [$-$0.7250, $-$0.1698] & 0/16 \\\\",
+ "discrimination_rows": "Subspace-Q + EWMA (ours)& 0.9806 & $+$0.0143 & 0.01550 & 0.09302 & 0.13953 & 0.81250 & 1.00000 & [$-$0.0233, 0.0511] & [$-$0.0496, 0.0463] & 13/16 \\\\\nPOT (reference)& 0.9663 & --- & --- & --- & --- & --- & --- & --- & --- & --- \\\\\nDIF& 0.9831 & $+$0.0168 & 0.21143 & 0.84570 & 1.00000 & 1.00000 & 1.00000 & [0.0005, 0.0385] & [$-$0.0065, 0.0349] & 8/16 \\\\\nINNE& 0.9753 & $+$0.0090 & 0.59659 & 1.00000 & 1.00000 & 1.00000 & 1.00000 & [$-$0.0162, 0.0372] & [$-$0.0312, 0.0324] & 7/16 \\\\\nIForest& 0.9646 & $-$0.0017 & 0.66855 & 1.00000 & 1.00000 & 1.00000 & 1.00000 & [$-$0.0146, 0.0121] & [$-$0.0099, 0.0059] & 7/16 \\\\\nECOD& 0.9640 & $-$0.0024 & 0.56189 & 1.00000 & 1.00000 & 1.00000 & 1.00000 & [$-$0.0144, 0.0097] & [$-$0.0072, 0.0056] & 7/16 \\\\\nCOPOD& 0.9530 & $-$0.0133 & 0.05066 & 0.25330 & 0.45593 & 0.81250 & 1.00000 & [$-$0.0260, $-$0.0009] & [$-$0.0313, 0.0051] & 5/16 \\\\\nHBOS& 0.9246 & $-$0.0417 & 0.01099 & 0.07690 & 0.09888 & 0.31250 & 1.00000 & [$-$0.0696, $-$0.0164] & [$-$0.0828, $-$0.0016] & 4/16 \\\\\nDSPOT& 0.6971 & $-$0.2692 & 0.00065 & 0.00524 & 0.00589 & 0.06250 & 0.56250 & [$-$0.4219, $-$0.1324] & [$-$0.4460, $-$0.0422] & 0/16 \\\\\nLODA& 0.6151 & $-$0.3512 & 0.00009 & 0.00082 & 0.00082 & 0.06250 & 0.56250 & [$-$0.5436, $-$0.1713] & [$-$0.5847, $-$0.1323] & 1/16 \\\\",
  "discrimination_header_note": "\\multicolumn{11}{l}{\\emph{USABLE-16} ($n = 16$ scenarios, 5 victim clusters, 5 informative pairs for our arm)} \\\\",
- "leakage_rows": "ECOD    & 0.6692 & 0.9621 & $+$0.2929 \\\\\nCOPOD   & 0.6667 & 0.9540 & $+$0.2873 \\\\\nDIF     & 0.5314 & 0.9829 & $+$0.4515 \\\\\n\\midrule\n\\multicolumn{4}{l}{\\emph{Batch-invariant by construction}} \\\\\nHBOS    & 0.9293 & 0.9293 & 0.0000 \\\\\nINNE    & 0.9751 & 0.9750 & $-$0.0001 \\\\\nPOT     & 0.9667 & 0.9667 & 0.0000 \\\\",
- "ablation_row": "USABLE-16 ($n = 16$) & 0.9913 & 0.9761 & $+$0.0152; improves 16 of 16 rows, degrades 0 (scenario $p = 3.1\\times10^{-5}$, the exact floor on 16 pairs; victim-clustered $p = 0.0625$, the floor on five)\\\\",
- "operating_rows": "Ours & 0.9915 & 91.93 & 93.30 & 96.75 & 2.06 & 3.00 & 6.76 & 1.81 & 2.63 & 6.11\\\\\nPOT & 0.9667 & 79.86 & 84.09 & 85.92 & 5.25 & 6.87 & 10.14 & 5.25 & 6.87 & 10.14\\\\",
- "episodegrid_rows": "Held-out, stream-realized & 6.62 & 6.71 & 8.42 & 8.52 & 10.80 & 9.60\\\\\nHeld-out, attack rows excised & 5.29 & 6.71 & 6.61 & 8.52 & 7.63 & 9.60\\\\\nOracle, stream-realized & 5.96 & 5.44 & 8.81 & 8.47 & 12.45 & 11.33\\\\",
- "scatter_main_coords": "(0.9915,0.007759) (0.9976,0.033324) (0.9811,0.063987) (0.9985,0.000717) (1.0000,0.006395) (1.0000,0.001851) (1.0000,-0.000020) (1.0000,0.000437) (1.0000,-0.001661) (1.0000,-0.000089) (0.9617,0.005092) (0.5247,0.046053) (0.9963,0.007667) (0.9878,0.037619) (0.9682,-0.027374)",
+ "leakage_rows": "ECOD    & 0.6660 & 0.9640 & $+$0.2980 \\\\\nCOPOD   & 0.6607 & 0.9530 & $+$0.2923 \\\\\nDIF     & 0.5321 & 0.9831 & $+$0.4510 \\\\\n\\midrule\n\\multicolumn{4}{l}{\\emph{Batch-invariant by construction}} \\\\\nHBOS    & 0.9246 & 0.9246 & 0.0000 \\\\\nINNE    & 0.9753 & 0.9753 & 0.0000 \\\\\nPOT     & 0.9663 & 0.9663 & 0.0000 \\\\",
+ "ablation_row": "USABLE-16 ($n = 16$) & 0.9806 & 0.9544 & $+$0.0262; improves 16 of 16 rows, degrades 0 (scenario $p = 3.1\\times10^{-5}$, the exact floor on 16 pairs; victim-clustered $p = 0.0625$, the floor on five)\\\\",
+ "operating_rows": "Ours & 0.9807 & 91.16 & 92.64 & 95.67 & 7.81 & 8.46 & 10.61 & 7.57 & 8.16 & 10.09\\\\\nPOT & 0.9663 & 79.83 & 84.05 & 85.92 & 5.19 & 6.81 & 10.33 & 5.19 & 6.81 & 10.33\\\\",
+ "episodegrid_rows": "Held-out, stream-realized & 7.06 & 6.69 & 7.60 & 8.31 & 9.02 & 9.29\\\\\nHeld-out, attack rows excised & 6.00 & 6.69 & 6.50 & 8.31 & 6.93 & 9.29\\\\\nOracle, stream-realized & 6.08 & 5.49 & 8.09 & 8.56 & 12.21 & 11.35\\\\",
+ "scatter_main_coords": "(0.9915,0.007520) (0.9976,0.033422) (0.9811,0.064851) (0.9985,0.000742) (1.0000,0.008539) (1.0000,0.001896) (1.0000,0.000067) (1.0000,0.000449) (1.0000,-0.001822) (1.0000,-0.000083) (0.9617,0.004871) (0.5247,0.046215) (0.9963,0.007387) (0.9878,0.037217) (0.9682,-0.195490)",
  "scatter_top": [
   [
    0.9927,
-   0.21203936916340538,
+   0.21255909249428462,
    "CIC-IDS-2017 Wed-05-07_DoS-Slowhttptest"
   ]
  ],
  "scatter_clean": [
   [
    0.5247,
-   0.04605318961142668,
+   0.046214810374805015,
    "CIC-DDoS2019 cicddos_03-11_192-168-50-4_Syn"
   ]
  ],
  "scatter_n_at_1": 6,
- "scatter_sum_delta": 0.393796,
- "scatter_sum_sep": 0.347742,
- "concentration_coords": "(0.212039,Slowhttptest) (0.063987,Hulk) (0.046053,Syn) (0.037619,UDPLag) (0.033324,GoldenEye) (0.028148,Others)",
- "concentration_mean": 0.024612,
- "concentration_cluster_mean": 0.012318,
- "concentration_others": 0.028148,
+ "scatter_sum_delta": 0.228341,
+ "scatter_sum_sep": 0.182126,
+ "concentration_coords": "(0.212039,Slowhttptest) (0.064851,Hulk) (0.046215,Syn) (0.037217,UDPLag) (0.033422,GoldenEye) (0.029567,Others)",
+ "concentration_mean": 0.014271,
+ "concentration_cluster_mean": -0.021193,
+ "concentration_others": 0.029567,
  "concentration_n_others": 10,
  "ledger_rows": "CIC-IDS-2017 & \\texttt{Fri-07-07\\_DDoS-LOIT} & 192.168.10.50 & \\textbf{0.992} & USABLE & all four pass\\\\\nCIC-IDS-2017 & \\texttt{Wed-05-07\\_DoS-GoldenEye} & 192.168.10.50 & \\textbf{0.998} & USABLE & all four pass\\\\\nCIC-IDS-2017 & \\texttt{Wed-05-07\\_DoS-Hulk} & 192.168.10.50 & \\textbf{0.981} & USABLE & all four pass\\\\\nCIC-IDS-2017 & \\texttt{Wed-05-07\\_DoS-Slowhttptest} & 192.168.10.50 & \\textbf{0.993} & USABLE & all four pass\\\\\nCIC-IDS-2017 & \\texttt{Wed-05-07\\_DoS-Slowloris} & 192.168.10.50 & \\textbf{0.999} & USABLE & all four pass\\\\\nCIC-IDS-2017 & \\texttt{Fri-07-07\\_PortScan} & 192.168.10.50 & 0.703 & NOT-DDOS & scope filter\\\\\nCIC-IDS-2017 & \\texttt{Wed-05-07\\_Heartbleed} & 192.168.10.51 & \\textbf{0.998} & NOT-DDOS & scope filter\\\\\n\\addlinespace[3pt]\nCSE-CIC-IDS2018 & \\texttt{Fri-16-02\\_DoS-Hulk} & 172.31.69.25 & \\textbf{1.000} & USABLE & all four pass\\\\\nCSE-CIC-IDS2018 & \\texttt{Fri-16-02\\_DoS-SlowHTTPTest} & 172.31.69.25 & \\textbf{1.000} & USABLE & all four pass\\\\\nCSE-CIC-IDS2018 & \\texttt{Thu-15-02\\_DoS-Slowloris} & 172.31.69.25 & \\textbf{1.000} & USABLE & all four pass\\\\\nCSE-CIC-IDS2018 & \\texttt{Tue-20-02\\_DDoS-LOIC-HTTP} & 172.31.69.25 & \\textbf{1.000} & USABLE & all four pass\\\\\nCSE-CIC-IDS2018 & \\texttt{Wed-21-02\\_DDoS-HOIC} & 172.31.69.28 & \\textbf{1.000} & USABLE & all four pass\\\\\nCSE-CIC-IDS2018 & \\texttt{Wed-21-02\\_DDoS-LOIC-UDP} & 172.31.69.28 & \\textbf{1.000} & USABLE & all four pass\\\\\nCSE-CIC-IDS2018 & \\texttt{Thu-15-02\\_DoS-GoldenEye} & 172.31.69.25 & \\textbf{1.000} & FLOOR-LIMITED & conformal floor\\\\\nCSE-CIC-IDS2018 & \\texttt{Tue-20-02\\_DDoS-LOIC-UDP} & 172.31.69.25 & --- & NO-FPR & FPR undefined\\\\\n\\addlinespace[3pt]\nCIC-DDoS2019 & \\texttt{cicddos\\_03-11\\_192-168-50-4\\_LDAP} & 192.168.50.4 & \\textbf{0.962} & USABLE & all four pass\\\\\nCIC-DDoS2019 & \\texttt{cicddos\\_03-11\\_192-168-50-4\\_Syn} & 192.168.50.4 & 0.525 & USABLE & all four pass\\\\\nCIC-DDoS2019 & \\texttt{cicddos\\_03-11\\_192-168-50-4\\_UDP} & 192.168.50.4 & \\textbf{0.996} & USABLE & all four pass\\\\\nCIC-DDoS2019 & \\texttt{cicddos\\_03-11\\_192-168-50-4\\_UDPLag} & 192.168.50.4 & \\textbf{0.988} & USABLE & all four pass\\\\\nCIC-DDoS2019 & \\texttt{cicddos\\_03-11\\_172-16-0-5\\_LDAP} & 172.16.0.5 & \\textbf{0.969} & ATTACKER-SIDE & direction (source host)\\\\\nCIC-DDoS2019 & \\texttt{cicddos\\_03-11\\_172-16-0-5\\_MSSQL} & 172.16.0.5 & \\textbf{0.968} & ATTACKER-SIDE & direction (source host)\\\\\nCIC-DDoS2019 & \\texttt{cicddos\\_03-11\\_172-16-0-5\\_NetBIOS} & 172.16.0.5 & 0.928 & ATTACKER-SIDE & direction (source host)\\\\\nCIC-DDoS2019 & \\texttt{cicddos\\_03-11\\_172-16-0-5\\_Syn} & 172.16.0.5 & 0.601 & ATTACKER-SIDE & direction (source host)\\\\\nCIC-DDoS2019 & \\texttt{cicddos\\_03-11\\_172-16-0-5\\_UDP} & 172.16.0.5 & 0.895 & ATTACKER-SIDE & direction (source host)\\\\\nCIC-DDoS2019 & \\texttt{cicddos\\_03-11\\_172-16-0-5\\_UDPLag} & 172.16.0.5 & \\textbf{0.970} & ATTACKER-SIDE & direction (source host)\\\\\nCIC-DDoS2019 & \\texttt{cicddos\\_03-11\\_192-168-50-4\\_MSSQL} & 192.168.50.4 & 0.874 & FLOOR-LIMITED & conformal floor\\\\\nCIC-DDoS2019 & \\texttt{cicddos\\_03-11\\_192-168-50-4\\_NetBIOS} & 192.168.50.4 & \\textbf{0.957} & FLOOR-LIMITED & conformal floor\\\\\n\\addlinespace[3pt]\nLITNET-2020 & \\texttt{code\\_red\\_worm} & 193.219.81.138 & \\textbf{0.968} & USABLE & all four pass\\\\\nLITNET-2020 & \\texttt{udp\\_f} & 193.219.81.137 & \\textbf{1.000} & FLOOR-LIMITED & conformal floor\\\\\nLITNET-2020 & \\texttt{smurf} & 193.219.88.36 & --- & NO-FPR & FPR undefined\\\\\nLITNET-2020 & \\texttt{http\\_flood} & 23.32.104.60 & \\textbf{1.000} & INSEPARABLE & separability screen\\\\",
  "ledger_n": 31,
- "deposit_auc_rows": "\\texttt{IDS2017~Wed-05-07\\_DoS-Slowhttptest} & 0.9875 & 0.7755 & 0.9305 & 0.9427 & 0.8561 & 0.8038 & 0.7470 & 0.7564 & 0.5149 & 0.1924\\\\\n\\texttt{IDS2017~Wed-05-07\\_DoS-Hulk} & 0.9949 & 0.9309 & 0.9772 & 0.9752 & 0.9449 & 0.9368 & 0.9041 & 0.8590 & 0.8559 & 0.6980\\\\\n\\texttt{DDoS2019~Syn} & 0.9674 & 0.9213 & 0.9692 & 0.9532 & 0.9561 & 0.9617 & 0.9591 & 0.9580 & 0.7056 & 0.3147\\\\\n\\texttt{DDoS2019~UDPLag} & 0.9956 & 0.9579 & 0.9871 & 0.9719 & 0.9705 & 0.9696 & 0.9685 & 0.9665 & 0.8938 & 0.3967\\\\\n\\texttt{IDS2017~Wed-05-07\\_DoS-GoldenEye} & 0.9978 & 0.9645 & 0.9857 & 0.9804 & 0.9386 & 0.9247 & 0.9070 & 0.8472 & 0.9135 & 0.2900\\\\\n\\texttt{IDS2017~Fri-07-07\\_DDoS-LOIT} & 0.9995 & 0.9918 & 0.9967 & 0.9951 & 0.9565 & 0.9665 & 0.9614 & 0.8482 & 0.9701 & 0.8463\\\\\n\\texttt{DDoS2019~UDP} & 0.9987 & 0.9910 & 0.9947 & 0.9918 & 0.9838 & 0.9819 & 0.9815 & 0.9792 & 0.1890 & 0.8964\\\\\n\\texttt{IDS2018~Fri-16-02\\_DoS-Hulk} & 0.9744 & 0.9680 & 0.9588 & 0.9558 & 0.9653 & 0.9685 & 0.9687 & 0.9718 & 0.0839 & 0.9578\\\\\n\\texttt{DDoS2019~LDAP} & 0.9992 & 0.9941 & 0.9972 & 0.9896 & 0.9851 & 0.9826 & 0.9827 & 0.9840 & 0.1429 & 0.9308\\\\\n\\texttt{IDS2018~Fri-16-02\\_DoS-SlowHTTPTest} & 0.9986 & 0.9967 & 0.9914 & 0.9920 & 0.9850 & 0.9664 & 0.9629 & 0.9243 & 0.5067 & 0.9934\\\\\n\\texttt{IDS2017~Wed-05-07\\_DoS-Slowloris} & 1.0000 & 0.9993 & 0.9973 & 0.9987 & 0.9588 & 0.9523 & 0.9432 & 0.9106 & 0.9424 & 0.0297\\\\\n\\texttt{IDS2018~Tue-20-02\\_DDoS-LOIC-HTTP} & 0.9999 & 0.9994 & 0.9986 & 0.9947 & 0.9997 & 0.9971 & 0.9971 & 0.9849 & 0.0489 & 0.9966\\\\\n\\texttt{IDS2018~Thu-15-02\\_DoS-Slowloris} & 0.9990 & 0.9990 & 0.9974 & 0.9977 & 0.9990 & 0.9978 & 0.9982 & 0.9921 & 0.0619 & 0.8545\\\\\n\\texttt{IDS2018~Wed-21-02\\_DDoS-LOIC-UDP} & 0.9999 & 1.0000 & 1.0000 & 0.9983 & 0.9524 & 0.9961 & 0.9942 & 0.9017 & 0.3604 & 1.0000\\\\\n\\texttt{IDS2018~Wed-21-02\\_DDoS-HOIC} & 0.9887 & 0.9903 & 0.9893 & 0.9884 & 0.9898 & 0.9899 & 0.9899 & 0.9864 & 0.2980 & 0.9808\\\\\n\\texttt{LITNET~code\\_red\\_worm} & 0.9598 & 0.9872 & 0.9554 & 0.8754 & 0.9989 & 0.9972 & 0.9989 & 0.9988 & 0.9196 & 0.7759\\\\",
- "deposit_ep2_rows": "\\texttt{IDS2017~Wed-05-07\\_DoS-Slowhttptest} & 9.54 & 9.92 & 10.69 & 7.25 & 9.54 & 9.54 & 9.54 & 9.54 & 9.92 & 0.00\\\\\n\\texttt{IDS2017~Wed-05-07\\_DoS-Hulk} & 6.30 & 9.06 & 9.45 & 9.85 & 9.45 & 9.45 & 9.45 & 9.45 & 9.85 & 0.79\\\\\n\\texttt{DDoS2019~Syn} & 10.02 & 10.41 & 11.95 & 11.57 & 10.79 & 11.18 & 11.57 & 11.57 & 12.34 & 2.31\\\\\n\\texttt{DDoS2019~UDPLag} & 4.91 & 4.53 & 8.68 & 8.31 & 7.93 & 8.31 & 8.31 & 8.31 & 10.19 & 4.15\\\\\n\\texttt{IDS2017~Wed-05-07\\_DoS-GoldenEye} & 7.41 & 9.88 & 9.88 & 9.88 & 9.47 & 9.88 & 9.88 & 9.88 & 10.29 & 0.00\\\\\n\\texttt{IDS2017~Fri-07-07\\_DDoS-LOIT} & 18.87 & 14.15 & 14.15 & 14.15 & 14.15 & 14.15 & 14.15 & 14.15 & 14.15 & 14.15\\\\\n\\texttt{DDoS2019~UDP} & 5.57 & 4.46 & 8.54 & 7.80 & 7.80 & 7.80 & 8.17 & 7.80 & 10.03 & 2.97\\\\\n\\texttt{IDS2018~Fri-16-02\\_DoS-Hulk} & 8.35 & 10.02 & 10.02 & 8.35 & 6.68 & 6.68 & 6.68 & 6.68 & 10.02 & 1.67\\\\\n\\texttt{DDoS2019~LDAP} & 5.31 & 7.79 & 7.43 & 8.85 & 7.79 & 7.79 & 7.79 & 7.79 & 8.50 & 4.96\\\\\n\\texttt{IDS2018~Fri-16-02\\_DoS-SlowHTTPTest} & 4.65 & 7.44 & 10.23 & 6.51 & 9.30 & 5.58 & 5.58 & 7.44 & 4.65 & 5.58\\\\\n\\texttt{IDS2017~Wed-05-07\\_DoS-Slowloris} & 8.33 & 9.85 & 9.47 & 9.47 & 9.47 & 9.47 & 9.47 & 9.47 & 9.85 & 0.00\\\\\n\\texttt{IDS2018~Tue-20-02\\_DDoS-LOIC-HTTP} & 6.58 & 6.58 & 16.45 & 13.16 & 9.87 & 9.87 & 9.87 & 6.58 & 19.74 & 9.87\\\\\n\\texttt{IDS2018~Thu-15-02\\_DoS-Slowloris} & 11.09 & 6.65 & 12.20 & 8.87 & 11.09 & 7.76 & 8.87 & 11.09 & 14.41 & 0.00\\\\\n\\texttt{IDS2018~Wed-21-02\\_DDoS-LOIC-UDP} & 9.49 & 10.17 & 12.88 & 6.78 & 8.14 & 10.85 & 10.85 & 10.17 & 8.81 & 10.85\\\\\n\\texttt{IDS2018~Wed-21-02\\_DDoS-HOIC} & 8.57 & 5.00 & 11.42 & 9.28 & 12.13 & 10.71 & 7.85 & 9.99 & 7.85 & 7.85\\\\\n\\texttt{LITNET~code\\_red\\_worm} & 15.97 & 9.58 & 9.58 & 0.00 & 9.58 & 6.39 & 9.58 & 6.39 & 12.78 & 0.00\\\\",
- "episodes_rows": "Subspace-Q + EWMA (ours)  & 5.96 & 8.81 & \\textbf{12.45} \\\\\nPOT (reference)           & 5.44 & 8.47 & 11.33 \\\\\nDIF                       & 7.90 & 10.81 & 12.70 \\\\\nINNE                      & 3.83 & 8.75 & 10.69 \\\\\nIForest                   & 7.86 & 9.57 & 11.89 \\\\\nECOD                      & 7.67 & 9.09 & 11.68 \\\\\nCOPOD                     & 8.05 & 9.23 & 11.69 \\\\\nHBOS                      & 7.81 & 9.14 & 12.00 \\\\\nDSPOT                     & 3.09 & 4.07 & 4.00 \\\\\nLODA                      & 7.07 & 10.84 & 13.00 \\\\",
+ "deposit_auc_rows": "\\texttt{IDS2017~Wed-05-07\\_DoS-Slowhttptest} & 0.9859 & 0.7733 & 0.9232 & 0.9443 & 0.8387 & 0.8177 & 0.7419 & 0.7219 & 0.6224 & 0.1924\\\\\n\\texttt{IDS2017~Wed-05-07\\_DoS-Hulk} & 0.9950 & 0.9301 & 0.9779 & 0.9758 & 0.9499 & 0.9513 & 0.9116 & 0.8476 & 0.9399 & 0.6980\\\\\n\\texttt{DDoS2019~Syn} & 0.9670 & 0.9208 & 0.9708 & 0.9523 & 0.9597 & 0.9613 & 0.9593 & 0.9583 & 0.8573 & 0.3147\\\\\n\\texttt{DDoS2019~UDPLag} & 0.9948 & 0.9575 & 0.9876 & 0.9747 & 0.9722 & 0.9684 & 0.9674 & 0.9656 & 0.9131 & 0.3967\\\\\n\\texttt{IDS2017~Wed-05-07\\_DoS-GoldenEye} & 0.9976 & 0.9642 & 0.9842 & 0.9809 & 0.9318 & 0.9391 & 0.9104 & 0.8320 & 0.9391 & 0.2900\\\\\n\\texttt{IDS2018~Fri-16-02\\_DoS-Hulk} & 0.9749 & 0.9664 & 0.9686 & 0.9579 & 0.9679 & 0.9688 & 0.9685 & 0.9715 & 0.8408 & 0.9578\\\\\n\\texttt{IDS2017~Fri-07-07\\_DDoS-LOIT} & 0.9993 & 0.9917 & 0.9975 & 0.9942 & 0.9562 & 0.9704 & 0.9620 & 0.8327 & 0.9380 & 0.8463\\\\\n\\texttt{DDoS2019~UDP} & 0.9983 & 0.9909 & 0.9953 & 0.9933 & 0.9842 & 0.9794 & 0.9784 & 0.9758 & 0.1941 & 0.8964\\\\\n\\texttt{DDoS2019~LDAP} & 0.9989 & 0.9941 & 0.9930 & 0.9930 & 0.9849 & 0.9803 & 0.9802 & 0.9814 & 0.1512 & 0.9308\\\\\n\\texttt{IDS2018~Fri-16-02\\_DoS-SlowHTTPTest} & 0.9986 & 0.9967 & 0.9962 & 0.9931 & 0.9829 & 0.9633 & 0.9576 & 0.9191 & 0.8896 & 0.9934\\\\\n\\texttt{IDS2017~Wed-05-07\\_DoS-Slowloris} & 1.0000 & 0.9992 & 0.9954 & 0.9987 & 0.9574 & 0.9466 & 0.9341 & 0.8993 & 0.9459 & 0.0297\\\\\n\\texttt{IDS2018~Tue-20-02\\_DDoS-LOIC-HTTP} & 0.9999 & 0.9994 & 0.9942 & 0.9949 & 0.9997 & 0.9997 & 0.9996 & 0.9903 & 0.0013 & 0.9966\\\\\n\\texttt{IDS2018~Thu-15-02\\_DoS-Slowloris} & 0.9991 & 0.9990 & 0.9988 & 0.9976 & 0.9957 & 0.9948 & 0.9948 & 0.9887 & 0.1930 & 0.8545\\\\\n\\texttt{IDS2018~Wed-21-02\\_DDoS-LOIC-UDP} & 0.9999 & 1.0000 & 1.0000 & 0.9983 & 0.9655 & 0.9961 & 0.9939 & 0.9247 & 0.2210 & 1.0000\\\\\n\\texttt{IDS2018~Wed-21-02\\_DDoS-HOIC} & 0.9886 & 0.9904 & 0.9892 & 0.9887 & 0.9888 & 0.9894 & 0.9894 & 0.9858 & 0.2158 & 0.9808\\\\\n\\texttt{LITNET~code\\_red\\_worm} & 0.7917 & 0.9872 & 0.9576 & 0.8674 & 0.9986 & 0.9968 & 0.9991 & 0.9984 & 0.9789 & 0.7759\\\\",
+ "deposit_ep2_rows": "\\texttt{IDS2017~Wed-05-07\\_DoS-Slowhttptest} & 9.54 & 9.92 & 11.07 & 6.49 & 9.54 & 9.54 & 9.54 & 9.54 & 9.54 & 0.00\\\\\n\\texttt{IDS2017~Wed-05-07\\_DoS-Hulk} & 7.48 & 9.06 & 9.06 & 10.63 & 9.45 & 9.45 & 9.45 & 9.85 & 9.45 & 0.79\\\\\n\\texttt{DDoS2019~Syn} & 9.64 & 10.41 & 9.64 & 8.10 & 10.41 & 11.57 & 11.57 & 11.57 & 9.25 & 2.31\\\\\n\\texttt{DDoS2019~UDPLag} & 4.91 & 4.53 & 8.68 & 7.55 & 7.93 & 8.68 & 8.68 & 8.68 & 6.04 & 4.15\\\\\n\\texttt{IDS2017~Wed-05-07\\_DoS-GoldenEye} & 8.23 & 9.88 & 9.47 & 9.05 & 9.47 & 9.88 & 9.88 & 9.88 & 9.47 & 0.00\\\\\n\\texttt{IDS2018~Fri-16-02\\_DoS-Hulk} & 8.35 & 10.02 & 10.02 & 8.35 & 8.35 & 6.68 & 6.68 & 6.68 & 8.35 & 1.67\\\\\n\\texttt{IDS2017~Fri-07-07\\_DDoS-LOIT} & 18.87 & 14.15 & 14.15 & 14.15 & 14.15 & 14.15 & 14.15 & 14.15 & 18.87 & 14.15\\\\\n\\texttt{DDoS2019~UDP} & 4.46 & 4.46 & 7.06 & 6.69 & 8.17 & 8.17 & 8.17 & 8.17 & 5.57 & 2.97\\\\\n\\texttt{DDoS2019~LDAP} & 5.66 & 7.79 & 8.85 & 8.85 & 7.79 & 7.79 & 7.79 & 8.14 & 6.73 & 4.96\\\\\n\\texttt{IDS2018~Fri-16-02\\_DoS-SlowHTTPTest} & 4.65 & 7.44 & 8.37 & 6.51 & 6.51 & 5.58 & 6.51 & 8.37 & 12.09 & 5.58\\\\\n\\texttt{IDS2017~Wed-05-07\\_DoS-Slowloris} & 7.95 & 9.85 & 9.47 & 9.47 & 9.47 & 9.47 & 9.47 & 9.47 & 9.47 & 0.00\\\\\n\\texttt{IDS2018~Tue-20-02\\_DDoS-LOIC-HTTP} & 9.87 & 6.58 & 9.87 & 13.16 & 9.87 & 9.87 & 9.87 & 9.87 & 3.29 & 9.87\\\\\n\\texttt{IDS2018~Thu-15-02\\_DoS-Slowloris} & 9.98 & 6.65 & 14.41 & 7.76 & 13.30 & 7.76 & 7.76 & 14.41 & 8.87 & 0.00\\\\\n\\texttt{IDS2018~Wed-21-02\\_DDoS-LOIC-UDP} & 8.81 & 10.17 & 8.81 & 8.14 & 10.17 & 10.17 & 10.17 & 10.17 & 12.88 & 10.85\\\\\n\\texttt{IDS2018~Wed-21-02\\_DDoS-HOIC} & 7.85 & 6.42 & 7.85 & 5.71 & 9.28 & 9.99 & 9.99 & 10.71 & 7.85 & 7.85\\\\\n\\texttt{LITNET~code\\_red\\_worm} & 3.19 & 9.58 & 9.58 & 0.00 & 9.58 & 9.58 & 9.58 & 6.39 & 6.39 & 0.00\\\\",
+ "episodes_rows": "Subspace-Q + EWMA (ours)  & 6.08 & 8.09 & \\textbf{12.21} \\\\\nPOT (reference)           & 5.49 & 8.56 & 11.35 \\\\\nDIF                       & 7.10 & 9.77 & 12.04 \\\\\nINNE                      & 4.57 & 8.16 & 10.84 \\\\\nIForest                   & 8.19 & 9.59 & 11.11 \\\\\nECOD                      & 7.84 & 9.27 & 11.08 \\\\\nCOPOD                     & 7.77 & 9.33 & 11.17 \\\\\nHBOS                      & 7.67 & 9.75 & 11.58 \\\\\nDSPOT                     & 3.09 & 4.07 & 4.00 \\\\\nLODA                      & 7.08 & 9.01 & 11.19 \\\\",
  "episodes_ranks": {
   "ep@1": [
    4,
    3,
    "DSPOT",
-   "COPOD"
+   "IForest"
   ],
   "ep@2": [
-   4,
    2,
+   4,
    "DSPOT",
-   "LODA"
+   "DIF"
   ],
   "ep@5": [
-   8,
-   3,
+   10,
+   7,
    "DSPOT",
-   "LODA"
+   "Subspace-Q + EWMA (ours)"
   ]
  },
- "clusters_rows": "192.168.10.50   & CIC-IDS-2017    & 5 & $+$0.063565 \\\\\n192.168.50.4    & CIC-DDoS2019    & 4 & $+$0.024108 \\\\\n172.31.69.25    & CSE-CIC-IDS2018 & 4 & $+$0.002166 \\\\\n172.31.69.28    & CSE-CIC-IDS2018 & 2 & $-$0.000875 \\\\\n193.219.81.138  & LITNET-2020     & 1 & $-$0.027374 \\\\",
+ "clusters_rows": "192.168.10.50   & CIC-IDS-2017    & 5 & $+$0.063819 \\\\\n192.168.50.4    & CIC-DDoS2019    & 4 & $+$0.023923 \\\\\n172.31.69.25    & CSE-CIC-IDS2018 & 4 & $+$0.002738 \\\\\n172.31.69.28    & CSE-CIC-IDS2018 & 2 & $-$0.000952 \\\\\n193.219.81.138  & LITNET-2020     & 1 & $-$0.195490 \\\\",
  "clusters_means": [
-  "$+$0.012318",
-  "$+$0.024612"
+  "$-$0.021193",
+  "$+$0.014271"
  ],
- "heldout_rows": "Subspace-Q + EWMA (ours)  & \\textbf{91.93} & \\textbf{93.30} & \\textbf{96.75} & \\textbf{2.06} & \\textbf{3.00} & \\textbf{6.76} & \\textbf{1.81} & \\textbf{2.63} & \\textbf{6.11} & \\textbf{6.62} & \\textbf{8.42} & \\textbf{10.80} \\\\\nPOT (reference)           & 79.86 & 84.09 & 85.92 & 5.25 & 6.87 & 10.14 & 5.25 & 6.87 & 10.14 & 6.71 & 8.52 & 9.60 \\\\\nDIF                       & 81.77 & 84.62 & 93.48 & 6.06 & 7.66 & 11.51 & 6.06 & 7.66 & 11.51 & 8.93 & 10.53 & 10.49 \\\\\nINNE                      & 75.26 & 79.84 & 90.88 & 4.35 & 5.64 & 8.91 & 4.35 & 5.64 & 8.91 & 7.28 & 9.23 & 10.87 \\\\\nIForest                   & 53.33 & 65.57 & 83.64 & 2.35 & 3.47 & 8.30 & 2.35 & 3.47 & 8.30 & 8.89 & 10.19 & 10.89 \\\\\nECOD                      & 53.54 & 64.45 & 85.15 & 2.37 & 3.80 & 8.49 & 2.37 & 3.80 & 8.49 & 8.27 & 10.43 & 9.39 \\\\\nCOPOD                     & 52.76 & 62.56 & 82.78 & 2.31 & 3.85 & 8.98 & 2.31 & 3.85 & 8.98 & 8.34 & 10.34 & 9.19 \\\\\nHBOS                      & 26.19 & 42.13 & 59.85 & 1.62 & 2.64 & 5.48 & 1.62 & 2.64 & 5.48 & 7.27 & 10.22 & 10.51 \\\\\nDSPOT                     & 89.77 & 94.81 & 97.54 & 68.67 & 85.29 & 90.33 & 49.52 & 55.28 & 65.86 & 4.83 & 4.41 & 3.79 \\\\\nLODA                      & 12.47 & 21.60 & 35.71 & 1.81 & 3.02 & 6.10 & 1.81 & 3.02 & 6.10 & 9.93 & 11.21 & 10.78 \\\\",
- "smoothing_rows": "INNE                               & 0.9750 & 0.9888 \\\\\nHBOS                               & 0.9293 & 0.9613 \\\\\nECOD                               & 0.6692 & 0.6802 \\\\\nCOPOD                              & 0.6667 & 0.6731 \\\\\nLODA                               & 0.6337 & 0.6639 \\\\\nPOT (reference)                    & 0.9667 & 0.9686 \\\\\nPure Subspace Q-Resid ($k=8$), ours & 0.9761 & 0.9913 \\\\",
+ "heldout_rows": "Subspace-Q + EWMA (ours)  & \\textbf{91.16} & \\textbf{92.64} & \\textbf{95.67} & \\textbf{7.81} & \\textbf{8.46} & \\textbf{10.61} & \\textbf{7.57} & \\textbf{8.16} & \\textbf{10.09} & \\textbf{7.06} & \\textbf{7.60} & \\textbf{9.02} \\\\\nPOT (reference)           & 79.83 & 84.05 & 85.92 & 5.19 & 6.81 & 10.33 & 5.19 & 6.81 & 10.33 & 6.69 & 8.31 & 9.29 \\\\\nDIF                       & 81.89 & 84.40 & 93.45 & 5.27 & 6.70 & 10.97 & 5.27 & 6.70 & 10.97 & 7.62 & 9.26 & 9.14 \\\\\nINNE                      & 81.73 & 86.18 & 90.95 & 4.11 & 5.66 & 9.01 & 4.11 & 5.66 & 9.01 & 7.48 & 9.90 & 11.18 \\\\\nIForest                   & 53.28 & 66.22 & 84.14 & 2.44 & 3.66 & 7.61 & 2.44 & 3.66 & 7.61 & 9.14 & 10.10 & 10.58 \\\\\nECOD                      & 53.11 & 62.52 & 84.65 & 2.47 & 3.74 & 8.45 & 2.47 & 3.74 & 8.45 & 8.88 & 10.21 & 9.24 \\\\\nCOPOD                     & 52.38 & 61.36 & 81.96 & 2.54 & 3.83 & 8.72 & 2.54 & 3.83 & 8.72 & 9.27 & 10.10 & 9.10 \\\\\nHBOS                      & 26.72 & 41.16 & 59.28 & 1.75 & 2.71 & 5.79 & 1.75 & 2.71 & 5.79 & 7.93 & 10.53 & 10.66 \\\\\nDSPOT                     & 89.77 & 94.81 & 97.54 & 68.67 & 85.29 & 90.32 & 49.52 & 55.27 & 65.82 & 4.83 & 4.41 & 3.77 \\\\\nLODA                      & 10.73 & 19.35 & 32.46 & 1.15 & 2.53 & 5.05 & 1.15 & 2.53 & 5.05 & 7.31 & 9.11 & 12.06 \\\\",
+ "smoothing_rows": "INNE                               & 0.9753 & 0.9888 \\\\\nHBOS                               & 0.9246 & 0.9542 \\\\\nECOD                               & 0.6660 & 0.6727 \\\\\nCOPOD                              & 0.6607 & 0.6662 \\\\\nLODA                               & 0.6610 & 0.6272 \\\\\nPOT (reference)                    & 0.9663 & 0.9684 \\\\\nPure Subspace Q-Resid ($k=8$), ours & 0.9544 & 0.9806 \\\\",
  "tournament": {
   "SPOT (Raw)": {
    "name": "SPOT (Raw)",
-   "mean_auc": 0.9667,
+   "mean_auc": 0.9663,
    "median_auc": 0.9907,
    "dr_1pct": 79.56,
    "dr_2pct": 82.75,
    "dr_5pct": 87.71,
-   "episodes_2pct": 8.47,
-   "episodes_5pct": 11.33
+   "episodes_2pct": 8.56,
+   "episodes_5pct": 11.35
   },
   "SPOT + EWMA": {
    "name": "SPOT + EWMA",
-   "mean_auc": 0.9686,
+   "mean_auc": 0.9684,
    "median_auc": 0.9937,
    "dr_1pct": 80.02,
-   "dr_2pct": 85.42,
-   "dr_5pct": 91.09,
+   "dr_2pct": 85.4,
+   "dr_5pct": 91.08,
    "episodes_2pct": 7.96,
    "episodes_5pct": 11.7
   },
   "INNE (Raw)": {
    "name": "INNE (Raw)",
-   "mean_auc": 0.975,
-   "median_auc": 0.989,
-   "dr_1pct": 56.84,
-   "dr_2pct": 79.04,
-   "dr_5pct": 84.67,
-   "episodes_2pct": 8.75,
-   "episodes_5pct": 10.69
+   "mean_auc": 0.9753,
+   "median_auc": 0.9909,
+   "dr_1pct": 69.72,
+   "dr_2pct": 79.79,
+   "dr_5pct": 84.93,
+   "episodes_2pct": 8.16,
+   "episodes_5pct": 10.84
   },
   "INNE + EWMA": {
    "name": "INNE + EWMA",
    "mean_auc": 0.9888,
-   "median_auc": 0.9944,
-   "dr_1pct": 84.29,
-   "dr_2pct": 93.48,
+   "median_auc": 0.9935,
+   "dr_1pct": 84.18,
+   "dr_2pct": 91.88,
    "dr_5pct": 95.82,
-   "episodes_2pct": 8.95,
-   "episodes_5pct": 12.71
+   "episodes_2pct": 8.56,
+   "episodes_5pct": 11.51
   },
   "Subspace-ECOD (k=8) (Raw)": {
    "name": "Subspace-ECOD (k=8) (Raw)",
-   "mean_auc": 0.986,
-   "median_auc": 0.9916,
-   "dr_1pct": 79.37,
-   "dr_2pct": 83.84,
-   "dr_5pct": 89.89,
-   "episodes_2pct": 8.42,
-   "episodes_5pct": 10.29
+   "mean_auc": 0.9857,
+   "median_auc": 0.9912,
+   "dr_1pct": 79.35,
+   "dr_2pct": 83.99,
+   "dr_5pct": 89.58,
+   "episodes_2pct": 8.48,
+   "episodes_5pct": 10.87
   },
   "Subspace-ECOD (k=8) + EWMA": {
    "name": "Subspace-ECOD (k=8) + EWMA",
-   "mean_auc": 0.9896,
-   "median_auc": 0.9958,
-   "dr_1pct": 81.99,
-   "dr_2pct": 87.81,
-   "dr_5pct": 95.54,
-   "episodes_2pct": 7.55,
-   "episodes_5pct": 11.63
+   "mean_auc": 0.9895,
+   "median_auc": 0.9955,
+   "dr_1pct": 81.52,
+   "dr_2pct": 87.61,
+   "dr_5pct": 95.15,
+   "episodes_2pct": 7.52,
+   "episodes_5pct": 11.62
   },
   "Subspace-ECOD (k=4) (Raw)": {
    "name": "Subspace-ECOD (k=4) (Raw)",
-   "mean_auc": 0.982,
-   "median_auc": 0.9905,
-   "dr_1pct": 79.53,
-   "dr_2pct": 82.72,
-   "dr_5pct": 87.97,
-   "episodes_2pct": 8.3,
-   "episodes_5pct": 11.32
+   "mean_auc": 0.9818,
+   "median_auc": 0.99,
+   "dr_1pct": 78.68,
+   "dr_2pct": 82.73,
+   "dr_5pct": 88.36,
+   "episodes_2pct": 8.39,
+   "episodes_5pct": 11.36
   },
   "Subspace-ECOD (k=4) + EWMA": {
    "name": "Subspace-ECOD (k=4) + EWMA",
-   "mean_auc": 0.9879,
-   "median_auc": 0.9953,
-   "dr_1pct": 80.62,
-   "dr_2pct": 86.04,
-   "dr_5pct": 94.14,
-   "episodes_2pct": 7.64,
-   "episodes_5pct": 11.69
+   "mean_auc": 0.9877,
+   "median_auc": 0.9952,
+   "dr_1pct": 80.5,
+   "dr_2pct": 85.91,
+   "dr_5pct": 93.71,
+   "episodes_2pct": 7.55,
+   "episodes_5pct": 11.83
   },
   "Pure Subspace Q-Resid (k=8) (Raw)": {
    "name": "Pure Subspace Q-Resid (k=8) (Raw)",
-   "mean_auc": 0.9761,
-   "median_auc": 0.9759,
-   "dr_1pct": 29.91,
-   "dr_2pct": 44.48,
-   "dr_5pct": 87.33,
-   "episodes_2pct": 5.27,
-   "episodes_5pct": 9.77
+   "mean_auc": 0.9544,
+   "median_auc": 0.9785,
+   "dr_1pct": 29.94,
+   "dr_2pct": 38.69,
+   "dr_5pct": 80.41,
+   "episodes_2pct": 4.36,
+   "episodes_5pct": 9.88
   },
   "Pure Subspace Q-Resid (k=8) + EWMA": {
    "name": "Pure Subspace Q-Resid (k=8) + EWMA",
-   "mean_auc": 0.9913,
-   "median_auc": 0.9982,
-   "dr_1pct": 90.2,
-   "dr_2pct": 93.89,
-   "dr_5pct": 97.3,
-   "episodes_2pct": 8.81,
-   "episodes_5pct": 12.49
+   "mean_auc": 0.9806,
+   "median_auc": 0.998,
+   "dr_1pct": 87.83,
+   "dr_2pct": 91.49,
+   "dr_5pct": 95.57,
+   "episodes_2pct": 8.09,
+   "episodes_5pct": 12.21
   },
   "ECOD (Raw)": {
    "name": "ECOD (Raw)",
-   "mean_auc": 0.6692,
-   "median_auc": 0.7476,
-   "dr_1pct": 3.74,
-   "dr_2pct": 10.49,
-   "dr_5pct": 36.6,
-   "episodes_2pct": 10.6,
-   "episodes_5pct": 11.81
+   "mean_auc": 0.666,
+   "median_auc": 0.7387,
+   "dr_1pct": 3.29,
+   "dr_2pct": 8.95,
+   "dr_5pct": 36.71,
+   "episodes_2pct": 10.58,
+   "episodes_5pct": 12.25
   },
   "ECOD + EWMA": {
    "name": "ECOD + EWMA",
-   "mean_auc": 0.6802,
-   "median_auc": 0.8098,
-   "dr_1pct": 10.82,
-   "dr_2pct": 22.88,
-   "dr_5pct": 42.92,
-   "episodes_2pct": 10.2,
-   "episodes_5pct": 12.16
+   "mean_auc": 0.6727,
+   "median_auc": 0.7995,
+   "dr_1pct": 7.86,
+   "dr_2pct": 20.16,
+   "dr_5pct": 41.64,
+   "episodes_2pct": 9.51,
+   "episodes_5pct": 12.28
   },
   "COPOD (Raw)": {
    "name": "COPOD (Raw)",
-   "mean_auc": 0.6667,
-   "median_auc": 0.7971,
-   "dr_1pct": 8.72,
-   "dr_2pct": 15.93,
-   "dr_5pct": 38.7,
-   "episodes_2pct": 10.07,
-   "episodes_5pct": 11.93
+   "mean_auc": 0.6607,
+   "median_auc": 0.7914,
+   "dr_1pct": 7.73,
+   "dr_2pct": 13.59,
+   "dr_5pct": 37.3,
+   "episodes_2pct": 10.32,
+   "episodes_5pct": 11.91
   },
   "COPOD + EWMA": {
    "name": "COPOD + EWMA",
-   "mean_auc": 0.6731,
-   "median_auc": 0.8317,
-   "dr_1pct": 14.85,
-   "dr_2pct": 27.65,
-   "dr_5pct": 44.06,
-   "episodes_2pct": 10.74,
-   "episodes_5pct": 12.19
+   "mean_auc": 0.6662,
+   "median_auc": 0.8316,
+   "dr_1pct": 12.91,
+   "dr_2pct": 25.38,
+   "dr_5pct": 42.54,
+   "episodes_2pct": 10.08,
+   "episodes_5pct": 12.48
   },
   "HBOS (Raw)": {
    "name": "HBOS (Raw)",
-   "mean_auc": 0.9293,
-   "median_auc": 0.9623,
-   "dr_1pct": 25.62,
-   "dr_2pct": 43.23,
-   "dr_5pct": 57.38,
-   "episodes_2pct": 9.14,
-   "episodes_5pct": 12.0
+   "mean_auc": 0.9246,
+   "median_auc": 0.9619,
+   "dr_1pct": 25.83,
+   "dr_2pct": 39.01,
+   "dr_5pct": 56.43,
+   "episodes_2pct": 9.75,
+   "episodes_5pct": 11.58
   },
   "HBOS + EWMA": {
    "name": "HBOS + EWMA",
-   "mean_auc": 0.9613,
-   "median_auc": 0.9801,
-   "dr_1pct": 46.7,
-   "dr_2pct": 58.9,
-   "dr_5pct": 86.45,
-   "episodes_2pct": 9.0,
-   "episodes_5pct": 11.78
+   "mean_auc": 0.9542,
+   "median_auc": 0.9791,
+   "dr_1pct": 45.89,
+   "dr_2pct": 58.03,
+   "dr_5pct": 77.52,
+   "episodes_2pct": 8.94,
+   "episodes_5pct": 11.84
   },
   "LODA (Raw)": {
    "name": "LODA (Raw)",
-   "mean_auc": 0.6337,
-   "median_auc": 0.8003,
-   "dr_1pct": 9.3,
-   "dr_2pct": 13.7,
-   "dr_5pct": 25.37,
-   "episodes_2pct": 9.8,
-   "episodes_5pct": 11.86
+   "mean_auc": 0.661,
+   "median_auc": 0.8434,
+   "dr_1pct": 5.69,
+   "dr_2pct": 16.02,
+   "dr_5pct": 44.87,
+   "episodes_2pct": 9.35,
+   "episodes_5pct": 10.75
   },
   "LODA + EWMA": {
    "name": "LODA + EWMA",
-   "mean_auc": 0.6639,
-   "median_auc": 0.9024,
-   "dr_1pct": 12.91,
-   "dr_2pct": 24.08,
-   "dr_5pct": 51.82,
-   "episodes_2pct": 9.57,
-   "episodes_5pct": 12.67
+   "mean_auc": 0.6272,
+   "median_auc": 0.8649,
+   "dr_1pct": 20.26,
+   "dr_2pct": 38.9,
+   "dr_5pct": 48.74,
+   "episodes_2pct": 8.98,
+   "episodes_5pct": 11.76
   },
   "INNE + SPOT Hybrid (Raw)": {
    "name": "INNE + SPOT Hybrid (Raw)",
-   "mean_auc": 0.9839,
-   "median_auc": 0.9915,
-   "dr_1pct": 81.2,
-   "dr_2pct": 84.48,
-   "dr_5pct": 90.18,
-   "episodes_2pct": 8.93,
-   "episodes_5pct": 11.68
+   "mean_auc": 0.9841,
+   "median_auc": 0.9917,
+   "dr_1pct": 81.51,
+   "dr_2pct": 84.84,
+   "dr_5pct": 90.21,
+   "episodes_2pct": 8.68,
+   "episodes_5pct": 11.59
   },
   "INNE + SPOT Hybrid + EWMA": {
    "name": "INNE + SPOT Hybrid + EWMA",
-   "mean_auc": 0.9891,
-   "median_auc": 0.9951,
-   "dr_1pct": 82.2,
-   "dr_2pct": 88.68,
-   "dr_5pct": 96.73,
-   "episodes_2pct": 7.29,
-   "episodes_5pct": 11.54
+   "mean_auc": 0.9886,
+   "median_auc": 0.9936,
+   "dr_1pct": 81.52,
+   "dr_2pct": 87.8,
+   "dr_5pct": 96.08,
+   "episodes_2pct": 7.32,
+   "episodes_5pct": 11.1
   }
  },
  "tournament_significance": [
   {
    "comparison": "Subspace-ECOD (k=8) + EWMA vs INNE + EWMA",
-   "delta_mean_auc": 0.0009,
-   "p_auc": 0.6685,
-   "delta_dr2_pp": -5.67,
-   "p_dr2": 0.1961,
-   "delta_ep2": -1.4,
-   "p_ep2": 0.1439
+   "delta_mean_auc": 0.0007,
+   "p_auc": 0.4637,
+   "delta_dr2_pp": -4.27,
+   "p_dr2": 0.233,
+   "delta_ep2": -1.03,
+   "p_ep2": 0.2115
   },
   {
    "comparison": "Subspace-ECOD (k=8) + EWMA vs SPOT (Raw)",
-   "delta_mean_auc": 0.0229,
-   "p_auc": 0.009,
-   "delta_dr2_pp": 5.06,
+   "delta_mean_auc": 0.0232,
+   "p_auc": 0.0076,
+   "delta_dr2_pp": 4.86,
    "p_dr2": 0.0281,
-   "delta_ep2": -0.92,
-   "p_ep2": 0.1167
+   "delta_ep2": -1.04,
+   "p_ep2": 0.0995
   },
   {
    "comparison": "Subspace-ECOD (k=8) + EWMA vs SPOT + EWMA",
-   "delta_mean_auc": 0.021,
-   "p_auc": 0.1118,
-   "delta_dr2_pp": 2.39,
-   "p_dr2": 0.0367,
-   "delta_ep2": -0.4,
-   "p_ep2": 0.2604
+   "delta_mean_auc": 0.0211,
+   "p_auc": 0.0609,
+   "delta_dr2_pp": 2.21,
+   "p_dr2": 0.0858,
+   "delta_ep2": -0.43,
+   "p_ep2": 0.2135
   },
   {
    "comparison": "INNE + EWMA vs INNE (Raw)",
-   "delta_mean_auc": 0.0137,
+   "delta_mean_auc": 0.0135,
    "p_auc": 0.0,
-   "delta_dr2_pp": 14.44,
-   "p_dr2": 0.0092,
-   "delta_ep2": 0.2,
-   "p_ep2": 0.6496
+   "delta_dr2_pp": 12.09,
+   "p_dr2": 0.0064,
+   "delta_ep2": 0.39,
+   "p_ep2": 0.9547
   },
   {
    "comparison": "INNE + EWMA vs SPOT (Raw)",
-   "delta_mean_auc": 0.0221,
+   "delta_mean_auc": 0.0225,
    "p_auc": 0.0934,
-   "delta_dr2_pp": 10.73,
-   "p_dr2": 0.0096,
-   "delta_ep2": 0.48,
-   "p_ep2": 0.7299
+   "delta_dr2_pp": 9.13,
+   "p_dr2": 0.009,
+   "delta_ep2": -0.0,
+   "p_ep2": 0.975
   },
   {
    "comparison": "Pure Subspace Q-Resid (k=8) + EWMA vs INNE + EWMA",
-   "delta_mean_auc": 0.0026,
-   "p_auc": 0.011,
-   "delta_dr2_pp": 0.41,
-   "p_dr2": 0.2115,
-   "delta_ep2": -0.14,
-   "p_ep2": 0.925
+   "delta_mean_auc": -0.0082,
+   "p_auc": 0.0076,
+   "delta_dr2_pp": -0.39,
+   "p_dr2": 0.0843,
+   "delta_ep2": -0.47,
+   "p_ep2": 0.8139
   },
   {
    "comparison": "INNE + SPOT Hybrid + EWMA vs INNE + EWMA",
-   "delta_mean_auc": 0.0003,
-   "p_auc": 0.5619,
-   "delta_dr2_pp": -4.8,
-   "p_dr2": 0.4326,
-   "delta_ep2": -1.65,
-   "p_ep2": 0.0303
+   "delta_mean_auc": -0.0002,
+   "p_auc": 0.7057,
+   "delta_dr2_pp": -4.08,
+   "p_dr2": 0.3635,
+   "delta_ep2": -1.23,
+   "p_ep2": 0.0535
   }
  ],
- "detection_rows": "Subspace-Q + EWMA (ours)  & \\textbf{90.22} & \\textbf{93.92} & \\textbf{97.33} \\\\\nPOT (reference)           & 79.56 & 82.75 & 87.71 \\\\\nDIF                       & 74.05 & 78.72 & 93.42 \\\\\nINNE                      & 56.84 & 79.04 & 84.67 \\\\\nIForest                   & 34.90 & 59.65 & 85.64 \\\\\nECOD                      & 40.10 & 62.45 & 87.51 \\\\\nCOPOD                     & 37.01 & 60.71 & 83.85 \\\\\nHBOS                      & 25.62 & 43.23 & 57.38 \\\\\nDSPOT                     & 65.05 & 65.64 & 65.97 \\\\\nLODA                      & 9.65 & 16.13 & 27.72 \\\\",
+ "detection_rows": "Subspace-Q + EWMA (ours)  & \\textbf{87.83} & \\textbf{91.49} & \\textbf{95.57} \\\\\nPOT (reference)           & 79.56 & 82.75 & 87.71 \\\\\nDIF                       & 75.15 & 79.40 & 94.30 \\\\\nINNE                      & 69.72 & 79.79 & 84.93 \\\\\nIForest                   & 34.73 & 60.61 & 87.06 \\\\\nECOD                      & 36.71 & 60.12 & 87.16 \\\\\nCOPOD                     & 36.98 & 59.28 & 83.67 \\\\\nHBOS                      & 25.83 & 39.01 & 56.43 \\\\\nDSPOT                     & 65.05 & 65.64 & 65.97 \\\\\nLODA                      & 8.19 & 18.79 & 35.55 \\\\",
  "detection_sandbox": {
   "Subspace-Q + EWMA (ours)": {
-   "mean_auc": 0.9913,
-   "dr@1pct": 90.22,
-   "ep@1pct": 5.96,
-   "dr@2pct": 93.92,
-   "ep@2pct": 8.81,
-   "dr@5pct": 97.33,
-   "ep@5pct": 12.45
+   "mean_auc": 0.9806,
+   "dr@1pct": 87.83,
+   "ep@1pct": 6.08,
+   "dr@2pct": 91.49,
+   "ep@2pct": 8.09,
+   "dr@5pct": 95.57,
+   "ep@5pct": 12.21
   },
   "POT": {
-   "mean_auc": 0.9667,
+   "mean_auc": 0.9663,
    "dr@1pct": 79.56,
-   "ep@1pct": 5.44,
+   "ep@1pct": 5.49,
    "dr@2pct": 82.75,
-   "ep@2pct": 8.47,
+   "ep@2pct": 8.56,
    "dr@5pct": 87.71,
-   "ep@5pct": 11.33
+   "ep@5pct": 11.35
   },
   "DSPOT": {
    "mean_auc": 0.6971,
@@ -357,82 +357,82 @@
    "ep@5pct": 4.0
   },
   "ECOD": {
-   "mean_auc": 0.9621,
-   "dr@1pct": 40.1,
-   "ep@1pct": 7.67,
-   "dr@2pct": 62.45,
-   "ep@2pct": 9.09,
-   "dr@5pct": 87.51,
-   "ep@5pct": 11.68
+   "mean_auc": 0.964,
+   "dr@1pct": 36.71,
+   "ep@1pct": 7.84,
+   "dr@2pct": 60.12,
+   "ep@2pct": 9.27,
+   "dr@5pct": 87.16,
+   "ep@5pct": 11.08
   },
   "COPOD": {
-   "mean_auc": 0.954,
-   "dr@1pct": 37.01,
-   "ep@1pct": 8.05,
-   "dr@2pct": 60.71,
-   "ep@2pct": 9.23,
-   "dr@5pct": 83.85,
-   "ep@5pct": 11.69
+   "mean_auc": 0.953,
+   "dr@1pct": 36.98,
+   "ep@1pct": 7.77,
+   "dr@2pct": 59.28,
+   "ep@2pct": 9.33,
+   "dr@5pct": 83.67,
+   "ep@5pct": 11.17
   },
   "HBOS": {
-   "mean_auc": 0.9293,
-   "dr@1pct": 25.62,
-   "ep@1pct": 7.81,
-   "dr@2pct": 43.23,
-   "ep@2pct": 9.14,
-   "dr@5pct": 57.38,
-   "ep@5pct": 12.0
+   "mean_auc": 0.9246,
+   "dr@1pct": 25.83,
+   "ep@1pct": 7.67,
+   "dr@2pct": 39.01,
+   "ep@2pct": 9.75,
+   "dr@5pct": 56.43,
+   "ep@5pct": 11.58
   },
   "LODA": {
-   "mean_auc": 0.5255,
-   "dr@1pct": 9.65,
-   "ep@1pct": 7.07,
-   "dr@2pct": 16.13,
-   "ep@2pct": 10.84,
-   "dr@5pct": 27.72,
-   "ep@5pct": 13.0
+   "mean_auc": 0.6151,
+   "dr@1pct": 8.19,
+   "ep@1pct": 7.08,
+   "dr@2pct": 18.79,
+   "ep@2pct": 9.01,
+   "dr@5pct": 35.55,
+   "ep@5pct": 11.19
   },
   "INNE": {
-   "mean_auc": 0.975,
-   "dr@1pct": 56.84,
-   "ep@1pct": 3.83,
-   "dr@2pct": 79.04,
-   "ep@2pct": 8.75,
-   "dr@5pct": 84.67,
-   "ep@5pct": 10.69
+   "mean_auc": 0.9753,
+   "dr@1pct": 69.72,
+   "ep@1pct": 4.57,
+   "dr@2pct": 79.79,
+   "ep@2pct": 8.16,
+   "dr@5pct": 84.93,
+   "ep@5pct": 10.84
   },
   "IForest": {
-   "mean_auc": 0.965,
-   "dr@1pct": 34.9,
-   "ep@1pct": 7.86,
-   "dr@2pct": 59.65,
-   "ep@2pct": 9.57,
-   "dr@5pct": 85.64,
-   "ep@5pct": 11.89
+   "mean_auc": 0.9646,
+   "dr@1pct": 34.73,
+   "ep@1pct": 8.19,
+   "dr@2pct": 60.61,
+   "ep@2pct": 9.59,
+   "dr@5pct": 87.06,
+   "ep@5pct": 11.11
   },
   "DIF": {
-   "mean_auc": 0.9829,
-   "dr@1pct": 74.05,
-   "ep@1pct": 7.9,
-   "dr@2pct": 78.72,
-   "ep@2pct": 10.81,
-   "dr@5pct": 93.42,
-   "ep@5pct": 12.7
+   "mean_auc": 0.9831,
+   "dr@1pct": 75.15,
+   "ep@1pct": 7.1,
+   "dr@2pct": 79.4,
+   "ep@2pct": 9.77,
+   "dr@5pct": 94.3,
+   "ep@5pct": 12.04
   }
  },
  "detection_crosscheck_ok": true,
  "detection_crosscheck": {
   "Subspace-Q + EWMA (ours)": [
-   0.9913,
-   0.9913,
-   12.45,
-   12.45
+   0.9806,
+   0.9806,
+   12.21,
+   12.21
   ],
   "POT": [
-   0.9667,
-   0.9667,
-   11.33,
-   11.33
+   0.9663,
+   0.9663,
+   11.35,
+   11.35
   ],
   "DSPOT": [
    0.6971,
@@ -441,70 +441,70 @@
    4.0
   ],
   "ECOD": [
-   0.9621,
-   0.9621,
-   11.68,
-   11.68
+   0.964,
+   0.964,
+   11.08,
+   11.08
   ],
   "COPOD": [
-   0.954,
-   0.954,
-   11.69,
-   11.69
+   0.953,
+   0.953,
+   11.17,
+   11.17
   ],
   "HBOS": [
-   0.9293,
-   0.9293,
-   12.0,
-   12.0
+   0.9246,
+   0.9246,
+   11.58,
+   11.58
   ],
   "LODA": [
-   0.5255,
-   0.5255,
-   13.0,
-   13.0
+   0.6151,
+   0.6151,
+   11.19,
+   11.19
   ],
   "INNE": [
-   0.975,
-   0.975,
-   10.69,
-   10.69
+   0.9753,
+   0.9753,
+   10.84,
+   10.84
   ],
   "IForest": [
-   0.965,
-   0.965,
-   11.89,
-   11.89
+   0.9646,
+   0.9646,
+   11.11,
+   11.11
   ],
   "DIF": [
-   0.9829,
-   0.9829,
-   12.7,
-   12.7
+   0.9831,
+   0.9831,
+   12.04,
+   12.04
   ]
  },
- "matched_rows": "Subspace-Q (ours)    & 0.9913 & $+$0.0227 & 1.00000 & 1.00000 & 90.22/93.92/97.33 & 5.96/8.81/12.45 \\\\\nDIF                  & 0.9909 & $+$0.0222 & 1.00000 & 1.00000 & 84.82/88.92/97.60 & 5.01/7.32/11.71 \\\\\nINNE                 & 0.9888 & $+$0.0201 & 1.00000 & 1.00000 & 84.29/93.48/95.82 & 5.67/8.95/12.71 \\\\\nIForest              & 0.9853 & $+$0.0167 & 1.00000 & 0.81250 & 79.02/85.98/92.75 & 6.67/8.75/12.21 \\\\\nECOD                 & 0.9750 & $+$0.0063 & 1.00000 & 1.00000 & 64.54/80.51/90.85 & 6.95/9.31/11.98 \\\\\nCOPOD                & 0.9699 & $+$0.0013 & 1.00000 & 1.00000 & 62.51/78.46/90.19 & 7.05/9.38/12.04 \\\\\nPOT (reference)      & 0.9686 & ---       & ---     & ---     & 80.02/85.42/91.09 & 4.94/7.96/11.70 \\\\\nHBOS                 & 0.9613 & $-$0.0073 & 1.00000 & 0.81250 & 46.70/58.90/86.45 & 6.35/9.00/11.78 \\\\\nDSPOT                & 0.7413 & $-$0.2273 & 0.00589 & 0.06250 & 65.70/68.08/70.20 & 3.52/5.26/7.24 \\\\\nLODA                 & 0.5352 & $-$0.4334 & 0.00610 & 0.06250 & 17.29/25.09/38.87 & 7.98/10.82/14.02 \\\\",
+ "matched_rows": "DIF                  & 0.9907 & $+$0.0223 & 1.00000 & 1.00000 & 84.44/88.30/97.57 & 4.98/7.18/11.55 \\\\\nINNE                 & 0.9888 & $+$0.0204 & 1.00000 & 1.00000 & 84.18/91.88/95.82 & 5.69/8.56/11.51 \\\\\nIForest              & 0.9834 & $+$0.0150 & 1.00000 & 1.00000 & 77.44/84.64/92.26 & 6.62/8.79/11.36 \\\\\nSubspace-Q (ours)    & 0.9806 & $+$0.0122 & 1.00000 & 1.00000 & 87.83/91.49/95.57 & 6.08/8.09/12.21 \\\\\nECOD                 & 0.9757 & $+$0.0073 & 1.00000 & 1.00000 & 62.62/74.33/90.93 & 6.83/9.60/12.30 \\\\\nCOPOD                & 0.9687 & $+$0.0003 & 1.00000 & 1.00000 & 60.14/74.19/89.72 & 6.91/9.55/11.88 \\\\\nPOT (reference)      & 0.9684 & ---       & ---     & ---     & 80.02/85.40/91.08 & 4.94/7.96/11.70 \\\\\nHBOS                 & 0.9542 & $-$0.0142 & 1.00000 & 0.62500 & 45.89/58.03/77.52 & 6.62/8.94/11.84 \\\\\nDSPOT                & 0.7413 & $-$0.2271 & 0.00589 & 0.06250 & 65.70/68.08/70.20 & 3.52/5.26/7.28 \\\\\nLODA                 & 0.6221 & $-$0.3463 & 0.01050 & 0.06250 & 13.79/24.69/42.22 & 7.19/9.37/12.44 \\\\",
  "matched_sandbox": {
   "Subspace-Q + EWMA (ours)": {
-   "mean_auc": 0.9913,
-   "dr@1pct": 90.22,
-   "ep@1pct": 5.96,
-   "dr@2pct": 93.92,
-   "ep@2pct": 8.81,
-   "dr@5pct": 97.33,
-   "ep@5pct": 12.45,
-   "vs_ref_auc": 0.0227,
-   "vs_ref_p_raw": 0.37546,
+   "mean_auc": 0.9806,
+   "dr@1pct": 87.83,
+   "ep@1pct": 6.08,
+   "dr@2pct": 91.49,
+   "ep@2pct": 8.09,
+   "dr@5pct": 95.57,
+   "ep@5pct": 12.21,
+   "vs_ref_auc": 0.0122,
+   "vs_ref_p_raw": 0.34839,
    "cluster_p": 1.0,
    "vs_ref_p_holm": 1.0
   },
   "POT": {
-   "mean_auc": 0.9686,
+   "mean_auc": 0.9684,
    "dr@1pct": 80.02,
    "ep@1pct": 4.94,
-   "dr@2pct": 85.42,
+   "dr@2pct": 85.4,
    "ep@2pct": 7.96,
-   "dr@5pct": 91.09,
+   "dr@5pct": 91.08,
    "ep@5pct": 11.7
   },
   "DSPOT": {
@@ -514,100 +514,100 @@
    "dr@2pct": 68.08,
    "ep@2pct": 5.26,
    "dr@5pct": 70.2,
-   "ep@5pct": 7.24,
-   "vs_ref_auc": -0.2273,
+   "ep@5pct": 7.28,
+   "vs_ref_auc": -0.2271,
    "vs_ref_p_raw": 0.00065,
    "cluster_p": 0.0625,
    "vs_ref_p_holm": 0.00589
   },
   "ECOD": {
-   "mean_auc": 0.975,
-   "dr@1pct": 64.54,
-   "ep@1pct": 6.95,
-   "dr@2pct": 80.51,
-   "ep@2pct": 9.31,
-   "dr@5pct": 90.85,
-   "ep@5pct": 11.98,
-   "vs_ref_auc": 0.0063,
-   "vs_ref_p_raw": 0.63217,
-   "cluster_p": 1.0,
-   "vs_ref_p_holm": 1.0
-  },
-  "COPOD": {
-   "mean_auc": 0.9699,
-   "dr@1pct": 62.51,
-   "ep@1pct": 7.05,
-   "dr@2pct": 78.46,
-   "ep@2pct": 9.38,
-   "dr@5pct": 90.19,
-   "ep@5pct": 12.04,
-   "vs_ref_auc": 0.0013,
+   "mean_auc": 0.9757,
+   "dr@1pct": 62.62,
+   "ep@1pct": 6.83,
+   "dr@2pct": 74.33,
+   "ep@2pct": 9.6,
+   "dr@5pct": 90.93,
+   "ep@5pct": 12.3,
+   "vs_ref_auc": 0.0073,
    "vs_ref_p_raw": 0.74356,
    "cluster_p": 1.0,
    "vs_ref_p_holm": 1.0
   },
+  "COPOD": {
+   "mean_auc": 0.9687,
+   "dr@1pct": 60.14,
+   "ep@1pct": 6.91,
+   "dr@2pct": 74.19,
+   "ep@2pct": 9.55,
+   "dr@5pct": 89.72,
+   "ep@5pct": 11.88,
+   "vs_ref_auc": 0.0003,
+   "vs_ref_p_raw": 0.56189,
+   "cluster_p": 1.0,
+   "vs_ref_p_holm": 1.0
+  },
   "HBOS": {
-   "mean_auc": 0.9613,
-   "dr@1pct": 46.7,
-   "ep@1pct": 6.35,
-   "dr@2pct": 58.9,
-   "ep@2pct": 9.0,
-   "dr@5pct": 86.45,
-   "ep@5pct": 11.78,
-   "vs_ref_auc": -0.0073,
-   "vs_ref_p_raw": 0.19281,
-   "cluster_p": 0.8125,
+   "mean_auc": 0.9542,
+   "dr@1pct": 45.89,
+   "ep@1pct": 6.62,
+   "dr@2pct": 58.03,
+   "ep@2pct": 8.94,
+   "dr@5pct": 77.52,
+   "ep@5pct": 11.84,
+   "vs_ref_auc": -0.0142,
+   "vs_ref_p_raw": 0.15906,
+   "cluster_p": 0.625,
    "vs_ref_p_holm": 1.0
   },
   "LODA": {
-   "mean_auc": 0.5352,
-   "dr@1pct": 17.29,
-   "ep@1pct": 7.98,
-   "dr@2pct": 25.09,
-   "ep@2pct": 10.82,
-   "dr@5pct": 38.87,
-   "ep@5pct": 14.02,
-   "vs_ref_auc": -0.4334,
-   "vs_ref_p_raw": 0.00076,
+   "mean_auc": 0.6221,
+   "dr@1pct": 13.79,
+   "ep@1pct": 7.19,
+   "dr@2pct": 24.69,
+   "ep@2pct": 9.37,
+   "dr@5pct": 42.22,
+   "ep@5pct": 12.44,
+   "vs_ref_auc": -0.3463,
+   "vs_ref_p_raw": 0.00131,
    "cluster_p": 0.0625,
-   "vs_ref_p_holm": 0.0061
+   "vs_ref_p_holm": 0.0105
   },
   "INNE": {
    "mean_auc": 0.9888,
-   "dr@1pct": 84.29,
-   "ep@1pct": 5.67,
-   "dr@2pct": 93.48,
-   "ep@2pct": 8.95,
+   "dr@1pct": 84.18,
+   "ep@1pct": 5.69,
+   "dr@2pct": 91.88,
+   "ep@2pct": 8.56,
    "dr@5pct": 95.82,
-   "ep@5pct": 12.71,
-   "vs_ref_auc": 0.0201,
+   "ep@5pct": 11.51,
+   "vs_ref_auc": 0.0204,
    "vs_ref_p_raw": 0.78195,
    "cluster_p": 1.0,
    "vs_ref_p_holm": 1.0
   },
   "IForest": {
-   "mean_auc": 0.9853,
-   "dr@1pct": 79.02,
-   "ep@1pct": 6.67,
-   "dr@2pct": 85.98,
-   "ep@2pct": 8.75,
-   "dr@5pct": 92.75,
-   "ep@5pct": 12.21,
-   "vs_ref_auc": 0.0167,
-   "vs_ref_p_raw": 0.46375,
-   "cluster_p": 0.8125,
+   "mean_auc": 0.9834,
+   "dr@1pct": 77.44,
+   "ep@1pct": 6.62,
+   "dr@2pct": 84.64,
+   "ep@2pct": 8.79,
+   "dr@5pct": 92.26,
+   "ep@5pct": 11.36,
+   "vs_ref_auc": 0.015,
+   "vs_ref_p_raw": 0.63217,
+   "cluster_p": 1.0,
    "vs_ref_p_holm": 1.0
   },
   "DIF": {
-   "mean_auc": 0.9909,
-   "dr@1pct": 84.82,
-   "ep@1pct": 5.01,
-   "dr@2pct": 88.92,
-   "ep@2pct": 7.32,
-   "dr@5pct": 97.6,
-   "ep@5pct": 11.71,
-   "vs_ref_auc": 0.0222,
-   "vs_ref_p_raw": 0.63217,
+   "mean_auc": 0.9907,
+   "dr@1pct": 84.44,
+   "ep@1pct": 4.98,
+   "dr@2pct": 88.3,
+   "ep@2pct": 7.18,
+   "dr@5pct": 97.57,
+   "ep@5pct": 11.55,
+   "vs_ref_auc": 0.0223,
+   "vs_ref_p_raw": 0.56189,
    "cluster_p": 1.0,
    "vs_ref_p_holm": 1.0
   }
@@ -615,16 +615,16 @@
  "matched_crosscheck_ok": true,
  "matched_crosscheck": {
   "Subspace-Q + EWMA (ours)": [
-   0.9913,
-   0.9913,
-   12.45,
-   12.45,
-   0.37546,
-   0.37546
+   0.9806,
+   0.9806,
+   12.21,
+   12.21,
+   0.34839,
+   0.34839
   ],
   "POT": [
-   0.9686,
-   0.9686,
+   0.9684,
+   0.9684,
    11.7,
    11.7,
    null,
@@ -633,66 +633,66 @@
   "DSPOT": [
    0.7413,
    0.7413,
-   7.24,
-   7.24,
+   7.28,
+   7.28,
    0.00065,
    0.00065
   ],
   "ECOD": [
-   0.975,
-   0.975,
-   11.98,
-   11.98,
-   0.63217,
-   0.63217
-  ],
-  "COPOD": [
-   0.9699,
-   0.9699,
-   12.04,
-   12.04,
+   0.9757,
+   0.9757,
+   12.3,
+   12.3,
    0.74356,
    0.74356
   ],
+  "COPOD": [
+   0.9687,
+   0.9687,
+   11.88,
+   11.88,
+   0.56189,
+   0.56189
+  ],
   "HBOS": [
-   0.9613,
-   0.9613,
-   11.78,
-   11.78,
-   0.19281,
-   0.19281
+   0.9542,
+   0.9542,
+   11.84,
+   11.84,
+   0.15906,
+   0.15906
   ],
   "LODA": [
-   0.5352,
-   0.5352,
-   14.02,
-   14.02,
-   0.00076,
-   0.00076
+   0.6221,
+   0.6221,
+   12.44,
+   12.44,
+   0.00131,
+   0.00131
   ],
   "INNE": [
    0.9888,
    0.9888,
-   12.71,
-   12.71,
+   11.51,
+   11.51,
    0.78195,
    0.78195
   ],
   "IForest": [
-   0.9853,
-   0.9853,
-   12.21,
-   12.21,
-   0.46375,
-   0.46375
-  ],
-  "DIF": [
-   0.9909,
-   0.9909,
-   11.71,
-   11.71,
+   0.9834,
+   0.9834,
+   11.36,
+   11.36,
    0.63217,
    0.63217
+  ],
+  "DIF": [
+   0.9907,
+   0.9907,
+   11.55,
+   11.55,
+   0.56189,
+   0.56189
   ]
  }
 }

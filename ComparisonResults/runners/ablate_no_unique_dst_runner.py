@@ -2,8 +2,8 @@
 LITNET-2020 L1-semantic protected-subnet evaluation.
 
 This runner reproduces the L1 protected-subnet aggregation mechanism
-(`ip_protected_subnet_add` + Stage-3c keying `l1_resolve_track_key` at
-`layer1/layer1.c:1925-1932`) at the offline harness level. Unlike
+(`ip_protected_subnet_add` + Stage-3c keying `l1_resolve_track_key`, via
+`per_ip_features_lookup_track()` in `layer1/telemetry/per_ip_features.c:460-475`) at the offline harness level. Unlike
 `run_litnet_zone.py`, which post-hoc sums per-(dst_ip, second) HLL counts (an
 L2-zone semantic — recall-biased upper bound), this runner streams flows
 through `litnet_loader.load_litnet_per_subnet` and produces one accumulator
@@ -56,13 +56,15 @@ from feature_filter import filter_active, PRODUCTION_39_FEATURES
 _orig_filter_active = filter_active
 def filter_active(*a, **kw):
     # filter_active returns (active, inert). Iterating the 2-tuple drops nothing
-    # and silently scores the 11-feature canonical arm.
+    # and silently scores the 13-feature canonical arm.
     active, inert = _orig_filter_active(*a, **kw)
     out = [f for f in active if f != 'unique_dst_ips']
     print(f"  [ABLATION] dropped unique_dst_ips: {len(active)} -> {len(out)} features")
-    if len(out) != 10 or 'unique_dst_ips' in out:
+    # 12: the subnet arm's active features less unique_dst_ips, i.e. the ten NetFlow
+    # features plus the two engine columns unique_flows and burst_factor
+    if len(out) != 12 or 'unique_dst_ips' in out:
         raise AssertionError(
-            f"[GUARD] ablation expected 10 features without unique_dst_ips; "
+            f"[GUARD] ablation expected 12 features without unique_dst_ips; "
             f"got {len(out)} {out}")
     print(f"  [GUARD] ablation verified: {len(out)} features, unique_dst_ips absent")
     extra = ['unique_dst_ips'] if 'unique_dst_ips' in active else []
@@ -230,8 +232,9 @@ def run_for_prefix(prefix_bits):
     print(f"  Evaluating {len(per_subnet)} subnets")
 
     # Auto-detect active features against PRODUCTION_39_FEATURES
-    # ∪ {unique_dst_ips} on benign-period rows. NetFlow's 13-feature schema
-    # leaves 26 features missing; dir_ratio + ttl_mean zero-variance; for the
+    # ∪ {unique_dst_ips} on benign-period rows. The NetFlow schema leaves most
+    # engine names missing (litnet_loader._finalize lists what the loader
+    # writes); dir_ratio + ttl_mean zero-variance; for the
     # subnet aggregation, unique_dst_ips DOES carry variance (multiple
     # destinations per subnet during attack windows). Persisted to metadata.
     sample = []
@@ -323,9 +326,8 @@ def run_for_prefix(prefix_bits):
             'features_used': list(LITNET_FEATURES),
             'features': list(LITNET_FEATURES),
             'features_inert_auto_excluded': globals().get(f'_CHANGE71_INERT_{prefix_bits}', []),
-            # Engine export-contract size (layer2/baselines.h, L2_MAX_FEATURES = 39).
-            # Not len(PRODUCTION_39_FEATURES): that list is the harness's candidate
-            # set: the 37 of those names that the offline extractor writes.
+            # Engine export-contract size (layer2/baselines.h, L2_MAX_FEATURES = 39),
+            # which PRODUCTION_39_FEATURES lists in full.
             'production_feature_set_size': 39,
             'min_windows_per_subnet': MIN_WINDOWS_PER_SUBNET,
             'min_attack_windows_for_victim': MIN_ATTACK_WINDOWS_FOR_DR,

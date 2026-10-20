@@ -1,8 +1,10 @@
 # recompute/
 
 Derived numbers for the manuscript, recomputed from the per-scenario records in `results/`. Paths below
-are relative to `ComparisonResults/`. The three Python scripts only read `results/`; `regenerate.sh`
-rewrites 29 of its 49 records.
+are relative to `ComparisonResults/`. The three Python scripts below only read `results/`;
+`regenerate.sh` rewrites 29 of its 49 records. `compare_feature_sets.py` sets the records of this
+revision, scored on the 39 engine feature names, beside those of commit `895e581`, scored on 37, as
+`PREREGISTRATION_39_FEATURES.md` asks.
 
 ## Scripts
 
@@ -27,6 +29,15 @@ scripts need numpy and scipy; `four_corpus_tables.py` also imports `corpus_names
   `corrected_benchmark_results.json` and `matched_smoothing_benchmark.json`; pass `results`, as
   `regenerate.sh` does, or the smoothing, oracle detection-rate and matched-control tables are left out.
 
+`compare_feature_sets.py [--base COMMIT] [--old-root DIR] [--out FILE] [--check FILE]` writes
+`results/feature_set_comparison_37_vs_39.tsv`. It reads the 37-name records with
+`git show 895e581:ComparisonResults/<path>`, so it needs a git checkout that contains that commit;
+`--old-root DIR` reads them instead from a directory holding an export of it, such as
+`git archive 895e581 | tar -x -C DIR`. It reads the 39-name records from this checkout, needs numpy and
+scipy, and with `--check FILE` compares instead of writing and exits 1 on any difference:
+
+    python3 recompute/compare_feature_sets.py --check recompute/results/feature_set_comparison_37_vs_39.tsv
+
 ## Outputs
 
 - `numbers.json`: every recomputed aggregate, under the key `four`. `extra.json`: the second-tier quantities.
@@ -36,6 +47,18 @@ scripts need numpy and scipy; `four_corpus_tables.py` also imports `corpus_names
   `corrected_benchmark_results.json` and `matched_smoothing_benchmark.json`.
 - `validation.json`: `{"ok": 1968, "mismatches": []}`, i.e. 1,968 stored aggregates reproduced and
   0 mismatches, 460 of them in the three repaired-split held-out records. The tolerance for each field is set in `four_corpus_tables.py`.
+- `results/feature_set_comparison_37_vs_39.tsv`: 661 rows, one per statistic, with columns `statistic`,
+  `value_37`, `value_39`, `source_37`, `source_39` and `flips`. A source names the record and the JSON path
+  of the value, prefixed `895e581:` on the 37-name side, and says when the value is computed here from a
+  record (a rank, a difference, or the cross-check of section X, which recomputes our row's Wilcoxon p,
+  Holm adjustment and victim-clustered test from the per-scenario matrices). `flips` names a change of
+  significance at 0.05 (a p-value, or a 95% interval that starts or stops excluding 0), of rank, of win
+  count or of sign, the kinds the pre-registration asks to be printed on both feature sets; 87 rows
+  outside section X carry one. Sections A to N follow the pre-registered list (margin and its tests,
+  split controls, rankings, benign alarm episodes, detection and false-alarm rates, the clock null,
+  matched smoothing, the inductive correction, the batch-invariance gate, the admissibility census,
+  active features D per row, the C engine and the C port, concentration, and the secondary analyses);
+  section S covers the archived-registry records the manuscript quotes.
 
 ## recompute/regeneration/
 
@@ -43,8 +66,10 @@ scripts need numpy and scipy; `four_corpus_tables.py` also imports `corpus_names
   Runners run in two waves (the second reads first-wave records); each writes a log to
   `recompute/regeneration/logs/`. They read the derived feature tree at `$ANTIDDOS_BASE/datasets/extracted/`
   (by default the repository root), which is not deposited. `extraction/` rebuilds it from the corpus
-  releases and `extraction/tree_manifest/` pins its checksums; a rebuilt tree equals the authors' copy by
-  value, and 9 of its 47 files also by checksum (`extraction/README.md`, "Comparing a rebuilt tree").
+  releases and `extraction/tree_manifest/` pins the checksums of the 39-name tree the authors rebuilt for
+  this revision (`extraction/README.md`, "Comparing a rebuilt tree"). Run `heldout_threeway40.sh` before
+  it: `four_corpus_tables.py` reads the three `*_threeway40.json` records in `recompute/results/`, so the
+  scripts at the end of `regenerate.sh` summarize whatever copies of them are present.
   `ComparisonResults/requirements.txt` pins the environment (Python 3.12, numpy 2.4.2, scipy 1.17.0,
   scikit-learn 1.8.0, PyOD 3.6.5, PyTorch 2.13.0+cpu, dpkt 1.9.8); gcc is also needed for
   `runners/run_c_engine_ours.py`, which compiles the engine from `project/layer2/` at the repository root.
@@ -54,9 +79,13 @@ scripts need numpy and scipy; `four_corpus_tables.py` also imports `corpus_names
   `*_sixvictim*` records into `recompute/results/`. The deposited `results/` is never touched.
 - `heldout_threeway40.sh [python]` re-scores the held-out operating point under the repaired 40/40/20 split
   (`ANTIDDOS_SPLIT=threeway40` in `runners/run_29_scenarios_corrected.py`) and writes the three
-  `*_threeway40.json` records described below into `recompute/results/`.
-- `pass_comparison.tsv` compares the deposited records, record by record, with earlier copies that are not
-  deposited: pass 1's records and, for `batch_invariance_gate.json`, the previously deposited record (columns: record, numeric leaves, values changed from pass 1 to pass 2, cause). Pass 1
+  `*_threeway40.json` records described below into `recompute/results/`. It does not run the three
+  scripts above; run them after it, or run it before `regenerate.sh`.
+- `pass_comparison.tsv` compares two passes of the 37-name revision, record by record, with earlier copies
+  that are not deposited: pass 1's records and, for `batch_invariance_gate.json`, the previously deposited
+  record (columns: record, numeric leaves, values changed from pass 1 to pass 2, cause). Its counts describe
+  those passes and not the 39-name records; for the 20 records `regenerate.sh` does not rewrite, the cause
+  column gives the reason as it stands in this revision. Pass 1
   was an earlier full pass at the default BLAS thread count. Pass 2 is the single-threaded `regenerate.sh`
   run that wrote the deposited records before the Wednesday regeneration (below); `batch_invariance_gate.json` was rewritten in a follow-up run of
   `runners/verify_inductive.py`, which `regenerate.sh` now includes; pass 1 did not run that writer, so its
@@ -65,20 +94,21 @@ scripts need numpy and scipy; `four_corpus_tables.py` also imports `corpus_names
   matches renamed population keys. The TSV summarizes a leaf-by-leaf comparison whose scripts are not
   deposited.
 
-  `regenerate.sh` does not rewrite the other 20 records; the TSV gives the reason for each. Six are inputs
-  with no deposited writer (`panel_inventory/*.json`, `admissibility_inputs.json`). Nine have no deposited
-  writer of their own: `full_tree_all_scenarios_metrics.json` and
-  `all_extracted_datasets_evaluation_results.json`, whose rows were restricted by hand to the four corpora,
-  six rescued LITNET-2020 records, two of which (`rescued/*_CANONICAL.json`) are byte copies of
-  `litnet_l1subnet_{16,24}_results.json`, and the rescued dual-scale audit
-  (`rescued/dual_scale_union_results.json`, CIC-IDS-2017 and LITNET-2020 blocks). The last five have deposited writers that it does not run.
-  `c_engine_verification_report.json` comes from `runners/verify_c_engine_subspace_q.py`, which compiles
-  the engine's `subspace_q.c`; that file is not deposited, and the record was restricted to the 16 panel
-  rows by hand. `litnet_l1subnet_{16,24}_results.json` (`runners/run_litnet_l1subnet.py`) and
+  `regenerate.sh` does not rewrite the other 20 records; the TSV gives the reason for each. Five are inputs
+  with no deposited writer (`panel_inventory/*.json`). Nine have no deposited writer of their own:
+  `full_tree_all_scenarios_metrics.json` and `all_extracted_datasets_evaluation_results.json`, whose rows
+  were restricted by hand to the four corpora, six rescued LITNET-2020 records, two of which
+  (`rescued/*_CANONICAL.json`) are byte copies of `litnet_l1subnet_{16,24}_results.json`, and the rescued
+  dual-scale audit (`rescued/dual_scale_union_results.json`, CIC-IDS-2017 and LITNET-2020 blocks). The
+  other six have deposited writers that it does not run. `admissibility_inputs.json`, the ledger's input,
+  is written by `extraction/write_admissibility_inputs.py` from the tree's `index.json` files, a step of the
+  extraction recipe. `c_engine_verification_report.json` comes from `runners/verify_c_engine_subspace_q.py`,
+  which compiles the engine's `subspace_q.c`; that file is not deposited.
+  `litnet_l1subnet_{16,24}_results.json` (`runners/run_litnet_l1subnet.py`) and
   `rescued/ABLATION_no_unique_dst_l1subnet_{16,24}_results.json` (`runners/ablate_no_unique_dst_runner.py`)
   come from runners that read the LITNET-2020 export or caches built from it (neither is deposited), not the
   derived tree. All four were scored on an incomplete LITNET-2020 export that lacks the `udp_f` attack, and
-  none was re-run.
+  their 39-name re-run read the same export; none was run on the complete file.
 
   Of the 29 records it rewrites, 19 keep identical values and 10 change, for three causes:
   1. DIF is seeded, but its fifth decimal depends on the BLAS thread count (`dif_seed_sensitivity.json`,
@@ -102,19 +132,28 @@ scripts need numpy and scipy; `four_corpus_tables.py` also imports `corpus_names
   will generally fail. Compare values, not hashes.
 
   Both passes ran on the derived tree as it stood before the six CIC-IDS-2017 Wednesday files were
-  regenerated (`extraction/README.md`). For this revision `regenerate.sh`, `sixth_victim.sh` and
-  `heldout_threeway40.sh` were run again in full on the regenerated tree. Three records changed in value
-  and replace the deposited ones: `results/c_engine_ours.json` (18 values of the shipped engine's rule
+  regenerated (`extraction/README.md`). For the revision that regenerated them (commit `9d51bdc`, still on
+  37 feature names) `regenerate.sh`, `sixth_victim.sh` and `heldout_threeway40.sh` were run again in full
+  on the regenerated tree. Three records changed in value and replaced the deposited ones: `results/c_engine_ours.json` (18 values of the shipped engine's rule
   set), and `results/split_control_threeway40_matrix.json` and
   `recompute/results/split_control_threeway40_sixvictim_matrix.json` (one INNE cell each, 0.974410 to
   0.974356), with two leaves of `numbers.json` that derive from that cell. The other records these
   scripts write were unchanged apart from unseeded LODA cells and stored run times, and were kept. `extra.json`,
-  `tables_v4.json` and `validation.json` are unchanged. `ComparisonResults/README.md` lists the changes;
+  `tables_v4.json` and `validation.json` were unchanged. `ComparisonResults/README.md` lists the changes;
   `pass_comparison.tsv` still compares passes 1 and 2.
+
+  For the 39-name revision every record whose deposited writer could be run was re-run on the rebuilt tree:
+  the whole `regenerate.sh` set with `heldout_threeway40.sh` and `sixth_victim.sh`, the C-port check with
+  the recovered `subspace_q.c`, `extraction/write_admissibility_inputs.py`, and the four LITNET-2020 subnet
+  and ablation records with the patched subnet loader. 44 of the 57 records were re-run; six inputs are
+  unchanged by construction and seven records with no deposited writer keep their earlier values.
+  `ComparisonResults/README.md` ("Records after the 39-name re-run") lists them, and
+  `results/feature_set_comparison_37_vs_39.tsv` sets the headline statistics of the two feature sets side by
+  side.
 
 ## recompute/results/
 
-Two post hoc checks, neither listed in `SHA256SUMS.results`.
+Two post hoc checks and the 37-against-39 comparison, none listed in `SHA256SUMS.results`.
 
 The held-out operating point re-scored under the repaired 40/40/20 split (`regeneration/heldout_threeway40.sh`):
 `scenarios29_corrected_results_threeway40.json`, `adjacency_free_fpr_threeway40.json` and
@@ -127,7 +166,9 @@ run under the two repaired three-way splits only; the deposited split leaves tha
 - `PANEL_sixvictim.json`: the 17-row panel inventory (the input; no deposited writer).
 - `split_control_benchmark_threeway{40,60}_sixvictim.json`, `split_control_threeway{40,60}_sixvictim_matrix.json`:
   the records, with populations `PANEL-17` and `USABLE-strict`.
-- `SHA256SUMS`: checksums of all eight files here. Run `sha256sum -c SHA256SUMS` inside
+- `feature_set_comparison_37_vs_39.tsv`: the pre-registered headline statistics on the 37 and the 39 names
+  (see Outputs above), written by `compare_feature_sets.py`.
+- `SHA256SUMS`: checksums of all nine files here. Run `sha256sum -c SHA256SUMS` inside
   `recompute/results/`. The two benchmark records and two of the three held-out records (all but `adjacency_free_fpr_threeway40.json`)
   store `elapsed_sec`, the wall-clock run time, so every re-run changes their hashes; compare their values instead.
 

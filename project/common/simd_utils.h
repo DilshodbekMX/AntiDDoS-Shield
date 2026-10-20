@@ -200,53 +200,16 @@ SIMD_INLINE uint32_t simd_count_zero_u8(const uint8_t *data, size_t len) {
     return count;
 }
 
-/**
- * Compute sum of 2^(-register[i]) for HyperLogLog harmonic mean
- * This is the expensive part of HLL count estimation
- *
- * @param registers  HLL register array
- * @param len        Number of registers
- * @return Sum of 2^(-register[i])
+/*
+ * HyperLogLog: this header has no register update or estimator code. Every HLL
+ * user goes through hll_add() and hll_count() in layer1/telemetry/hyperloglog.c,
+ * which mix the key and count rho over the bits left after the register index.
+ * The two copies that lived here, simd_hll_batch_add() and
+ * simd_hll_harmonic_sum(), had no caller and were removed: the batch update
+ * counted the index bits in rho (every register at least 15) and wrote unmixed
+ * CRC keys, and the harmonic sum served the classic estimator that hll_count()
+ * replaced. tests/unit/test_simd_utils.c fails to compile if either returns.
  */
-SIMD_INLINE double simd_hll_harmonic_sum(const uint8_t *registers, size_t len) {
-    double sum = 0.0;
-
-    /* Precomputed powers of 2^(-i) for i = 0..63 */
-    static const double pow2_neg[64] = {
-        1.0, 0.5, 0.25, 0.125, 0.0625, 0.03125, 0.015625, 0.0078125,
-        0.00390625, 0.001953125, 0.0009765625, 0.00048828125,
-        0.000244140625, 0.0001220703125, 6.103515625e-05, 3.0517578125e-05,
-        1.52587890625e-05, 7.62939453125e-06, 3.814697265625e-06, 1.9073486328125e-06,
-        9.5367431640625e-07, 4.76837158203125e-07, 2.384185791015625e-07, 1.1920928955078125e-07,
-        5.9604644775390625e-08, 2.9802322387695312e-08, 1.4901161193847656e-08, 7.450580596923828e-09,
-        3.725290298461914e-09, 1.862645149230957e-09, 9.313225746154785e-10, 4.656612873077393e-10,
-        2.3283064365386963e-10, 1.1641532182693481e-10, 5.820766091346741e-11, 2.9103830456733704e-11,
-        1.4551915228366852e-11, 7.275957614183426e-12, 3.637978807091713e-12, 1.8189894035458565e-12,
-        9.094947017729282e-13, 4.547473508864641e-13, 2.2737367544323206e-13, 1.1368683772161603e-13,
-        5.684341886080802e-14, 2.842170943040401e-14, 1.4210854715202004e-14, 7.105427357601002e-15,
-        3.552713678800501e-15, 1.7763568394002505e-15, 8.881784197001252e-16, 4.440892098500626e-16,
-        2.220446049250313e-16, 1.1102230246251565e-16, 5.551115123125783e-17, 2.7755575615628914e-17,
-        1.3877787807814457e-17, 6.938893903907228e-18, 3.469446951953614e-18, 1.734723475976807e-18,
-        8.673617379884035e-19, 4.336808689942018e-19, 2.168404344971009e-19, 1.0842021724855044e-19,
-    };
-
-    /* Unrolled loop for better pipelining */
-    size_t i = 0;
-    size_t len_unroll = len & ~3UL;
-
-    for (; i < len_unroll; i += 4) {
-        sum += pow2_neg[registers[i]];
-        sum += pow2_neg[registers[i + 1]];
-        sum += pow2_neg[registers[i + 2]];
-        sum += pow2_neg[registers[i + 3]];
-    }
-
-    for (; i < len; i++) {
-        sum += pow2_neg[registers[i]];
-    }
-
-    return sum;
-}
 
 /* ========================================================================== */
 /*                           Bit Operations                                    */
@@ -330,45 +293,5 @@ SIMD_INLINE uint32_t simd_crc32c_u64(uint32_t crc, uint64_t data) {
 }
 
 #endif /* HAVE_SSE42 */
-
-/* ========================================================================== */
-/*                           Batch Processing                                  */
-/* ========================================================================== */
-
-/**
- * Batch update HLL registers with multiple IPs
- * Amortizes function call overhead and improves cache locality
- *
- * @param registers  HLL register array (modified in place)
- * @param ips        Array of IP addresses (network byte order)
- * @param count      Number of IPs
- * @param p_mask     HLL register index mask (e.g., 0x3FFF for 16384 registers)
- * @param p_shift    HLL precision shift (e.g., 14 for 16384 registers)
- */
-SIMD_INLINE void simd_hll_batch_add(uint8_t *registers,
-                                     const uint32_t *ips,
-                                     size_t count,
-                                     uint32_t p_mask,
-                                     uint32_t p_shift) {
-    for (size_t i = 0; i < count; i++) {
-        /* Hash IP to 64-bit value */
-        uint32_t lo = simd_crc32c_u32(0x12345678, ips[i]);
-        uint32_t hi = simd_crc32c_u32(0x87654321, ips[i]);
-        uint64_t hash = ((uint64_t)hi << 32) | lo;
-
-        /* Extract register index and value */
-        uint32_t index = hash & p_mask;
-        uint64_t remaining = hash >> p_shift;
-
-        /* Count leading zeros + 1 */
-        uint8_t rho = (remaining == 0) ? 64 : (uint8_t)(simd_clz64(remaining) + 1);
-        if (rho > 63) rho = 63;
-
-        /* Max update */
-        if (rho > registers[index]) {
-            registers[index] = rho;
-        }
-    }
-}
 
 #endif /* SIMD_UTILS_H */

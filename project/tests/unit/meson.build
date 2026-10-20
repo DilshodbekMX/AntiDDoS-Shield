@@ -80,6 +80,19 @@ if get_option('build_tests')
         link_args: ['-lm'],
         install: false,
     )
+    test('innovation_gate_tests', test_innovation_gate)
+
+    # Test: common/simd_utils.h (pure C, no DPDK). Nothing else includes the header, so
+    # this is its only build: the helpers against scalar references, and a compile-time
+    # guard against the removed second HyperLogLog path (simd_hll_batch_add and
+    # simd_hll_harmonic_sum; every HLL user goes through hll_add / hll_count).
+    test_simd_utils = executable(
+        'test_simd_utils',
+        files('test_simd_utils.c'),
+        include_directories: [include_directories('../../')],
+        install: false,
+    )
+    test('simd_utils_tests', test_simd_utils)
 
     # Test: burst_factor EWMA (pure C, no DPDK) -- the one definition shared by the
     # aggregate path (shared_memory.c) and the per-IP path (per_ip_features*.c): seed,
@@ -203,5 +216,72 @@ if get_option('build_tests')
         install: false,
     )
     test('per_ip_burst_tests', test_per_ip_burst, env: test_env)
+
+    # Test: HyperLogLog accuracy through the engine's key paths (per-IP v4 and v6 slots,
+    # protected-subnet slot, global source-IP HLL), random and sequential keys, 1 to 10^6
+    # distinct keys (requires EAL: rte_hash / rte_malloc / rte_lpm; exits 77 = skip if EAL
+    # cannot init)
+    test_hll_accuracy = executable(
+        'test_hll_accuracy',
+        files('test_hll_accuracy.c'),
+        dependencies: [dpdk_dep, m_dep],
+        link_with: [layer1_lib],
+        include_directories: [include_directories('../../')],
+        install: false,
+    )
+    test('hll_accuracy_tests', test_hll_accuracy, env: test_env)
+
+    # Test: new flows to addresses covered only by a protected subnet count on the subnet's
+    # per-IP slot, through layer1_init() + layer1_process_packet_ex(). Runs in a private user +
+    # mount namespace with its own /dev/shm and a temporary directory; exits 77 = skip when
+    # that isolation (or EAL) is unavailable
+    test_subnet_new_flows = executable(
+        'test_subnet_new_flows',
+        files('test_subnet_new_flows.c'),
+        dependencies: [dpdk_dep, sqlite3_dep, m_dep],
+        link_with: [core_lib, liblayer2, liblayer1, libcjson],
+        include_directories: [include_directories('../../')],
+        link_args: ['-lpthread'],
+        install: false,
+    )
+    test('subnet_new_flows_tests', test_subnet_new_flows, env: test_env)
+
+    # Test: the same pipeline check without any namespace, so Stage 11's call site stays
+    # covered where unprivileged namespaces are unavailable. It compiles layer1.c into the
+    # test with the three layer1_init() calls that create /dev/shm files renamed (private
+    # DPDK-heap shared memory; the realtime and window segments report failure), and
+    # confines its writes with Landlock where available. See the file header.
+    test_subnet_new_flows_seam = executable(
+        'test_subnet_new_flows_seam',
+        files('test_subnet_new_flows.c'),
+        c_args: ['-DSUBNET_FLOWS_SEAM'],
+        dependencies: [dpdk_dep, sqlite3_dep, m_dep],
+        link_with: [core_lib, liblayer2, liblayer1, libcjson],
+        include_directories: [include_directories('../../', '../../common', '../../external',
+            '../../layer1', '../../layer1/config', '../../layer1/interlayer',
+            '../../layer1/datapath', '../../layer1/tables', '../../layer1/telemetry',
+            '../../layer2', '../../layer2/config', '../../core')],
+        link_args: ['-lpthread'],
+        install: false,
+    )
+    test('subnet_new_flows_seam_tests', test_subnet_new_flows_seam, env: test_env)
+
+    # Test: flow tracking through layer1_process_packet_ex(): RST/FIN validation at IPv4 and
+    # IPv6 Stage 11, the IPv6 Stage 11 counters, and the flows of SYN proxy connections
+    # (Stage 9 and the outbound path). Compiles layer1.c in with the /dev/shm init calls
+    # renamed, as subnet_new_flows_seam_tests does (see the file header).
+    test_flow_pipeline = executable(
+        'test_flow_pipeline',
+        files('test_flow_pipeline.c'),
+        dependencies: [dpdk_dep, sqlite3_dep, m_dep],
+        link_with: [core_lib, liblayer2, liblayer1, libcjson],
+        include_directories: [include_directories('../../', '../../common', '../../external',
+            '../../layer1', '../../layer1/config', '../../layer1/interlayer',
+            '../../layer1/datapath', '../../layer1/tables', '../../layer1/telemetry',
+            '../../layer2', '../../layer2/config', '../../core')],
+        link_args: ['-lpthread'],
+        install: false,
+    )
+    test('flow_pipeline_tests', test_flow_pipeline, env: test_env)
   endif  # dpdk_dep.found()
 endif

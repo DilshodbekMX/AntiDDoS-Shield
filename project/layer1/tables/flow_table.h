@@ -22,9 +22,14 @@ struct per_ip_anomaly_snapshot;
  * - DPDK idiomatic: Uses rte_hash, rte_ring, rte_malloc throughout
  *
  * Thread safety:
- * - flow_table_lookup_or_create(): Safe from multiple lcores (RW_CONCURRENCY)
+ * - flow_table_lookup_or_create(): Safe from multiple lcores and threads:
+ *   lookups run concurrently (RW_CONCURRENCY), and every add and delete of
+ *   the hash, from creates, aging, eviction and clear, holds one writer lock
  * - flow_table_update(): Safe with atomic counters
  * - flow_table_age_flows(): Should run from single maintenance thread
+ * - A deleted entry is reused only after every registered reader has
+ *   reported a quiescent state since the delete (see "Deferred
+ *   Reclamation" below)
  */
 
 // ==================== Flow State ====================
@@ -46,7 +51,7 @@ enum flow_state {
     FLOW_STATE_TIME_WAIT,        // Both sides closed, waiting for timeout
     FLOW_STATE_CLOSED,           // Connection fully closed
     FLOW_STATE_RST,              // Connection reset
-    FLOW_STATE_INITIALIZING,     // Entry being initialized (transient state)
+    FLOW_STATE_INITIALIZING,     // Entry being initialized, or claimed for eviction (transient state)
     FLOW_STATE_MAX
 };
 
@@ -125,6 +130,7 @@ _Static_assert(sizeof(struct flow_entry) == 128,
 #define FLOW_FLAG_ESTABLISHED           0x08
 #define FLOW_FLAG_MARKED_FOR_DELETE     0x10
 #define FLOW_FLAG_SEQ_TRACKING_ENABLED  0x20  // Sequence tracking active
+#define FLOW_FLAG_HANDSHAKE_ACKED       0x40  // Handshake ACK acknowledged the responder's ISN + 1
 
 // RST/FIN validation result
 enum rst_fin_validation_result {
@@ -138,7 +144,7 @@ enum rst_fin_validation_result {
 // ==================== Configuration ====================
 
 struct flow_table_config {
-    uint32_t max_flows;            // Maximum concurrent flows
+    uint32_t max_flows;            // Maximum concurrent flows (a hard capacity: the hash refuses no key below it)
     uint32_t idle_timeout_sec;     // Timeout for established flows
     uint32_t syn_timeout_sec;      // Timeout for half-open connections
     uint32_t default_pps_limit;    // Default packets/sec limit (0 = unlimited)
@@ -226,11 +232,11 @@ struct flow_entry* flow_table_lookup_or_create_tsc(struct packet_features *featu
 struct flow_entry* flow_table_lookup(struct packet_features *features);
 
 /**
- * Lookup existing flow with precomputed hash (avoids double hashing).
- * Use when you already computed the flow hash.
+ * Lookup existing flow with precomputed hash (avoids double hashing): the
+ * table's own hash, rte_jhash(key, sizeof(*key), flow_table_get_hash_seed()).
  *
  * @param key       Flow key (canonical)
- * @param hash      Precomputed hash value
+ * @param hash      Precomputed hash value (the table's seed is random)
  * @return Flow entry pointer, or NULL if not found
  */
 struct flow_entry* flow_table_lookup_with_hash(const struct flow_key *key,
@@ -255,6 +261,36 @@ void flow_table_update(struct flow_entry *flow, const struct packet_features *fe
  */
 void flow_table_update_tsc(struct flow_entry *flow, const struct packet_features *features,
                            uint64_t now_tsc);
+
+/**
+ * Count a packet on its flow without letting it change the flow's TCP view:
+ * the packet and byte counters of its direction and the last-seen time move,
+ * as in flow_table_update(), while the TCP flags seen, the sequence and ACK
+ * tracking and the state stay as they were. For a segment the flow cannot
+ * vouch for, such as an RST or FIN outside the connection's sequence window
+ * (flow_table_validate_rst_fin()): it is forwarded, but it neither tears the
+ * flow down nor moves the window the next RST is checked against.
+ *
+ * @param flow      Flow entry to update
+ * @param features  Packet features (flow_direction set by the lookup)
+ */
+void flow_table_count_packet(struct flow_entry *flow, const struct packet_features *features);
+
+/**
+ * Record on a TCP flow that its initiator completed a handshake verified
+ * outside the flow table, which a blind sender cannot do: the SYN proxy
+ * validated the cookie the initiator's ACK returned, or saw the initiator
+ * acknowledge the server's ISN + 1 on a connection it let through (the table
+ * misses that handshake when the proxy answers the SYN, or when the flow was
+ * created after it). Sets FLOW_FLAG_HANDSHAKE_ACKED (and
+ * FLOW_FLAG_ESTABLISHED) and moves a flow still in NEW, SYN_RECEIVED or
+ * SYN_ACK_RECEIVED to ESTABLISHED, as the handshake the table sees itself
+ * does; a closing or terminal state is kept. Like such a flow it is then
+ * protected from emergency eviction while it shows traffic both ways.
+ *
+ * @param flow  Flow entry (from a lookup or create)
+ */
+void flow_table_mark_handshake_verified(struct flow_entry *flow);
 
 /**
  * Check and apply rate limits.
@@ -299,10 +335,100 @@ uint32_t flow_table_age_flows(void);
  * 3. Low reputation score flows
  * 4. Oldest inactive flows
  *
+ * Never chosen for eviction (aging expires them when idle): established TCP
+ * flows with traffic in both directions whose handshake ACK acknowledged the
+ * responder's ISN + 1. A blind ACK cannot know that ISN, so its flow stays
+ * evictable. Non-TCP flows have no handshake and stay evictable too; they
+ * score as established while they show traffic in both directions, and so
+ * does a TCP flow first seen mid-stream (still FLOW_STATE_NEW, no handshake
+ * seen), which stays evictable for the same reason.
+ * Each chosen flow is checked again, under the table's writer lock, just
+ * before it is deleted, and claimed by a compare-and-swap of the state it was
+ * checked in: a flow whose handshake completed before the claim is kept.
+ * Fewer than count_needed flows, possibly none, may be evicted. An evicted
+ * entry is reused only after every registered reader has reported a
+ * quiescent state (see "Deferred Reclamation").
+ *
  * @param count_needed  Number of flow slots needed
  * @return Number of flows evicted
  */
 uint32_t flow_table_emergency_evict(uint32_t count_needed);
+
+/**
+ * Test seam: flow_table_emergency_evict() calls this after choosing its
+ * candidates and before deleting them. The library's weak definition does
+ * nothing; a unit test may link its own to change flows at that point.
+ */
+void flow_table_evict_seam(void);
+
+/**
+ * Test seam: flow_table_emergency_evict() calls this for each chosen flow
+ * that passed its recheck, just before claiming and deleting it, with the
+ * table's writer lock held (an override may update flows but must not
+ * create, age, evict or clear). The library's weak definition does nothing.
+ */
+void flow_table_evict_claim_seam(void);
+
+/**
+ * Test seam: flow_table_age_flows() calls this after choosing the expired
+ * flows of a pass and before deleting them, without the writer lock. The
+ * library's weak definition does nothing.
+ */
+void flow_table_age_seam(void);
+
+/**
+ * Points at which both tables call flow_table_race_seam(): moments at which
+ * another lcore could act on the same flows. "Under the lock" means with the
+ * table's writer lock held.
+ */
+enum flow_table_seam_point {
+    FLOW_SEAM_CREATE_MISSED = 0, // create: the lockless lookup missed, before the index allocation
+    FLOW_SEAM_CREATE_ADDED,      // create: added to the hash (lock released), before the flow is published
+    FLOW_SEAM_PUBLISH_WAIT,      // create: found another creator's unpublished flow (lock released), before the bounded wait
+    FLOW_SEAM_AGE_DELETE,        // aging: a flow passed its recheck, under the lock, before its delete
+    FLOW_SEAM_CLEAR_DELETE,      // clear: a key was found, under the lock, before its delete
+    FLOW_SEAM_V6_CREATE_MISSED,  // IPv6 create: as FLOW_SEAM_CREATE_MISSED
+    FLOW_SEAM_V6_CREATE_ADDED,   // IPv6 create: as FLOW_SEAM_CREATE_ADDED
+    FLOW_SEAM_V6_PUBLISH_WAIT,   // IPv6 create: as FLOW_SEAM_PUBLISH_WAIT
+    FLOW_SEAM_V6_AGE,            // IPv6 aging: after choosing the expired flows, before the deletes (no lock)
+    FLOW_SEAM_V6_AGE_DELETE,     // IPv6 aging: as FLOW_SEAM_AGE_DELETE
+    FLOW_SEAM_V6_EVICT,          // IPv6 eviction: after choosing the candidates, before the deletes (no lock)
+    FLOW_SEAM_V6_EVICT_CLAIM,    // IPv6 eviction: a candidate passed its recheck, under the lock, before its claim
+    FLOW_SEAM_V6_CLEAR_DELETE,   // IPv6 clear: as FLOW_SEAM_CLEAR_DELETE
+    FLOW_SEAM_MAX
+};
+
+/**
+ * Test seam: called at each point of enum flow_table_seam_point. The
+ * library's weak definition does nothing; a unit test may link its own to
+ * act there as another lcore would. At a point under the lock an override
+ * may update flows but must not create, age, evict or clear.
+ */
+void flow_table_race_seam(enum flow_table_seam_point point);
+
+/**
+ * Test seam: flow_table_init() and flow_table_v6_init() call this for the
+ * seed of their hash function. The library's weak definition returns false,
+ * and the table then takes a random seed: with a fixed one, a sender could
+ * choose keys that share buckets, which the extendable buckets chain instead
+ * of refusing. A unit test may link its own definition that sets *seed and
+ * returns true, for a reproducible layout.
+ *
+ * @param seed  Output: the seed to use
+ * @return true if *seed was set
+ */
+bool flow_table_hash_seed_seam(uint32_t *seed);
+
+/**
+ * Seed of the IPv4 table's hash function (diagnostics and tests).
+ */
+uint32_t flow_table_get_hash_seed(void);
+
+/**
+ * Whether the IPv4 table's writer lock is held, by anyone (diagnostics and
+ * tests: a seam at a point under the lock checks that it is).
+ */
+bool flow_table_writer_lock_held(void);
 
 /**
  * Check if emergency eviction is needed.
@@ -350,18 +476,96 @@ void flow_table_print_stats(void);
  */
 void flow_table_dump(uint32_t max_entries);
 
+// ==================== Deferred Reclamation ====================
+
+/**
+ * Aging, emergency eviction and clear delete flows while other lcores may
+ * still hold pointers to them from earlier lookups, and write through them
+ * (flow_table_update() and the rest). A deleted entry is therefore not
+ * reused at once: it waits in its table's limbo, and returns to the free
+ * indices only after every registered reader has reported a quiescent state
+ * since the delete (rte_rcu_qsbr). A late write then lands on the dead
+ * entry, never on the next flow that takes it. Both tables share the
+ * readers.
+ *
+ * - Bounded: an index is in one place at a time (the hash, the free indices,
+ *   the limbo, or a create in progress), so a limbo never holds more than
+ *   max_flows indices, never refuses a delete and never leaks an index.
+ * - Never blocks: a create that finds no free index takes back, without
+ *   waiting, what has passed its grace period (a bounded number per call),
+ *   and aging does the same once per pass. With no reader registered, a
+ *   deleted entry can be taken back at once.
+ * - While 256 or more deleted entries (an eviction's batch) wait, the
+ *   emergency eviction is skipped: evicting more live flows would not make
+ *   room any sooner. If a registered reader stops reporting, deleted entries
+ *   are not reused: creates fail once the free indices run out (fail-safe:
+ *   no live flow is evicted for nothing), and aging logs a warning.
+ *
+ * A reader is a thread that holds flow pointers across calls into the table.
+ * Each packet loop registers its lcore id once (flow_table_reader_register())
+ * and reports a quiescent state at least once per RX burst
+ * (flow_table_reader_quiescent()), at a point where it holds no flow
+ * pointer; it unregisters before it exits. A thread that never registers is
+ * not waited for, and must not use a flow pointer once the call that
+ * returned it has ended.
+ */
+
+/**
+ * Register the calling thread as a reader under reader_id (its lcore id,
+ * below RTE_MAX_LCORE) and put it online: deleted entries now wait for its
+ * quiescent reports.
+ *
+ * @return 0 on success, -1 on error (reader_id out of range, no memory)
+ */
+int flow_table_reader_register(unsigned int reader_id);
+
+/**
+ * Take a reader offline and unregister it: deleted entries stop waiting for
+ * it. It must hold no flow pointer.
+ */
+void flow_table_reader_unregister(unsigned int reader_id);
+
+/**
+ * Report a quiescent state for a registered reader: it holds no flow pointer
+ * obtained before this call. Cheap: a load of the shared token and, when it
+ * changed, one store to the reader's own cache line.
+ */
+void flow_table_reader_quiescent(unsigned int reader_id);
+
+/**
+ * Number of deleted IPv4 flow entries waiting for their grace period.
+ */
+uint32_t flow_table_limbo_count(void);
+
 // ==================== RST/FIN Validation ====================
 
 /**
  * Validate RST or FIN packet against flow state.
  * Checks that the sequence number is within the expected window.
  * This prevents spoofed RST/FIN attacks that try to tear down connections.
+ * Layer 1 validates every RST or FIN segment at Stage 11 (with
+ * flow_table_validate_rst_fin_flow(), below) and counts a segment outside
+ * the window on its flow without letting it change the flow
+ * (flow_table_count_packet()); see Stage 11 in layer1.c.
  *
  * @param features  Packet features (must be RST or FIN packet)
  * @return RST_FIN_VALID if packet is valid, error code otherwise
  */
 enum rst_fin_validation_result flow_table_validate_rst_fin(
     struct packet_features *features);
+
+/**
+ * The same validation and counting against a flow the caller has looked up
+ * already, without a lookup of its own: Stage 11 validates against the flow
+ * its own lookup returned, so an RST or FIN segment costs one lookup, as any
+ * other segment does (a flood of blind RSTs would otherwise pay two). flow
+ * is NULL when the segment has no flow, and so is a flow the caller's lookup
+ * has just created for it: both count and return RST_FIN_NO_FLOW, as
+ * flow_table_validate_rst_fin() does when its lookup misses. features must
+ * have been through that lookup (it sets features->flow_direction).
+ */
+enum rst_fin_validation_result flow_table_validate_rst_fin_flow(
+    struct flow_entry *flow, const struct packet_features *features);
 
 /**
  * Get RST/FIN validation statistics
@@ -396,9 +600,12 @@ static inline const char* flow_state_str(enum flow_state state) {
     static const char *names[] = {
         "NEW", "SYN_RECV", "SYN_ACK_RECV", "ESTABLISHED",
         "FIN_WAIT_1", "FIN_WAIT_2", "CLOSE_WAIT", "CLOSING",
-        "LAST_ACK", "TIME_WAIT", "CLOSED", "RST"
+        "LAST_ACK", "TIME_WAIT", "CLOSED", "RST", "INITIALIZING"
     };
-    return (state < FLOW_STATE_MAX) ? names[state] : "UNKNOWN";
+    // One name per state: a state added without a name fails to compile
+    _Static_assert(RTE_DIM(names) == FLOW_STATE_MAX,
+                   "flow_state_str() needs one name per enum flow_state value");
+    return ((unsigned int)state < RTE_DIM(names)) ? names[state] : "UNKNOWN";
 }
 
 #endif // LAYER1_FLOW_TABLE_H
