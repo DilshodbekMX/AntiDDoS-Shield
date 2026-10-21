@@ -43,12 +43,13 @@ did not make it usable. The attack occupies the *opening* minutes of this host's
 record, so nothing benign precedes it (all 2,406 of its benign windows follow
 it): `n_calib = 0`, the conformal floor is 1, and no detector can fire at any α.
 Both boundary failures are properties of where the capture happens to start and
-stop, not of the attacks themselves. The `udp_f` entry's `fpr_note` in
-`index.json` was corrected by hand to say this. The payload's own
-`metadata.fpr_note` still reads "attack runs to capture end", the text
-`export_litnet_scenarios.py` writes for every scenario without test-benign
-windows, and `write_extracted_index.py` copies the payload's note back into the
-index on a rebuild.
+stop, not of the attacks themselves. In the authors' earlier tree a note that no
+benign traffic precedes the attack was written by hand into both the `udp_f`
+payload's `metadata.fpr_note` and its `index.json` entry, because the
+development exporter wrote "attack runs to capture end" for every scenario
+without test-benign windows. The deposited `export_litnet_scenarios.py` writes
+that note itself where `n_calib` is also 0, and `write_extracted_index.py`
+copies the payload's note into the index, so a rebuild writes both.
 
 **http_flood** carries 360 attack windows whose packet rate is 1.10× the same
 host's benign p95. On the screen's per-feature tests it is statistically the

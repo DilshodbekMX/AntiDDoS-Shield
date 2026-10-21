@@ -33,8 +33,9 @@ The first attacker unusable_reason typed into the tree quoted a Syn.csv-only
 count from a truncated read (see stamp_cicddos_roles.py). It is not reproduced
 here; the provisional text below carries no count.
 
-Byte-for-byte checksums of the tree's payloads still cannot be reproduced:
-their key order also reflects the run order of the later writers.
+Byte-for-byte checksums of the tree's payloads depend on running the steps in
+the recipe's order (extraction/README.md): their key order also reflects the
+run order of the later writers.
 
     python3 stamp_cicddos_slice_metadata.py [<corpus-dir>] [--alpha 0.01] [--dry-run]
 

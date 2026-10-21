@@ -1,7 +1,7 @@
 """Check the extracted-tree READMEs against the artifacts they describe.
 
-The corpus READMEs live under `datasets/`, which is gitignored, so they are
-outside version control and nothing re-reads them when the data changes. They
+The corpus READMEs lived only under `datasets/` (gitignored), so they were
+outside version control and nothing re-read them when the data changed. They
 drifted badly: after the label-boundary guard (CHANGE 196) the CIC-IDS-2018
 README still printed DDoS-HOIC at 0.0% and DDoS-LOIC-UDP at 89.6% -- the two
 numbers that fix had corrected to 98.2% and 100.0% -- still published a claim

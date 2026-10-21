@@ -2,7 +2,7 @@
 
 The manuscript's runners read a derived per-window feature tree (`datasets/extracted/`: the four
 corpus directories plus the tree's `README.md` and `SCENARIO_INVENTORY.md`, 65 files, 2.06 GB). The
-tree is **not** deposited. This directory holds the code that builds all of it from the official
+tree is **not** deposited. This directory holds the code that builds it from the official
 corpus releases, the tree's own provenance files and the per-file checksums of the tree the authors
 built with this code for this revision, so that a reader can regenerate the tree and compare it
 without the authors shipping data. In this revision the extractors compute the two engine features
@@ -238,10 +238,13 @@ cache built from an incomplete export.
 ## Comparing a rebuilt tree
 
 `tree_manifest/` lists the checksums of the tree that one run of this recipe wrote from the raw
-releases for this revision. Every file of that tree was written by these scripts, so a rebuild from
-the same releases should match it byte for byte: running steps 2 and 3 again on that run's caches,
-into an empty tree, reproduced all 65 files byte for byte. The whole recipe was not run a second
-time from the raw releases. To compare:
+releases for this revision. Every file of that tree except the five `README.md` files, which are
+copied in from `tree_manifest/` (below), was written by these scripts, so a rebuild from the same
+releases should match it byte for byte: running steps 2 and 3 again on that run's caches, into an
+empty tree, reproduced the other 60 files byte for byte; with the five `README.md` files copied in,
+all 65 match. A second run of steps 1 to 3 from the raw releases, into an empty cache directory and
+an empty tree, with the deposited code apart from docstrings and one comment, also wrote these 60
+files byte for byte. To compare:
 
 - run `sha256sum -c` inside `<tree>/<corpus>/` against `tree_manifest/<corpus>/SHA256SUMS`, and
   again inside `<tree>/<corpus>/benign_pools/` against `tree_manifest/<corpus>/benign_pools/SHA256SUMS`;
@@ -313,7 +316,9 @@ describes:
 
 The whole recipe was then run from the official releases on the authors' machine, which the runs
 only read, under Python 3.12.15 with numpy 2.4.2, scipy 1.17.0 and dpkt 1.9.8 and one BLAS thread;
-all 21 modules here compile and import. Every cache has the window count the earlier rebuild had
+all 21 modules here compile and import; the run's copies differ from them only in docstrings and
+one comment, except that after the run `verify_extracted_tree.py` gained its `in_scope` test and
+`write_admissibility_inputs.py` was added. Every cache has the window count the earlier rebuild had
 (CIC-IDS-2017 Monday 545,470, Wednesday 502,770 and Friday 442,606; CSE-CIC-IDS2018 Tuesday 19,824,
 Wednesday 1,329,269, Thursday 1,037,772 and Friday 1,172,125; CIC-DDoS2019 93,238; LITNET-2020
 3,848,562 on 19,015 hosts). The resulting tree:
@@ -321,7 +326,7 @@ Wednesday 1,329,269, Thursday 1,037,772 and Friday 1,172,125; CIC-DDoS2019 93,23
 - holds the same 65 files as the 37-name tree (31 scenario payloads, eight pools and their
   `.meta.json`, four `index.json`, eight `SHA256SUMS`, `SCENARIO_INVENTORY.md` and the five README
   files) in 2,056,369,268 bytes, against 1,912,630,664 (both counted with the README files of commit
-  `895e581`; 2,056,372,694 with this revision's README files copied in); `tree_manifest/README.md`
+  `895e581`; 2,056,372,836 with this revision's README files copied in); `tree_manifest/README.md`
   gives the sizes by corpus;
 - equals the 37-name tree by value on every column that tree carried: all 39 payloads have the same
   hosts in the same order and the same windows, and all 2,165,971 rows are equal on every earlier

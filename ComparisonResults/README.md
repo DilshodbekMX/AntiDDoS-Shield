@@ -10,14 +10,15 @@ The scope is four corpora: CIC-IDS-2017, CSE-CIC-IDS2018, CIC-DDoS2019 and LITNE
 tree names their directories `CIC-IDS-2017`, `CIC-IDS2018`, `CICDDoS2019` and `LITNET-2020`.
 
 No corpus data is deposited. The runners read the derived tree `datasets/extracted/`, which is not
-in the repository. `extraction/` holds the scripts that build all of it from the official corpus
-releases, and `extraction/tree_manifest/` holds the tree's `index.json` files and per-file
+in the repository. `extraction/` holds the scripts that build it from the official corpus releases,
+and `extraction/tree_manifest/` holds the tree's `index.json`, README and inventory files and per-file
 checksums. In this revision the evaluation uses all 39 feature names the shipped engine scores
 (`project/layer2/baselines.c`, `l2_feature_names`), as `recompute/PREREGISTRATION_39_FEATURES.md`
 set out before any record was computed on them: the extraction chain now computes `burst_factor`
-and `unique_flows` the engine's way, the whole tree was rebuilt with it from the raw captures and
-flow files, and `extraction/tree_manifest/` pins the rebuilt tree. On every column the earlier tree
-carried, the rebuilt tree equals it by value. Every record whose deposited writer could be run was
+and `unique_flows` the engine's way, the tree was rebuilt with it from the raw captures and flow
+files (its five README files are copied in), and `extraction/tree_manifest/` pins the rebuilt tree.
+On every column the earlier tree carried, the rebuilt tree equals it by value. Every record whose
+deposited writer could be run was
 then re-run on the rebuilt tree; `recompute/results/feature_set_comparison_37_vs_39.tsv` prints the
 pre-registered headline statistics on both feature sets (see
 [Records after the 39-name re-run](#records-after-the-39-name-re-run)). The earlier revision
@@ -469,7 +470,7 @@ deposited ones. One derived file and one input were updated with them:
 | `results/split_control_threeway40_matrix.json` (replaced) | INNE's AUC on `Wed-05-07_DoS-Hulk` under the 40/40/20 split, 0.974410 to 0.974356 (the scenario row and its two population copies) |
 | `recompute/results/split_control_threeway40_sixvictim_matrix.json` (replaced) | the same INNE cell |
 | `recompute/numbers.json` (recomputed) | INNE's `cluster_mean_delta` under `split_control/threeway40`, PANEL-16 and USABLE-strict, −0.003439 to −0.003441, recomputed from the matrix above |
-| `results/admissibility_inputs.json` (edited by hand) | `payload_sha256` of the five Wednesday candidates (no writer; see below) |
+| `results/admissibility_inputs.json` (edited by hand) | `payload_sha256` of the five Wednesday candidates (no writer at the time; see below) |
 
 The two threeway40 benchmark records (`split_control_threeway40_benchmark.json` and the sixth-victim
 `split_control_benchmark_threeway40_sixvictim.json`) store four decimals, at which nothing moved,
@@ -494,9 +495,10 @@ Subspace-ECOD (k = 8) mean AUC is bit-identical.
   the regenerated files: all 166 values it writes equal the record, and every per-window Python and
   C score is bit-identical to a run on the earlier files on 16 of 16 rows. The record is kept. The C
   source is still not deposited, so a reader cannot repeat this check.
-- `admissibility_inputs.json`. No deposited writer. Re-measured on the regenerated files with
-  `extraction/classify_scenarios.py`, all ten statistics of all 31 candidates are unchanged; only
-  the five Wednesday `payload_sha256` values were updated, by hand, to match the regenerated files.
+- `admissibility_inputs.json`. No deposited writer at the time; it now has one (above). Re-measured
+  on the regenerated files with `extraction/classify_scenarios.py`, all ten statistics of all 31
+  candidates are unchanged; only the five Wednesday `payload_sha256` values were updated, by hand,
+  to match the regenerated files.
 - `full_tree_all_scenarios_metrics.json`. No deposited writer. Its five Wednesday rows were scored
   on the earlier `dst_port_density` scale and are kept as written. The authors re-scored them
   outside the deposit, through a reconstruction of the undeposited scoring code that reproduces four
@@ -566,7 +568,7 @@ to `895e581`); and the 39 names of this revision. All p-values stay descriptive.
 [The 39-name tree](extraction/README.md#the-39-name-tree)): 65 files and 2,056,369,268 bytes as
 built, where the 37-name tree had 1,912,630,664, both counted with the tree README files of commit
 `895e581`; with this revision's README files copied in, as `extraction/README.md` says to do
-before `verify_readme_claims.py`, 2,056,372,694 bytes.
+before `verify_readme_claims.py`, 2,056,372,836 bytes.
 Packet-capture rows carry 40 columns, the 39 engine names and `dir_ratio`; LITNET-2020
 rows carry 15. On every column the 37-name tree carried, all 2,165,971 rows of its 39 payloads are
 equal by value. The four-check classifier admits the same 16 scenarios with the same census

@@ -165,11 +165,12 @@ written by `extraction/write_admissibility_inputs.py`.
 > runners, 18 need the feature tree and `run_litnet_l1subnet.py` reads the raw LITNET-2020 flow
 > export. The extraction chain is deposited under
 > [`ComparisonResults/extraction/`](ComparisonResults/extraction/) (nineteen scripts,
-> `drop_duplicate_columns.py`, a helper module and a README), with the tree's own `index.json`
-> files and per-file `SHA256SUMS`. For this revision the chain computes the two engine features the
-> earlier tree lacked, `burst_factor` and `unique_flows`, and the whole tree was rebuilt with it from
-> the raw captures and flow files; the deposited checksums are those of that rebuild, every one of
-> whose files the chain wrote, and on every earlier column it equals the earlier tree by value.
+> `drop_duplicate_columns.py`, a helper module and a README), with the tree's own `index.json`,
+> README and inventory files and per-file `SHA256SUMS`. For this revision the chain computes the
+> two engine features the earlier tree lacked, `burst_factor` and `unique_flows`, and the whole tree
+> was rebuilt with it from the raw captures and flow files; the deposited checksums are those of
+> that rebuild, every one of whose files the chain wrote except the five README files, and on every
+> earlier column it equals the earlier tree by value.
 > Packet-capture rows carry 40 columns (the engine's 39 names and `dir_ratio`), LITNET-2020 rows 15.
 > Every record whose deposited writer could be run was then re-run on the rebuilt tree, as
 > pre-registered, with the four deviations that `ComparisonResults/README.md` lists. The revision before regenerated the six CIC-IDS-2017 Wednesday files with the
