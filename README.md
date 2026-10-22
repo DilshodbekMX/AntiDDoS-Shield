@@ -18,7 +18,7 @@
 
 ## What applying the protocol changed
 
-The manuscript *A Clock Can Score Like a DDoS Detector: How Split Construction and Scoring
+The manuscript *A Clock Can Score like a DDoS Detector: How Split Construction and Scoring
 Protocol Can Manufacture Training-Free Benchmark Results* sets out a six-rule evaluation protocol and
 applies it to four public corpora (CIC-IDS-2017, CSE-CIC-IDS2018, CIC-DDoS2019 and LITNET-2020).
 Four of its rules ask which victim-scenario slices are
@@ -242,9 +242,9 @@ python -m pytest project/tests/unit_python/
 
 | | Affiliation | |
 | :-- | :-- | :-- |
-| **Pulatjon Oripov** | Cybersecurity Center, Tashkent, Uzbekistan | first author |
-| **Sardor Iskandarov** | Cybersecurity Center, Tashkent · School of Computing, New Uzbekistan University, Tashkent, Uzbekistan | |
-| **Rustamjon Oripov** | Department of Cybersecurity and Forensics, Tashkent University of Information Technologies named after Muhammad al-Khwarizmi, Tashkent, Uzbekistan | |
+| **Pulatjon Oripov** | Cybersecurity Center, Tashkent, Uzbekistan | first author · [ORCID](https://orcid.org/0009-0009-3265-7246) |
+| **Sardor Iskandarov** | Cybersecurity Center, Tashkent · School of Computing, New Uzbekistan University, Tashkent, Uzbekistan | [ORCID](https://orcid.org/0009-0002-1703-3004) |
+| **Rustambek Oripov** | Department of Cybersecurity and Forensics, Tashkent University of Information Technologies named after Muhammad al-Khwarizmi, Tashkent, Uzbekistan | [ORCID](https://orcid.org/0009-0007-2265-942X) |
 | **Dilshodjon Mamadaliev** | Cybersecurity Center, Tashkent, Uzbekistan | corresponding · [ORCID](https://orcid.org/0009-0008-0073-7535) |
 
 Correspondence: mamadalievdilshodjon@gmail.com
@@ -254,11 +254,11 @@ Correspondence: mamadalievdilshodjon@gmail.com
 ```bibtex
 @software{antiddos_shield_2026,
   title   = {AntiDDoS Shield: an evaluation protocol for training-free {DDoS} detection},
-  author  = {Oripov, Pulatjon and Iskandarov, Sardor and Oripov, Rustamjon and Mamadaliev, Dilshodjon},
+  author  = {Oripov, Pulatjon and Iskandarov, Sardor and Oripov, Rustambek and Mamadaliev, Dilshodjon},
   year    = {2026},
   url     = {https://github.com/DilshodbekMX/AntiDDoS-Shield},
   version = {see the commit cited in the manuscript's Data Availability Statement},
-  note    = {Companion deposit of the manuscript \emph{A Clock Can Score Like a {DDoS} Detector: How Split Construction and Scoring Protocol Can Manufacture Training-Free Benchmark Results}}
+  note    = {Companion deposit of the manuscript \emph{A Clock Can Score like a {DDoS} Detector: How Split Construction and Scoring Protocol Can Manufacture Training-Free Benchmark Results}}
 }
 ```
 
